@@ -20,6 +20,21 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-trailing-spaces": "error",
+      semi: ["error", "always"],
+      "comma-dangle": [
+        "error",
+        {
+          objects: "always",
+        },
+      ],
+      quotes: ["error", "double", { avoidEscape: true }],
+    },
+  },
 ];
 
 export default eslintConfig;
