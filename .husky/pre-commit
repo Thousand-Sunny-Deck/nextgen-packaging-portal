@@ -1,1 +1,2 @@
-npm test
+npm run prepare
+npm run pre-commit
