@@ -6,6 +6,5 @@
 	"useTabs": true,
 	"printWidth": 80,
 	"arrowParens": "always",
-	"endOfLine": "lf",
-	"trimTrailingWhitespace": true
+	"endOfLine": "lf"
 }

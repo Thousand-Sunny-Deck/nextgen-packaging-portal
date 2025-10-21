@@ -11,7 +11,6 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
 	...compat.extends("next/core-web-vitals", "next/typescript"),
-	...compat.extends("plugin:prettier/recommended"),
 	{
 		ignores: [
 			"node_modules/**",
@@ -28,7 +27,6 @@ const eslintConfig = [
 			"no-trailing-spaces": "error",
 			semi: ["error", "always"],
 			quotes: ["error", "double", { avoidEscape: true }],
-			"prettier/prettier": "error",
 		},
 	},
 ];

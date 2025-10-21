@@ -4,10 +4,5 @@ export default function Home() {
 		.filter((x) => x % 2 === 0)
 		.reduce((x) => x++);
 
-	const b: any = {};
-	return (
-		<div>
-			{a} {b}
-		</div>
-	);
+	return <div>{a}</div>;
 }
