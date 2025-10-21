@@ -1,8 +1,12 @@
-export default function Home() {
-	const a = [1, 2, 2, 3, 4]
-		.map((x) => x * 3)
-		.filter((x) => x % 2 === 0)
-		.reduce((x) => x++);
+/**
+ *
+ * This is sole purpose is to redirect to /entry and then /portal (if logged in)
+ */
 
-	return <div>{a}</div>;
-}
+import { redirect } from "next/navigation";
+
+const HomePage = () => {
+	redirect("/entry");
+};
+
+export default HomePage;
