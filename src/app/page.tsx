@@ -5,7 +5,6 @@ export default function Home() {
 		.reduce((x) => x++);
 
 	const b: any = {};
-
 	return (
 		<div>
 			{a} {b}
