@@ -1,3 +1,8 @@
 export default function Home() {
-  return <div>This is a page</div>;
+	const a = [1, 2, 2, 3, 4]
+		.map((x) => x * 3)
+		.filter((x) => x % 2 === 0)
+		.reduce((x) => x++);
+
+	return <div>{a}</div>;
 }
