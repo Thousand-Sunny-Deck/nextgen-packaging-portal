@@ -5,8 +5,10 @@
  *  IF they are not logged in (session check). Checking the auth hook for this.
  */
 
+import LoginPage from "./login";
+
 const EntryPage = () => {
-	return <div>This is the Entry page</div>;
+	return <LoginPage />;
 };
 
 export default EntryPage;
