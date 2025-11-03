@@ -28,6 +28,8 @@
 		]
 	},
 	"devDependencies": {
+		"zod": "4.1.12",
+		"@t3-oss/env-nextjs": "0.13.8",
 		"@eslint/eslintrc": "^3",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^22",
