@@ -6,7 +6,11 @@
  */
 
 const EntryPage = () => {
-	return <div>This is the Entry page</div>;
+	return (
+		<div className="ml-10 mt-10">
+			<div className="p-8"></div>
+		</div>
+	);
 };
 
 export default EntryPage;
