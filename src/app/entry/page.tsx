@@ -15,13 +15,14 @@ import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-const EntryPage = () => {
-	const formSchema = z.object({
-		email: z.email(),
-		password: z.string().min(10),
-	});
+const formSchema = z.object({
+	email: z.email(),
+	password: z.string().min(10),
+});
+type FormSchemaType = z.infer<typeof formSchema>;
 
-	const form = useForm<z.infer<typeof formSchema>>({
+const EntryPage = () => {
+	const form = useForm<FormSchemaType>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			email: "",
@@ -29,7 +30,7 @@ const EntryPage = () => {
 		},
 	});
 
-	const onSubmit = async (data: z.infer<typeof formSchema>) => {
+	const onSubmit = async (data: FormSchemaType) => {
 		await signIn.email(
 			{
 				email: data.email,
