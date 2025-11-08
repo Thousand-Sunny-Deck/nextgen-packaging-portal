@@ -1,16 +1,26 @@
-"use client";
-import { env } from "@/lib/env-validation/env";
-/**
- *
- * This is for route: {NGP_domain}/portal
- * I do think it needs to be {NGP_domain}/portal/{uuid} <- some unique identifier
- * but let work with this for now.
- */
+import { SignOutButton } from "@/components/sign-out-button";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-// THIS WILL THROW AN ERROR as we are accessing a server "env" on a client component
-console.log(env.BETTER_AUTH_SECRET);
-const PortalPage = () => {
-	return <div>This is portal page</div>;
+const PortalPage = async () => {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session) {
+		redirect("/entry");
+	}
+
+	return (
+		<div className="px-7 py-16 container mx-auto max-w-screen space-y-8">
+			<pre className="text-smm overflow-clip">
+				{JSON.stringify(session, null, 2)}
+			</pre>
+
+			<SignOutButton />
+		</div>
+	);
 };
 
 export default PortalPage;
