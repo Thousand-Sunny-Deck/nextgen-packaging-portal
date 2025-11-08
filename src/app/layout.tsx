@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 // TODO: Add fonts here.
 
@@ -15,7 +16,10 @@ const RootLayout = ({
 }>) => {
 	return (
 		<html lang="en">
-			<body className="antialiased">{children}</body>
+			<body className="antialiased">
+				<main>{children}</main>
+				<Toaster position="bottom-right" />
+			</body>
 		</html>
 	);
 };

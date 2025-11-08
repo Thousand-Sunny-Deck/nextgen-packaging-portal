@@ -1,5 +1,5 @@
-import { SignOutButton } from "@/components/sign-out-button";
-import { auth } from "@/lib/auth";
+import PortalContent from "@/components/portal-content";
+import { auth } from "@/lib/config/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -12,15 +12,7 @@ const PortalPage = async () => {
 		redirect("/entry");
 	}
 
-	return (
-		<div className="px-7 py-16 container mx-auto max-w-screen space-y-8">
-			<pre className="text-smm overflow-clip">
-				{JSON.stringify(session, null, 2)}
-			</pre>
-
-			<SignOutButton />
-		</div>
-	);
+	return <PortalContent session={session} />;
 };
 
 export default PortalPage;

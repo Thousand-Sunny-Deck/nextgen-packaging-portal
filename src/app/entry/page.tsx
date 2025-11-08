@@ -1,4 +1,5 @@
 "use client";
+import { SignInUser } from "@/actions/auth/sign-in-action";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -9,56 +10,35 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signIn } from "@/lib/auth-client";
+import { LoginFormSchema, LoginFormSchemaT } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
-
-const formSchema = z.object({
-	email: z.email(),
-	password: z.string().min(10),
-});
-type FormSchemaType = z.infer<typeof formSchema>;
+import { toast } from "sonner";
 
 const EntryPage = () => {
-	const form = useForm<FormSchemaType>({
-		resolver: zodResolver(formSchema),
+	const [isPending, setIsPending] = useState<boolean>(false);
+	const router = useRouter();
+
+	const form = useForm<LoginFormSchemaT>({
+		resolver: zodResolver(LoginFormSchema),
 		defaultValues: {
 			email: "",
 			password: "",
 		},
 	});
 
-	const onSubmit = async (data: FormSchemaType) => {
-		await signIn.email(
-			{
-				email: data.email,
-				password: data.password,
-			},
-			{
-				onRequest: (ctx) => {
-					console.log({
-						body: ctx.body,
-						headers: ctx.headers,
-					});
-				},
-				onResponse: (ctx) => {
-					console.log({
-						response: ctx.response,
-					});
-				},
-				onError: (ctx) => {
-					console.error(ctx.error.message);
-				},
-				onSuccess: (ctx) => {
-					console.log({
-						data: ctx.data,
-					});
-					redirect("/portal");
-				},
-			},
-		);
+	const handleSignIn = async (data: LoginFormSchemaT) => {
+		setIsPending(true);
+		const { error } = await SignInUser(data);
+
+		if (error) {
+			toast.error(error);
+			setIsPending(false);
+		} else {
+			router.replace("/portal");
+		}
 	};
 
 	return (
@@ -66,7 +46,7 @@ const EntryPage = () => {
 			<div className="p-8">
 				<Form {...form}>
 					<form
-						onSubmit={form.handleSubmit(onSubmit)}
+						onSubmit={form.handleSubmit(handleSignIn)}
 						className="flex flex-col gap-5"
 					>
 						<FormField
@@ -95,7 +75,9 @@ const EntryPage = () => {
 								</FormItem>
 							)}
 						/>
-						<Button type="submit">Log in</Button>
+						<Button type="submit" disabled={isPending}>
+							Log in
+						</Button>
 					</form>
 				</Form>
 			</div>
