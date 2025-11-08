@@ -1,16 +1,18 @@
-"use client";
-import { env } from "@/lib/env-validation/env";
-/**
- *
- * This is for route: {NGP_domain}/portal
- * I do think it needs to be {NGP_domain}/portal/{uuid} <- some unique identifier
- * but let work with this for now.
- */
+import PortalContent from "@/components/portal-content";
+import { auth } from "@/lib/config/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-// THIS WILL THROW AN ERROR as we are accessing a server "env" on a client component
-console.log(env.BETTER_AUTH_SECRET);
-const PortalPage = () => {
-	return <div>This is portal page</div>;
+const PortalPage = async () => {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session) {
+		redirect("/entry");
+	}
+
+	return <PortalContent session={session} />;
 };
 
 export default PortalPage;

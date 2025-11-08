@@ -3,9 +3,5 @@ export default function PortalLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body className="antialiased">{children}</body>
-		</html>
-	);
+	return <section>{children}</section>;
 }
