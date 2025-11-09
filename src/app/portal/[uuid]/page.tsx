@@ -3,7 +3,11 @@ import { auth } from "@/lib/config/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-const PortalPage = async () => {
+interface PortalPageProps {
+	params: Promise<{ uuid: string }>;
+}
+
+const PortalPage = async ({ params }: PortalPageProps) => {
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
@@ -12,7 +16,14 @@ const PortalPage = async () => {
 		redirect("/entry");
 	}
 
-	return <PortalContent session={session} />;
+	const slug = await params;
+
+	return (
+		<>
+			<PortalContent session={session} />
+			<div>My uuid: {slug.uuid}</div>
+		</>
+	);
 };
 
 export default PortalPage;

@@ -23,7 +23,7 @@ export const SignInUser = async (
 		}
 
 		return {
-			error: "Internal Server Error. Something went wrong",
+			error: "Internal Server Error. Something went wrong.",
 		};
 	}
 };
@@ -31,15 +31,25 @@ export const SignInUser = async (
 export const SignUpUser = async (
 	data: LoginFormSchemaT,
 ): Promise<AuthOperationState> => {
-	await auth.api.signUpEmail({
-		body: {
-			name: "",
-			email: data.email,
-			password: data.password,
-		},
-	});
+	try {
+		await auth.api.signUpEmail({
+			body: {
+				name: "",
+				email: data.email,
+				password: data.password,
+			},
+		});
 
-	return {
-		success: true,
-	};
+		return {
+			success: true,
+		};
+	} catch (e: unknown) {
+		if (e instanceof Error) {
+			return {
+				error: e.message,
+			};
+		}
+
+		return { error: "Internal Server Error. Something went wrong." };
+	}
 };
