@@ -13,7 +13,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	});
 
 	if (!session) {
-		redirect("/entry");
+		redirect("/auth/login");
 	}
 
 	const slug = await params;

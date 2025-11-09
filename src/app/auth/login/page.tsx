@@ -32,13 +32,16 @@ const EntryPage = () => {
 
 	const handleSignIn = async (data: LoginFormSchemaT) => {
 		setIsPending(true);
-		const { error } = await SignInUser(data);
+		const { error, user } = await SignInUser(data);
 
 		if (error) {
 			toast.error(error);
 			setIsPending(false);
 		} else {
-			router.replace("/portal");
+			// if it gets here that means there always exists a user.id
+			console.log(user);
+			const redirectUrl = `/dashboard/${user?.uuid}/home`;
+			router.replace(redirectUrl);
 		}
 	};
 

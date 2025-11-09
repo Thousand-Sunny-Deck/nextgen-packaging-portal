@@ -11,5 +11,10 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: false,
 	},
+	advanced: {
+		database: {
+			generateId: false,
+		},
+	},
 	plugins: [nextCookies()],
 });
