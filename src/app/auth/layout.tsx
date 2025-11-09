@@ -1,4 +1,4 @@
-export default function EntryLayout({
+export default function AuthLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;

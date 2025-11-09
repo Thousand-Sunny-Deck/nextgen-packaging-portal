@@ -22,7 +22,7 @@ const PortalContent = ({ session }: PortalContentProps) => {
 			setIsPending(false);
 			toast.error(error);
 		} else {
-			redirect("/entry");
+			redirect("/auth/login");
 		}
 	};
 

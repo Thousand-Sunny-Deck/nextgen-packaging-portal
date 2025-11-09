@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { LoginFormSchema, LoginFormSchemaT } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -31,19 +32,22 @@ const EntryPage = () => {
 
 	const handleSignIn = async (data: LoginFormSchemaT) => {
 		setIsPending(true);
-		const { error } = await SignInUser(data);
+		const { error, user } = await SignInUser(data);
 
 		if (error) {
 			toast.error(error);
 			setIsPending(false);
 		} else {
-			router.replace("/portal");
+			// if it gets here that means there always exists a user.id
+			console.log(user);
+			const redirectUrl = `/dashboard/${user?.uuid}/home`;
+			router.replace(redirectUrl);
 		}
 	};
 
 	return (
 		<div className="ml-10 mt-10">
-			<div className="p-8">
+			<div className="p-8 flex flex-col gap-4">
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleSignIn)}
@@ -80,6 +84,13 @@ const EntryPage = () => {
 						</Button>
 					</form>
 				</Form>
+
+				<p className="text-muted-foreground text-sm">
+					Don&apos;t have an account?{" "}
+					<Link href="/auth/register" className="hover:text-foreground">
+						Register
+					</Link>
+				</p>
 			</div>
 		</div>
 	);
