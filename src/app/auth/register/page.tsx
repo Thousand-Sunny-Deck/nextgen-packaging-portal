@@ -44,11 +44,16 @@ const RegisterPage = () => {
 
 	return (
 		<div className="w-full h-screen flex  bg-orange-50">
-			<div className="w-3/4 h-full flex flex-col">
+			<div className="w-7/12 h-full flex flex-col ">
+				<div className="w-7/12 absolute inset-0 bg-gradient-to-t to-black/90 from-black/50">
+					<h1 className="p-8 pt-12 text-8xl font-semibold text-white bg-transparent">
+						NEXTGEN PACKAGING
+					</h1>
+				</div>
 				<Image
 					src="/assets/login/login.jpg"
 					alt="NextGen Packaging"
-					className="h-full w-10/12"
+					className="h-full w-full"
 					width={10000}
 					height={10000}
 				/>
