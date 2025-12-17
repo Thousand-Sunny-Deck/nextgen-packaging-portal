@@ -6,13 +6,13 @@ import {
 	FormControl,
 	FormField,
 	FormItem,
-	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoginFormSchema, LoginFormSchemaT } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -43,8 +43,25 @@ const RegisterPage = () => {
 	};
 
 	return (
-		<div className="ml-10 mt-10">
-			<div className="p-8 flex flex-col gap-4">
+		<div className="w-full h-screen flex  bg-orange-50">
+			<div className="w-7/12 h-full flex flex-col ">
+				<div className="w-7/12 absolute inset-0 bg-gradient-to-t to-black/90 from-black/50">
+					<h1 className="p-8 pt-12 text-8xl font-semibold text-white bg-transparent">
+						NEXTGEN PACKAGING
+					</h1>
+				</div>
+				<Image
+					src="/assets/login/login.jpg"
+					alt="NextGen Packaging"
+					className="h-full w-full"
+					width={10000}
+					height={10000}
+				/>
+			</div>
+			<div className="w-1/4 h-full p-8 flex flex-col ml-auto mr-32 mt-48">
+				<h1 className="text-3xl font-bold pb-9 text-center w-full">
+					REQUEST ACCESS
+				</h1>
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(handleSignUp)}
@@ -55,9 +72,8 @@ const RegisterPage = () => {
 							name="email"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Email</FormLabel>
 									<FormControl>
-										<Input placeholder="example@company.com" {...field} />
+										<Input placeholder="Email" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -68,21 +84,24 @@ const RegisterPage = () => {
 							name="password"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Password</FormLabel>
 									<FormControl>
-										<Input placeholder="" type="password" {...field} />
+										<Input placeholder="Password" type="password" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
-						<Button type="submit" disabled={isPending}>
-							Register
+						<Button
+							type="submit"
+							className="ml-14 mr-14 mt-2"
+							disabled={isPending}
+						>
+							Submit
 						</Button>
 					</form>
 				</Form>
 
-				<p className="text-muted-foreground text-sm">
+				<p className="text-muted-foreground text-sm mt-2 text-center">
 					Already have an account?{" "}
 					<Link href="/auth/login" className="hover:text-foreground">
 						Login
