@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { LoginFormSchema, LoginFormSchemaT } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -43,8 +44,14 @@ const RegisterPage = () => {
 
 	return (
 		<div className="w-full h-screen flex  bg-orange-50">
-			<div className="w-3/4 h-full p-8 flex flex-col">
-				<img src="/logo.png" alt="NextGen Packaging" width={100} height={100} />
+			<div className="w-3/4 h-full flex flex-col">
+				<Image
+					src="/assets/login/login.jpg"
+					alt="NextGen Packaging"
+					className="h-full w-10/12"
+					width={10000}
+					height={10000}
+				/>
 			</div>
 			<div className="w-1/4 h-full p-8 flex flex-col ml-auto mr-32 mt-48">
 				<h1 className="text-3xl font-bold pb-9 text-center w-full">
