@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ProductRow } from "./page";
+import { useCart } from "@/contexts/cart-context";
 
 interface OrdersTableProps {
 	products: ProductRow[];
@@ -13,15 +14,35 @@ interface OrdersTableProps {
 const ITEMS_PER_PAGE = 10;
 
 export function OrdersTable({ products }: OrdersTableProps) {
-	const [quantities, setQuantities] = React.useState<Record<number, number>>(
-		{},
-	);
+	const cart = useCart();
 	const [currentPage, setCurrentPage] = React.useState(1);
 
 	const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
 	const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 	const endIndex = startIndex + ITEMS_PER_PAGE;
 	const paginatedProducts = products.slice(startIndex, endIndex);
+
+	// Track if products have been initialized
+	const initializedRef = React.useRef<Set<number>>(new Set());
+	const productsLengthRef = React.useRef<number>(0);
+
+	// Initialize products in cart when component mounts or products length changes
+	React.useEffect(() => {
+		// If products length changed, reset the initialized set
+		if (productsLengthRef.current !== products.length) {
+			initializedRef.current.clear();
+			productsLengthRef.current = products.length;
+		}
+
+		products.forEach((product, index) => {
+			if (!initializedRef.current.has(index)) {
+				cart.addItem(index, product);
+				initializedRef.current.add(index);
+			}
+		});
+		// Only depend on products.length to avoid array reference issues
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [products.length]);
 
 	const getUnitCost = (product: ProductRow): number => {
 		// Extract numeric value from price1 (e.g., "$43.75" -> 43.75)
@@ -30,28 +51,38 @@ export function OrdersTable({ products }: OrdersTableProps) {
 	};
 
 	const getQuantity = (index: number): number => {
-		return quantities[index] ?? 0;
+		const item = cart.getItem(index);
+		return item?.quantity ?? 0;
 	};
 
 	const setQuantity = (index: number, qty: number) => {
-		setQuantities((prev) => ({
-			...prev,
-			[index]: Math.max(0, qty),
-		}));
+		cart.updateQuantity(index, qty);
 	};
 
 	const incrementQuantity = (index: number) => {
-		setQuantity(index, getQuantity(index) + 1);
+		const currentQty = getQuantity(index);
+		cart.updateQuantity(index, currentQty + 1);
 	};
 
 	const decrementQuantity = (index: number) => {
-		setQuantity(index, getQuantity(index) - 1);
+		const currentQty = getQuantity(index);
+		cart.updateQuantity(index, Math.max(0, currentQty - 1));
 	};
 
 	const getTotal = (originalIndex: number): number => {
-		const qty = getQuantity(originalIndex);
+		const item = cart.getItem(originalIndex);
+		const qty = item?.quantity ?? 0;
 		const unitCost = getUnitCost(products[originalIndex]);
 		return qty * unitCost;
+	};
+
+	const handleCheckboxChange = (index: number) => {
+		cart.toggleSelection(index);
+	};
+
+	const isSelected = (index: number): boolean => {
+		const item = cart.getItem(index);
+		return item?.selected ?? false;
 	};
 
 	const goToPage = (page: number) => {
@@ -60,23 +91,23 @@ export function OrdersTable({ products }: OrdersTableProps) {
 
 	return (
 		<div className="mt-6">
-			<div className="overflow-x-auto rounded-lg border border-gray-200 bg-stone-50/30">
-				<table className="min-w-full border-collapse">
+			<div className="overflow-x-auto bg-stone-50/30">
+				<table className="min-w-full border-separate border-spacing-y-2">
 					<thead>
-						<tr className="border-b border-gray-200">
-							<th className="px-4 py-3 text-left text-sm font-normal text-gray-700">
+						<tr className="border-b-2 border-black">
+							<th className="px-4 py-3 text-left text-sm font-normal text-gray-700 border-b-1 border-black">
 								Item
 							</th>
-							<th className="px-4 py-3 text-left text-sm font-normal text-gray-700">
+							<th className="px-4 py-3 text-left text-sm font-normal text-gray-700 border-b-1 border-black">
 								Description
 							</th>
-							<th className="px-4 py-3 text-center text-sm font-normal text-gray-700">
+							<th className="px-4 py-3 text-center text-sm font-normal text-gray-700 border-b-1 border-black">
 								Quantity
 							</th>
-							<th className="px-4 py-3 text-right text-sm font-normal text-gray-700">
+							<th className="px-4 py-3 text-right text-sm font-normal text-gray-700 border-b-1 border-black">
 								Unit cost ($)
 							</th>
-							<th className="px-4 py-3 text-right text-sm font-normal text-gray-700">
+							<th className="px-4 py-3 text-right text-sm font-normal text-gray-700 border-b-1 border-black">
 								Total
 							</th>
 						</tr>
@@ -88,16 +119,17 @@ export function OrdersTable({ products }: OrdersTableProps) {
 							const unitCost = getUnitCost(product);
 							const quantity = getQuantity(originalIndex);
 							const total = getTotal(originalIndex);
+							const isFirstRow = paginatedIndex === 0;
+							const isLastRow = paginatedIndex === paginatedProducts.length - 1;
 
 							return (
-								<tr
-									key={originalIndex}
-									className="border-b border-gray-200/50 bg-white/40 last:border-b-0"
-								>
-									<td className="px-4 py-3">
+								<tr key={originalIndex}>
+									<td className="px-4 py-3 bg-orange-50 rounded-tl-2xl rounded-bl-2xl">
 										<div className="flex items-center gap-3">
 											<input
 												type="checkbox"
+												checked={isSelected(originalIndex)}
+												onChange={() => handleCheckboxChange(originalIndex)}
 												className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0"
 											/>
 											<span className="text-sm text-gray-900">
@@ -105,12 +137,12 @@ export function OrdersTable({ products }: OrdersTableProps) {
 											</span>
 										</div>
 									</td>
-									<td className="px-4 py-3">
+									<td className="px-4 py-3 bg-orange-50">
 										<span className="text-sm text-gray-700">
 											{product.description}
 										</span>
 									</td>
-									<td className="px-4 py-3">
+									<td className="px-4 py-3 bg-orange-50">
 										<div className="flex items-center justify-center gap-1.5">
 											<Button
 												type="button"
@@ -145,10 +177,12 @@ export function OrdersTable({ products }: OrdersTableProps) {
 											</Button>
 										</div>
 									</td>
-									<td className="px-4 py-3 text-right text-sm text-gray-900">
+									<td className="px-4 py-3 bg-orange-50 text-right text-sm text-gray-900">
 										{unitCost > 0 ? unitCost.toFixed(2) : "-"}
 									</td>
-									<td className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+									<td
+										className={`px-4 py-3 bg-orange-50 text-right text-sm font-bold text-gray-900 ${isFirstRow ? "rounded-tr-md" : ""} ${isLastRow ? "rounded-br-md" : ""}`}
+									>
 										{total > 0 ? total.toFixed(2) : "0.00"}
 									</td>
 								</tr>
@@ -226,6 +260,24 @@ export function OrdersTable({ products }: OrdersTableProps) {
 							<ChevronRight className="h-4 w-4" />
 						</Button>
 					</div>
+				</div>
+			)}
+
+			{/* Checkout Button */}
+			{cart.hasSelectedItems() && (
+				<div className="mt-6 flex justify-end">
+					<Button
+						type="button"
+						variant="default"
+						size="lg"
+						className="px-8 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
+						onClick={() => {
+							// TODO: Navigate to checkout page
+							console.log("Proceed to checkout", cart.getSelectedItems());
+						}}
+					>
+						Proceed to Checkout
+					</Button>
 				</div>
 			)}
 		</div>

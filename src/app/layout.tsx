@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AppFrame } from "@/components/app-frame";
+import { CartProvider } from "@/contexts/cart-context";
 
 // TODO: Add fonts here.
 
@@ -18,8 +19,10 @@ const RootLayout = ({
 	return (
 		<html lang="en">
 			<body className="antialiased">
-				<AppFrame>{children}</AppFrame>
-				<Toaster position="bottom-right" />
+				<CartProvider>
+					<AppFrame>{children}</AppFrame>
+					<Toaster position="bottom-right" />
+				</CartProvider>
 			</body>
 		</html>
 	);
