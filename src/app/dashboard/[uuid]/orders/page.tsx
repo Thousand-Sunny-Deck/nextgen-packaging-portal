@@ -6,18 +6,16 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { auth } from "@/lib/config/auth";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { OrdersTable } from "./orders-table";
+import { getUserSession } from "@/hooks/use-session";
+import { verifyOrgId } from "@/hooks/use-org-id";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
 }
-
-const ALLOWED_ORGS = ["7e14cd73-cff9-44ae-8463-ba7d6d4deb03"];
 
 function OrdersBreadcrumb({ uuid }: { uuid: string }) {
 	return (
@@ -50,24 +48,20 @@ export interface ProductRow {
 }
 
 const OrdersPage = async ({ params }: OrdersPageProps) => {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
+	const { error, session } = await getUserSession();
 
-	if (!session) {
-		redirect("/auth/login");
+	if (error) {
+		redirect(error.getRedirectUrl());
 	}
 
 	const slug = await params;
 
-	// need to update this to call the DB. This is mocked right now
-	const validOrgId = ALLOWED_ORGS.includes(slug.uuid);
-	if (!validOrgId) {
+	const { error: orgIdError, orgId } = verifyOrgId(session, slug);
+	if (orgIdError) {
 		// this means that we have a session because we are logged in to some user Id
 		// but that doesn't mean we can just access any users dashboard
 		return <div>Unauthorized</div>;
 	}
-
 	// Read and parse CSV file
 	const csvPath = join(
 		process.cwd(),
@@ -107,7 +101,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	return (
 		<>
 			<div className="ml-80 mt-15 w-7/12 h-full">
-				<OrdersBreadcrumb uuid={slug.uuid} />
+				<OrdersBreadcrumb uuid={orgId} />
 				<h1 className="mt-5 text-3xl">Orders</h1>
 				<h1 className="mt-1 text-xs text-gray-400">
 					Select products and proceed

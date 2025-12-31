@@ -1,0 +1,44 @@
+import { auth } from "@/lib/config/auth";
+import { headers } from "next/headers";
+
+class UnauthorizedError extends Error {
+	private redirectUrl: string;
+	public message: string;
+
+	constructor(message: string, redirectUrl?: string) {
+		super(message);
+		this.redirectUrl = redirectUrl || "";
+		this.message = message;
+	}
+
+	public getRedirectUrl(): string {
+		return this.redirectUrl;
+	}
+
+	public getMessage(): string {
+		return this.message;
+	}
+}
+
+type GetUserSessionResponse = {
+	session?: any;
+	error?: UnauthorizedError;
+};
+
+export const getUserSession = async (): Promise<GetUserSessionResponse> => {
+	const redirectUrl = "/auth/login";
+
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	if (!session) {
+		return {
+			error: new UnauthorizedError("Unauthorized", redirectUrl),
+		};
+	}
+
+	return {
+		session,
+	};
+};

@@ -101,6 +101,9 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 }
 
 export default function CheckoutPage() {
+	// this needs to be backed by session and org hooks. otherwise anyone with a session can put a random uuid and go in here.
+	// small bug ^
+
 	const cart = useCart();
 	const pathname = usePathname();
 	const uuid = pathname?.split("/")[2] || "";
