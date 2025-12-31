@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { ProductRow } from "@/app/dashboard/[uuid]/orders/page";
+import type { ProductRow } from "@/app/dashboard/[uuid]/order/page";
 
 interface CartItem {
 	product: ProductRow;

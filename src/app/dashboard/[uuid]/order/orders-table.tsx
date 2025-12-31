@@ -277,7 +277,7 @@ export function OrdersTable({ products }: OrdersTableProps) {
 						onClick={() => {
 							const uuid = pathname?.split("/")[2];
 							if (uuid) {
-								router.push(`/dashboard/${uuid}/checkout`);
+								router.push(`/dashboard/${uuid}/order/checkout`);
 							}
 						}}
 					>

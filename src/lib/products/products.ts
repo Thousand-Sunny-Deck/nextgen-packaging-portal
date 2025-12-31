@@ -1,4 +1,4 @@
-import { ProductRow } from "@/app/dashboard/[uuid]/orders/types";
+import { ProductRow } from "@/app/dashboard/[uuid]/order/types";
 import { readFile, stat, access } from "fs/promises";
 import { join } from "path";
 import { cache } from "react";
@@ -14,7 +14,7 @@ let productsCache: CachedProducts | null = null;
 const getCSVPath = () => {
 	return join(
 		process.cwd(),
-		"src/app/dashboard/[uuid]/orders/NextGenSupplies.csv",
+		"src/app/dashboard/[uuid]/order/NextGenSupplies.csv",
 	);
 };
 
