@@ -1,4 +1,5 @@
 import { auth } from "@/lib/config/auth";
+import { authClient } from "@/lib/config/auth-client";
 import { headers } from "next/headers";
 
 class UnauthorizedError extends Error {
@@ -20,20 +21,23 @@ class UnauthorizedError extends Error {
 	}
 }
 
+export type SessionType = typeof authClient.$Infer.Session;
+
 type GetUserSessionResponse = {
-	session?: any;
+	session: SessionType;
 	error?: UnauthorizedError;
 };
 
 export const getUserSession = async (): Promise<GetUserSessionResponse> => {
 	const redirectUrl = "/auth/login";
 
-	const session = await auth.api.getSession({
+	const session = (await auth.api.getSession({
 		headers: await headers(),
-	});
+	})) as SessionType;
 
 	if (!session) {
 		return {
+			session,
 			error: new UnauthorizedError("Unauthorized", redirectUrl),
 		};
 	}

@@ -1,7 +1,7 @@
 import PortalContent from "@/components/portal-content";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession } from "@/hooks/use-session";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 
 interface PortalPageProps {
 	params: Promise<{ uuid: string }>;
@@ -14,12 +14,17 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 		redirect(error.getRedirectUrl());
 	}
 
+	if (!session) {
+		redirect("/auth/login");
+	}
+
 	const slug = await params;
 	const { error: orgIdError, orgId } = verifyOrgId(session, slug);
+
 	if (orgIdError) {
-		// this means that we have a session because we are logged in to some user Id
-		// but that doesn't mean we can just access any users dashboard
-		return <div>Unauthorized</div>;
+		// User is authenticated but trying to access another user's dashboard
+		// Redirect to their own dashboard or show 404
+		notFound();
 	}
 
 	return (

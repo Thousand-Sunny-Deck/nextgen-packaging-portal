@@ -1,3 +1,5 @@
+import { SessionType } from "./use-session";
+
 const ALLOWED_ORGS = ["7e14cd73-cff9-44ae-8463-ba7d6d4deb03"];
 
 type VerifyOrgIdResponse = {
@@ -6,7 +8,7 @@ type VerifyOrgIdResponse = {
 };
 
 export const verifyOrgId = (
-	session: any,
+	session: SessionType,
 	slug: {
 		uuid: string;
 	},

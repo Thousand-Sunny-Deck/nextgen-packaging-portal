@@ -6,7 +6,7 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { OrdersTable } from "./orders-table";
@@ -54,13 +54,17 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 		redirect(error.getRedirectUrl());
 	}
 
-	const slug = await params;
+	if (!session) {
+		redirect("/auth/login");
+	}
 
+	const slug = await params;
 	const { error: orgIdError, orgId } = verifyOrgId(session, slug);
+
 	if (orgIdError) {
-		// this means that we have a session because we are logged in to some user Id
-		// but that doesn't mean we can just access any users dashboard
-		return <div>Unauthorized</div>;
+		// User is authenticated but trying to access another user's dashboard
+		// Redirect to their own dashboard or show 404
+		notFound();
 	}
 	// Read and parse CSV file
 	const csvPath = join(
