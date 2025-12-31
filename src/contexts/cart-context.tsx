@@ -23,8 +23,53 @@ interface CartContextType {
 
 const CartContext = React.createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = "nextgen-packaging-cart";
+
+// Helper functions to serialize/deserialize cart items
+function saveCartToStorage(items: Map<number, CartItem>) {
+	try {
+		const serialized = Array.from(items.entries()).map(([index, item]) => [
+			index,
+			item,
+		]);
+		localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(serialized));
+	} catch (error) {
+		console.error("Failed to save cart to localStorage:", error);
+	}
+}
+
+function loadCartFromStorage(): Map<number, CartItem> {
+	try {
+		const stored = localStorage.getItem(CART_STORAGE_KEY);
+		if (stored) {
+			const parsed = JSON.parse(stored) as Array<[number, CartItem]>;
+			return new Map(parsed);
+		}
+	} catch (error) {
+		console.error("Failed to load cart from localStorage:", error);
+	}
+	return new Map();
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
 	const [items, setItems] = React.useState<Map<number, CartItem>>(new Map());
+	const [isHydrated, setIsHydrated] = React.useState(false);
+
+	// Load from localStorage after mount to avoid hydration mismatch
+	React.useEffect(() => {
+		const savedItems = loadCartFromStorage();
+		if (savedItems.size > 0) {
+			setItems(savedItems);
+		}
+		setIsHydrated(true);
+	}, []);
+
+	// Save to localStorage whenever items change (but only after hydration)
+	React.useEffect(() => {
+		if (isHydrated && typeof window !== "undefined") {
+			saveCartToStorage(items);
+		}
+	}, [items, isHydrated]);
 
 	const addItem = React.useCallback((index: number, product: ProductRow) => {
 		setItems((prev) => {
@@ -100,6 +145,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 	const clearCart = React.useCallback(() => {
 		setItems(new Map());
+		if (typeof window !== "undefined") {
+			localStorage.removeItem(CART_STORAGE_KEY);
+		}
 	}, []);
 
 	const value = React.useMemo(
