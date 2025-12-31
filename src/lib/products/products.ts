@@ -90,12 +90,10 @@ const _fetchProductsInternal = async (): Promise<ProductRow[]> => {
 		productsCache.lastModified === lastModified &&
 		productsCache.products.length > 0
 	) {
-		console.info("Got it from cache", `last modified: ${lastModified}`);
 		return productsCache.products;
 	}
 
 	// Read and parse CSV
-	console.info("Reading from CSV", `last modified: ${lastModified}`);
 	const csvContent = await getCSVFile();
 	const products = parseProducts(csvContent);
 
