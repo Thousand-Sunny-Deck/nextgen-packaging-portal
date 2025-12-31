@@ -4,6 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 import type { ProductRow } from "./page";
 import { useCart } from "@/contexts/cart-context";
 
@@ -15,6 +16,8 @@ const ITEMS_PER_PAGE = 10;
 
 export function OrdersTable({ products }: OrdersTableProps) {
 	const cart = useCart();
+	const router = useRouter();
+	const pathname = usePathname();
 	const [currentPage, setCurrentPage] = React.useState(1);
 
 	const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
@@ -272,8 +275,10 @@ export function OrdersTable({ products }: OrdersTableProps) {
 						size="lg"
 						className="px-8 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
 						onClick={() => {
-							// TODO: Navigate to checkout page
-							console.log("Proceed to checkout", cart.getSelectedItems());
+							const uuid = pathname?.split("/")[2];
+							if (uuid) {
+								router.push(`/dashboard/${uuid}/checkout`);
+							}
 						}}
 					>
 						Proceed to Checkout
