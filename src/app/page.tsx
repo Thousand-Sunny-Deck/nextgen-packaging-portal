@@ -1,6 +1,6 @@
 /**
  *
- * This is sole purpose is to redirect to /entry and then /portal (if logged in)
+ * This is sole purpose is to redirect to /auth/login and then /dashboard (if logged in)
  */
 
 import { redirect } from "next/navigation";

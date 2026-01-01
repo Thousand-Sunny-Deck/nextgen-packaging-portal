@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import type { ProductRow } from "./page";
+import type { ProductRow } from "./types";
 import { useCart } from "@/contexts/cart-context";
 
 interface OrdersTableProps {
@@ -277,7 +277,7 @@ export function OrdersTable({ products }: OrdersTableProps) {
 						onClick={() => {
 							const uuid = pathname?.split("/")[2];
 							if (uuid) {
-								router.push(`/dashboard/${uuid}/checkout`);
+								router.push(`/dashboard/${uuid}/order/checkout`);
 							}
 						}}
 					>

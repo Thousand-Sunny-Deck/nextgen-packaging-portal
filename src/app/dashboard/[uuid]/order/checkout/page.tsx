@@ -2,40 +2,10 @@
 
 import * as React from "react";
 import { useCart } from "@/contexts/cart-context";
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { usePathname } from "next/navigation";
-
-function CheckoutBreadcrumb({ uuid }: { uuid: string }) {
-	return (
-		<Breadcrumb>
-			<BreadcrumbList>
-				<BreadcrumbItem>
-					<BreadcrumbLink href={`/dashboard/${uuid}/home`}>Home</BreadcrumbLink>
-				</BreadcrumbItem>
-				<BreadcrumbSeparator />
-				<BreadcrumbItem>
-					<BreadcrumbLink href={`/dashboard/${uuid}/orders`}>
-						Order
-					</BreadcrumbLink>
-				</BreadcrumbItem>
-				<BreadcrumbSeparator />
-				<BreadcrumbItem>
-					<BreadcrumbPage>Checkout</BreadcrumbPage>
-				</BreadcrumbItem>
-			</BreadcrumbList>
-		</Breadcrumb>
-	);
-}
+import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 
 function OrderProgress({ currentStep }: { currentStep: number }) {
 	return (
@@ -101,9 +71,10 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 }
 
 export default function CheckoutPage() {
+	// this needs to be backed by session and org hooks. otherwise anyone with a session can put a random uuid and go in here.
+	// small bug ^
+
 	const cart = useCart();
-	const pathname = usePathname();
-	const uuid = pathname?.split("/")[2] || "";
 	const [showBillingForm, setShowBillingForm] = React.useState(false);
 	const [billingData, setBillingData] = React.useState({
 		organisationName: "",
@@ -134,14 +105,10 @@ export default function CheckoutPage() {
 		0,
 	);
 
-	if (!uuid) {
-		return <div>Loading...</div>;
-	}
-
 	if (selectedItems.length === 0) {
 		return (
 			<div className="ml-80 mt-15 w-7/12 h-full">
-				<CheckoutBreadcrumb uuid={uuid} />
+				<DynamicBreadcrumb />
 				<div className="mt-8">
 					<h1 className="text-4xl font-bold">Checkout</h1>
 					<p className="mt-4 text-gray-600">
@@ -154,7 +121,7 @@ export default function CheckoutPage() {
 
 	return (
 		<div className="ml-80 mt-15 w-7/12 h-full">
-			<CheckoutBreadcrumb uuid={uuid} />
+			<DynamicBreadcrumb />
 
 			<div className="mt-8 grid grid-cols-3 gap-8">
 				{/* Main Content - Left Section */}

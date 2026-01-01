@@ -25,7 +25,7 @@ const PortalContent = ({ session }: PortalContentProps) => {
 					// expected: /dashboard/[uuid]/home
 					const uuid = pathname?.split("/")[2];
 					if (!uuid) return;
-					router.push(`/dashboard/${uuid}/orders`);
+					router.push(`/dashboard/${uuid}/order`);
 				}}
 				disabled={isPending}
 			>
