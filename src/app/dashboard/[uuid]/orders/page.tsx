@@ -108,7 +108,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 		<>
 			<div className="ml-80 mt-15 w-7/12 h-full">
 				<OrdersBreadcrumb uuid={slug.uuid} />
-				<h1 className="mt-5 text-3xl">Orders</h1>
+				<h1 className="mt-5 font-bold text-3xl">Orders</h1>
 				<h1 className="mt-1 text-xs text-gray-400">
 					Select products and proceed
 				</h1>

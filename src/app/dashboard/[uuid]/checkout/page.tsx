@@ -43,7 +43,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<div
-						className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+						className={`flex h-6 w-8 items-center justify-center rounded-full text-xs font-medium ${
 							currentStep >= 1
 								? "bg-black text-white"
 								: "bg-gray-300 text-gray-600"
@@ -52,7 +52,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 						1
 					</div>
 					<span
-						className={`text-sm ${currentStep >= 1 ? "font-medium" : "text-gray-600"}`}
+						className={`text-xs ${currentStep >= 1 ? "font-medium" : "text-gray-600"}`}
 					>
 						Review Order
 					</span>
@@ -62,7 +62,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 				></div>
 				<div className="flex items-center gap-2">
 					<div
-						className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+						className={`flex h-6 w-8 items-center justify-center rounded-full text-xs font-medium ${
 							currentStep >= 2
 								? "bg-black text-white"
 								: "bg-gray-300 text-gray-600"
@@ -71,7 +71,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 						2
 					</div>
 					<span
-						className={`text-sm ${currentStep >= 2 ? "font-medium" : "text-gray-600"}`}
+						className={`text-xs ${currentStep >= 2 ? "font-medium" : "text-gray-600"}`}
 					>
 						Confirm details
 					</span>
@@ -81,7 +81,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 				></div>
 				<div className="flex items-center gap-2">
 					<div
-						className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${
+						className={`flex h-6 w-8 items-center justify-center rounded-full text-xs font-medium ${
 							currentStep >= 3
 								? "bg-black text-white"
 								: "bg-gray-300 text-gray-600"
@@ -90,7 +90,7 @@ function OrderProgress({ currentStep }: { currentStep: number }) {
 						3
 					</div>
 					<span
-						className={`text-sm ${currentStep >= 3 ? "font-medium" : "text-gray-600"}`}
+						className={`text-xs ${currentStep >= 3 ? "font-medium" : "text-gray-600"}`}
 					>
 						Order Placement
 					</span>
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
 			<div className="mt-8 grid grid-cols-3 gap-8">
 				{/* Main Content - Left Section */}
 				<div className="col-span-2">
-					<h1 className="text-4xl font-bold">Checkout</h1>
+					<h1 className="text-3xl font-bold">Checkout</h1>
 					<p className="mt-2 text-gray-600">
 						{showBillingForm
 							? "Please provide your billing details."
