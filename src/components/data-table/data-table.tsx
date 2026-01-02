@@ -9,10 +9,13 @@ import {
 	flexRender,
 	ColumnDef,
 	RowSelectionState,
+	getPaginationRowModel,
 } from "@tanstack/react-table";
-import { Minus, Plus } from "lucide-react";
-import { useCartStore } from "@/lib/store/product-store";
+import { Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { ProductTableStore, useCartStore } from "@/lib/store/product-store";
 import { ProductData } from "@/lib/products/products";
+import { Button } from "../ui/button";
+import { usePaginationContext } from "@/hooks/use-pagination-context";
 
 interface ProductTableProps {
 	products: ProductData[];
@@ -21,6 +24,10 @@ interface ProductTableProps {
 export default function ProductTable({ products }: ProductTableProps) {
 	const { items, setQuantity } = useCartStore();
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+	const [pagination, setPagination] = useState({
+		pageIndex: 0,
+		pageSize: 10,
+	});
 
 	const data = useMemo(() => {
 		return products.map((product) => ({
@@ -30,7 +37,7 @@ export default function ProductTable({ products }: ProductTableProps) {
 		}));
 	}, [products, items]);
 
-	const columns = useMemo<ColumnDef<(typeof data)[0]>[]>(
+	const columns = useMemo<ColumnDef<ProductTableStore>[]>(
 		() => [
 			{
 				id: "select",
@@ -54,7 +61,7 @@ export default function ProductTable({ products }: ProductTableProps) {
 			},
 			{
 				accessorKey: "sku",
-				header: "Item Code",
+				header: "Code",
 			},
 			{
 				accessorKey: "description",
@@ -95,7 +102,7 @@ export default function ProductTable({ products }: ProductTableProps) {
 			},
 			{
 				accessorKey: "unitCost",
-				header: "Unit Cost ($)",
+				header: "Unit Cost",
 				cell: ({ row }) => `$${row.getValue("unitCost")}`,
 			},
 			{
@@ -114,28 +121,26 @@ export default function ProductTable({ products }: ProductTableProps) {
 	const table = useReactTable({
 		data,
 		columns,
-		state: { rowSelection },
+		state: { rowSelection, pagination },
 		enableRowSelection: (row) => row.original.quantity > 0,
 		onRowSelectionChange: setRowSelection,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getRowId: (row) => row.sku,
+		getPaginationRowModel: getPaginationRowModel(),
+		onPaginationChange: setPagination,
 	});
 
-	const selectedRows = table.getSelectedRowModel().rows;
-	const selectedCount = selectedRows.length;
-	const totalPrice = selectedRows.reduce(
-		(sum, row) => sum + row.original.total,
-		0,
-	);
-	const set = new Set<string>();
-	table.getRowModel().rows.map((row) => {
-		const id = row.id;
-		if (set.has(id)) {
-			console.log("parth's log", id);
-		} else {
-			set.add(id);
-		}
+	const {
+		generatePageNumbers,
+		currentPage,
+		totalPages,
+		totalRows,
+		startRow,
+		endRow,
+	} = usePaginationContext({
+		table,
+		pagination,
 	});
 
 	return (
@@ -145,7 +150,7 @@ export default function ProductTable({ products }: ProductTableProps) {
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id} className="border-b">
 							{headerGroup.headers.map((header) => (
-								<th key={header.id} className="px-4 py-3 text-left">
+								<th key={header.id} className="px-4 py-3 text-center">
 									{flexRender(
 										header.column.columnDef.header,
 										header.getContext(),
@@ -170,21 +175,63 @@ export default function ProductTable({ products }: ProductTableProps) {
 					))}
 				</tbody>
 			</table>
-
-			{selectedCount > 0 && (
-				<div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-lg p-4 min-w-[280px]">
-					<div className="mb-3 font-semibold">
-						{selectedCount} items selected
-					</div>
-					<div className="flex justify-between mb-4 pb-3 border-b">
-						<span>Total:</span>
-						<span className="text-xl font-bold">${totalPrice.toFixed(2)}</span>
-					</div>
-					<button className="w-full bg-blue-600 text-white rounded-lg py-2.5">
-						Checkout
-					</button>
+			<div className="flex items-center justify-between py-4">
+				<div className="text-sm text-gray-600">
+					Showing {startRow} to {endRow} of {totalRows} products
 				</div>
-			)}
+				{totalPages > 1 && (
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+							className="h-8 px-3"
+						>
+							<ChevronLeft className="h-4 w-4" />
+							<span className="ml-1">Previous</span>
+						</Button>
+
+						<div className="flex items-center gap-1">
+							{generatePageNumbers().map((page, index) => {
+								if (page === "ellipsis") {
+									return (
+										<span
+											key={`ellipsis-${index}`}
+											className="px-2 text-gray-400"
+										>
+											...
+										</span>
+									);
+								}
+								const pageNum = page as number;
+								return (
+									<Button
+										key={pageNum}
+										variant={currentPage === pageNum ? "default" : "outline"}
+										size="sm"
+										onClick={() => table.setPageIndex(pageNum - 1)}
+										className="h-8 w-8 p-0"
+									>
+										{pageNum}
+									</Button>
+								);
+							})}
+						</div>
+
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.nextPage()}
+							disabled={!table.getCanNextPage()}
+							className="h-8 px-3"
+						>
+							<span className="mr-1">Next</span>
+							<ChevronRight className="h-4 w-4" />
+						</Button>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
