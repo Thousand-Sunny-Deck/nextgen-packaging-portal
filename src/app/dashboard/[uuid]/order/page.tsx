@@ -4,6 +4,7 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProducts } from "@/lib/products/products";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
+import ProductTable from "@/components/data-table/data-table";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -30,6 +31,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	}
 
 	const products = await fetchProducts();
+	const showNewTable = true;
 
 	return (
 		<>
@@ -39,7 +41,11 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 				<h1 className="mt-1 text-xs text-gray-400">
 					Select products and proceed.
 				</h1>
-				<OrdersTable products={products} />
+				{showNewTable ? (
+					<ProductTable products={products} />
+				) : (
+					<OrdersTable products={products} />
+				)}
 			</div>
 		</>
 	);

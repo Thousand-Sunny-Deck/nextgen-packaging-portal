@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import type { ProductRow } from "./types";
 import { useCart } from "@/contexts/cart-context";
+import { ProductData } from "@/lib/products/products";
 
 interface OrdersTableProps {
-	products: ProductRow[];
+	products: ProductData[];
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -47,12 +47,6 @@ export function OrdersTable({ products }: OrdersTableProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [products.length]);
 
-	const getUnitCost = (product: ProductRow): number => {
-		// Extract numeric value from price1 (e.g., "$43.75" -> 43.75)
-		const priceStr = product.price1.replace(/[^0-9.]/g, "");
-		return parseFloat(priceStr) || 0;
-	};
-
 	const getQuantity = (index: number): number => {
 		const item = cart.getItem(index);
 		return item?.quantity ?? 0;
@@ -75,7 +69,7 @@ export function OrdersTable({ products }: OrdersTableProps) {
 	const getTotal = (originalIndex: number): number => {
 		const item = cart.getItem(originalIndex);
 		const qty = item?.quantity ?? 0;
-		const unitCost = getUnitCost(products[originalIndex]);
+		const unitCost = products[originalIndex].unitCost;
 		return qty * unitCost;
 	};
 
@@ -119,7 +113,6 @@ export function OrdersTable({ products }: OrdersTableProps) {
 						{paginatedProducts.map((product, paginatedIndex) => {
 							// Use the original index from the full products array
 							const originalIndex = startIndex + paginatedIndex;
-							const unitCost = getUnitCost(product);
 							const quantity = getQuantity(originalIndex);
 							const total = getTotal(originalIndex);
 							const isFirstRow = paginatedIndex === 0;
@@ -181,7 +174,7 @@ export function OrdersTable({ products }: OrdersTableProps) {
 										</div>
 									</td>
 									<td className="px-4 py-3 bg-orange-50 text-right text-sm text-gray-900">
-										{unitCost > 0 ? unitCost.toFixed(2) : "-"}
+										{product.unitCost > 0 ? product.unitCost.toFixed(2) : "-"}
 									</td>
 									<td
 										className={`px-4 py-3 bg-orange-50 text-right text-sm font-bold text-gray-900 ${isFirstRow ? "rounded-tr-md" : ""} ${isLastRow ? "rounded-br-md" : ""}`}
