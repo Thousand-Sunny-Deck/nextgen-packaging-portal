@@ -1,12 +1,18 @@
-import { ProductRow } from "@/app/dashboard/[uuid]/order/types";
 import { readFile, stat, access } from "fs/promises";
 import { join } from "path";
 import { cache } from "react";
 
 // Module-level cache to persist across requests
 interface CachedProducts {
-	products: ProductRow[];
+	products: ProductData[];
 	lastModified: number;
+}
+
+export interface ProductData {
+	sku: string; // 6 digit alphanumeric code that we generate
+	itemCode: string;
+	description: string;
+	unitCost: number; // price2 (gst included)
 }
 
 let productsCache: CachedProducts | null = null;
@@ -34,11 +40,32 @@ const getCSVFile = async () => {
 	return csvContent;
 };
 
-const parseProducts = (csvContent: string): ProductRow[] => {
+const generateUniqueSku = (itemCode: string, description: string): string => {
+	const input = `${itemCode}-${description}`.toLowerCase();
+
+	// Simple hash function
+	let hash = 0;
+	for (let i = 0; i < input.length; i++) {
+		hash = (hash << 5) - hash + input.charCodeAt(i);
+		hash = hash & hash; // Convert to 32-bit integer
+	}
+
+	// Convert to base36 (0-9, a-z) and take first 6 chars
+	return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
+	// Result: "A3F5B2", "K8M2P1", etc.
+};
+
+const parsePrice = (priceStr: string): number => {
+	if (!priceStr) return 0;
+	const match = priceStr.match(/[\d,.]+/);
+	return match ? parseFloat(match[0].replace(/,/g, "")) : 0;
+};
+
+const parseProducts = (csvContent: string): ProductData[] => {
 	const lines = csvContent.split("\n").filter((line) => line.trim() !== "");
 
-	const products: ProductRow[] = lines
-		.map((line) => {
+	const products: ProductData[] = lines
+		.map((line): ProductData | null => {
 			// Remove trailing comma if present
 			const cleanLine = line.replace(/,\s*$/, "");
 			const columns = cleanLine.split(",").map((col) => col.trim());
@@ -53,23 +80,25 @@ const parseProducts = (csvContent: string): ProductRow[] => {
 				return null;
 			}
 
+			const itemCode = columns[0] || "";
+			const description = columns[1] || "";
+			const unitCost = parsePrice(columns[3]) || 0;
+			const sku = generateUniqueSku(itemCode, description);
+
 			return {
-				sku: columns[0] || "",
-				description: columns[1] || "",
-				price1: columns[2] || "",
-				price2: columns[3] || "",
-				quantity1: columns[4] || "",
-				price3: columns[6] || "",
-				quantity2: columns[7] || "",
+				itemCode,
+				description,
+				unitCost,
+				sku,
 			};
 		})
-		.filter((product): product is ProductRow => product !== null);
+		.filter((product): product is ProductData => product !== null);
 
 	return products;
 };
 
 // Internal function that does the actual fetching
-const _fetchProductsInternal = async (): Promise<ProductRow[]> => {
+const _fetchProductsInternal = async (): Promise<ProductData[]> => {
 	const csvPath = getCSVPath();
 
 	// Check file modification time
