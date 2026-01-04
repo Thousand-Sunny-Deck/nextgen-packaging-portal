@@ -3,10 +3,17 @@
 import { useState } from "react";
 import CartSummary from "./cart/cart-summary";
 import OrderInfo from "./order/order-info";
+import BillingForm from "./billing/billing-form";
 
 export type CheckoutState = "cart" | "billing" | "order" | "shipped";
 
-const CheckoutForm = () => {
+interface CheckoutFormProps {
+	userMetadata: {
+		email: string;
+	};
+}
+
+const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 	const [checkoutState, setCheckoutState] = useState<CheckoutState>("cart");
 
 	const updateCheckoutState = (state: CheckoutState) => {
@@ -30,13 +37,19 @@ const CheckoutForm = () => {
 	};
 
 	const isReviewOrderState = checkoutState === "cart";
-	// const isConfirmDetailsState = checkoutState === "confirm-details";
-	const isOrderState = checkoutState === "order";
+	const isBillingState = checkoutState === "billing";
+	const isOrderState = checkoutState === "order" || checkoutState === "shipped";
 
 	return (
 		<div className="w-full mt-10 flex justify-between gap-6">
 			{/* Current Cart info*/}
 			{(isReviewOrderState || isOrderState) && <CartSummary />}
+			{isBillingState && (
+				<BillingForm
+					email={userMetadata.email}
+					updateState={setCheckoutState}
+				/>
+			)}
 
 			{/* Summary Info and checkout */}
 			<OrderInfo

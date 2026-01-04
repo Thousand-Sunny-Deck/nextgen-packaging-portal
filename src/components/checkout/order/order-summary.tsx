@@ -3,14 +3,9 @@
 interface OrderSummaryProps {
 	cartSize: number;
 	totalCost: number;
-	showBillingInfo: boolean;
 }
 
-const OrderSummary = ({
-	cartSize,
-	totalCost,
-	showBillingInfo,
-}: OrderSummaryProps) => {
+const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 	const shouldAddServiceFee = totalCost < 150;
 	const serviceFee = 10;
 	const finalTotalCost = shouldAddServiceFee
@@ -47,8 +42,6 @@ const OrderSummary = ({
 					<hr className="mt-2" />
 				</div>
 				{/* Billing info (if exists) */}
-
-				{showBillingInfo && <div>here is billing info </div>}
 
 				{/* total */}
 				<div className="flex flex-row justify-between mt-2">

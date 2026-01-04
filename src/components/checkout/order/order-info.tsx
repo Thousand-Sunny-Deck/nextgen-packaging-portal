@@ -43,11 +43,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 	return (
 		<div className="w-[40%] border flex flex-col items-start">
 			<ProgressBar steps={steps} currentStep={currentStep} />
-			<OrderSummary
-				cartSize={cart.length}
-				totalCost={totalCartCost}
-				showBillingInfo={isOrderState}
-			/>
+			<OrderSummary cartSize={cart.length} totalCost={totalCartCost} />
 
 			<div className="flex flex-col items-center justify-center w-full p-6 gap-2">
 				{isCartState && (
@@ -63,37 +59,33 @@ const OrderInfo = (props: OrderInfoProps) => {
 					</Button>
 				)}
 				{isBilling && (
-					<>
-						<Button
-							size="default"
-							className="w-[150px]"
-							onClick={() => {
-								props.setCheckoutState("order");
-								setCurrentStep(2);
-							}}
-						>
-							Proceed next
-						</Button>
-						<Button
-							size="default"
-							variant="secondary"
-							className="w-[150px]"
-							onClick={() => {
-								props.setCheckoutState("cart");
-								setCurrentStep(0);
-							}}
-						>
-							Order summary
-						</Button>
-					</>
+					<Button
+						size="default"
+						variant="secondary"
+						className="w-[150px]"
+						onClick={() => {
+							props.setCheckoutState("cart");
+							setCurrentStep(0);
+						}}
+					>
+						Order summary
+					</Button>
 				)}
 				{isOrderState && (
 					<>
 						<Button
 							className="w-[150px]"
+							disabled={props.checkoutState === "shipped"}
 							onClick={() => props.setCheckoutState("shipped")}
 						>
 							Place Order
+						</Button>
+						<Button
+							variant="link"
+							className="w-[150px] font-light text-sm"
+							onClick={() => props.setCheckoutState("billing")}
+						>
+							Edit Billing Info
 						</Button>
 					</>
 				)}

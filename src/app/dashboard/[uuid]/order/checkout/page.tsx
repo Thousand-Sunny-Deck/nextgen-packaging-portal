@@ -38,7 +38,11 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 
 				{/* This is the main section */}
 
-				<CheckoutForm />
+				<CheckoutForm
+					userMetadata={{
+						email: session.user.email,
+					}}
+				/>
 			</div>
 		</>
 	);
