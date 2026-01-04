@@ -14,6 +14,10 @@ import { Building, House, IdCard, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { CheckoutState } from "../checkout-form";
+import {
+	BillingInfoItem,
+	useBillingInfoStore,
+} from "@/lib/store/billing-info-store";
 
 interface BillingFormProps {
 	email: string;
@@ -72,8 +76,21 @@ const BillingForm = ({ email, updateState }: BillingFormProps) => {
 		},
 	});
 
+	const { setBillingInfo } = useBillingInfoStore();
+
 	const onSubmit = (data: BillingFormSchema) => {
 		console.log("Form submitted:", data);
+
+		const parseDataForStore = (data: BillingFormSchema): BillingInfoItem => {
+			return {
+				email: data.email,
+				organization: data.organizationName,
+				address: data.billingAddress,
+				ABN: data.abnNumber,
+			};
+		};
+
+		setBillingInfo(parseDataForStore(data));
 		updateState("order");
 	};
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ProgressBar } from "./progress-bar";
 import { CartItem, useCartStore } from "@/lib/store/product-store";
 import OrderSummary from "./order-summary";
@@ -16,7 +16,6 @@ const OrderInfo = (props: OrderInfoProps) => {
 	const [cart, setCart] = useState<CartItem[]>([]);
 	const [totalCartCost, setTotalCartCost] = useState<number>(0);
 	const [isClient, setIsClient] = useState(false);
-	const [currentStep, setCurrentStep] = useState(0);
 
 	const { getCart, getTotalCartCost } = useCartStore();
 
@@ -25,6 +24,20 @@ const OrderInfo = (props: OrderInfoProps) => {
 		setCart(getCart());
 		setTotalCartCost(getTotalCartCost());
 	}, [getCart, getTotalCartCost]);
+
+	const currentStep = useMemo(() => {
+		switch (props.checkoutState) {
+			case "cart":
+				return 0;
+			case "billing":
+				return 1;
+			case "order":
+			case "shipped":
+				return 2;
+			default:
+				return 0;
+		}
+	}, [props.checkoutState]);
 
 	if (!isClient) {
 		return null; // or a loading skeleton
@@ -38,7 +51,8 @@ const OrderInfo = (props: OrderInfoProps) => {
 
 	const isCartState = props.checkoutState === "cart";
 	const isBilling = props.checkoutState === "billing";
-	const isOrderState = props.checkoutState === "order";
+	const isOrderState =
+		props.checkoutState === "order" || props.checkoutState === "shipped";
 
 	return (
 		<div className="w-[40%] border flex flex-col items-start">
@@ -50,10 +64,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 					<Button
 						size="default"
 						className="w-[150px]"
-						onClick={() => {
-							props.setCheckoutState("billing");
-							setCurrentStep(1);
-						}}
+						onClick={() => props.setCheckoutState("billing")}
 					>
 						Proceed next
 					</Button>
@@ -63,10 +74,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 						size="default"
 						variant="secondary"
 						className="w-[150px]"
-						onClick={() => {
-							props.setCheckoutState("cart");
-							setCurrentStep(0);
-						}}
+						onClick={() => props.setCheckoutState("cart")}
 					>
 						Order summary
 					</Button>
@@ -83,6 +91,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 						<Button
 							variant="link"
 							className="w-[150px] font-light text-sm"
+							disabled={props.checkoutState === "shipped"}
 							onClick={() => props.setCheckoutState("billing")}
 						>
 							Edit Billing Info
