@@ -9,8 +9,10 @@ import {
 } from "@/lib/store/product-store";
 import {
 	ColumnDef,
+	ColumnFiltersState,
 	flexRender,
 	getCoreRowModel,
+	getFilteredRowModel,
 	getPaginationRowModel,
 	Row,
 	useReactTable,
@@ -37,6 +39,8 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 	});
 
 	const [isMounted, setIsMounted] = useState(false);
+
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
 	useEffect(() => {
 		setIsMounted(true);
@@ -169,11 +173,13 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 	const table = useReactTable({
 		data,
 		columns,
-		state: { pagination },
+		state: { pagination, columnFilters },
 		getRowId: (row) => row.sku,
 		getPaginationRowModel: getPaginationRowModel(),
 		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
+		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
 		autoResetPageIndex: false,
 	});
 
@@ -191,6 +197,18 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 
 	return (
 		<div className="w-full mt-4">
+			<div className="w-full flex justify-end pb-4">
+				<Input
+					placeholder="Filter by item"
+					value={
+						(table.getColumn("description")?.getFilterValue() as string) ?? ""
+					}
+					onChange={(event) =>
+						table.getColumn("description")?.setFilterValue(event.target.value)
+					}
+					className="w-[40%] rounded-sm"
+				/>
+			</div>
 			<table className="w-full border-collapse">
 				<thead>
 					{table.getHeaderGroups().map((headerGroup) => (
