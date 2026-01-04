@@ -81,6 +81,12 @@ const OrderInfo = (props: OrderInfoProps) => {
 				)}
 				{isOrderState && (
 					<>
+						{/**TODO: onclick handler here that will place the order, server action. Also, clear all localstorage once placed order
+						 * TODO: also, add toast
+						 * TODO: also, redirect to /dashboard/[uuid]/home, once order is placed
+						 * TODO: also would be cool to do a confetti when order is successfully placed.
+						 * TODO: im tired, get some sleep.
+						 */}
 						<Button
 							className="w-[150px]"
 							disabled={props.checkoutState === "shipped"}
