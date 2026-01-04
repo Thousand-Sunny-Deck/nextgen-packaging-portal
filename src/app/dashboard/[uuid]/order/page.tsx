@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import { OrdersTable } from "./orders-table";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProducts } from "@/lib/products/products";
@@ -32,7 +31,6 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	}
 
 	const products = await fetchProducts();
-	const showNewTable = true;
 
 	return (
 		<>
@@ -42,12 +40,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 				<h1 className="mt-1 text-xs text-gray-400">
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
-				{showNewTable ? (
-					<ProductTable products={products} />
-				) : (
-					<OrdersTable products={products} />
-				)}
-
+				<ProductTable products={products} />
 				<CheckoutButton />
 			</div>
 		</>

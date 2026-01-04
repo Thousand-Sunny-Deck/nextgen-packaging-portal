@@ -156,7 +156,13 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 				),
 			},
 		],
-		[setQuantity, getIsProductSelected, toggleProduct, isMounted],
+		[
+			setQuantity,
+			getIsProductSelected,
+			toggleProduct,
+			canSelectProduct,
+			isMounted,
+		],
 	);
 
 	// tanstack table
