@@ -3,9 +3,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { ProductData } from "../products/products";
 
-interface CartItem {
+export interface CartItem {
 	sku: string;
 	quantity: number;
+	description: string;
+	total: number;
+	unitCost: number;
 }
 
 export type ProductTableStore = ProductData & {
@@ -14,108 +17,87 @@ export type ProductTableStore = ProductData & {
 };
 
 interface CartStore {
-	items: Map<string, CartItem>;
-	setQuantity: (sku: string, quantity: number) => void;
+	maybeSelectedProducts: Map<string, CartItem>;
+	selectedProductSkus: Set<string>;
+	setQuantity: (cartInfo: CartItem) => void;
 	getQuantity: (sku: string) => number;
 	clear: () => void;
+
+	// is Row checked?
+	getIsProductSelected: (sku: string) => boolean;
+
+	// Onchange -> toggle product
+	toggleProduct: (sku: string) => void;
+
+	// can select product
+	canSelectProduct: (sku: string) => boolean;
 }
-
-export interface CartItemBetter {
-	sku: string;
-	quantity: number;
-	description: string;
-	total: number;
-	unitCost: number;
-}
-
-interface CartStoreBetter {
-	maybeSelectedProducts: Map<string, CartItemBetter>;
-	selectedProductSkus: Set<string>;
-	toggleProduct: (productInfo: CartItemBetter) => void;
-	clearSelection: () => void;
-	getSelectedProducts: () => CartItemBetter[];
-	updateQuantity: (productInfo: CartItemBetter) => void;
-	getQuantity: (sku: string) => number;
-}
-
-export const useCartStoreBetter = create<CartStoreBetter>((set, get) => ({
-	products: [],
-	maybeSelectedProducts: new Map<string, CartItemBetter>(),
-	selectedProductSkus: new Set<string>(),
-
-	toggleProduct: (cartItem: CartItemBetter) =>
-		set((state) => {
-			const newSet = new Set(state.selectedProductSkus);
-			const sku = cartItem.sku;
-			if (newSet.has(sku)) {
-				newSet.delete(sku);
-			} else {
-				newSet.add(sku);
-			}
-
-			return { selectedProductSkus: newSet };
-		}),
-
-	clearSelection: () =>
-		set({
-			maybeSelectedProducts: new Map(),
-		}),
-
-	updateQuantity: (productInfo) =>
-		set((state) => {
-			const newMap = new Map(state.maybeSelectedProducts);
-			const { sku, unitCost, quantity } = productInfo;
-
-			const totalCost = quantity * unitCost;
-			newMap.set(sku, {
-				...productInfo,
-				total: totalCost,
-			});
-
-			return {
-				maybeSelectedProducts: newMap,
-			};
-		}),
-
-	getQuantity: (sku) => {
-		const { maybeSelectedProducts } = get();
-		const quantity = maybeSelectedProducts.get(sku);
-		return quantity !== undefined ? quantity.quantity : 0;
-	},
-
-	getSelectedProducts: () => {
-		const { selectedProductSkus, maybeSelectedProducts } = get();
-		const selectedSkus = Array.from(selectedProductSkus.values());
-		return selectedSkus
-			.map((sku) => {
-				return maybeSelectedProducts.get(sku);
-			})
-			.filter((selectedProduct) => selectedProduct !== undefined);
-	},
-}));
 
 export const useCartStore = create<CartStore>()(
 	persist(
 		(set, get) => ({
-			items: new Map(),
+			maybeSelectedProducts: new Map(),
+			selectedProductSkus: new Set(),
 
-			setQuantity: (sku, quantity) => {
+			setQuantity: (cartInfo) => {
 				set((state) => {
-					const newItems = new Map(state.items);
-					if (quantity > 0) {
-						newItems.set(sku, { sku, quantity });
-					} else {
-						newItems.delete(sku);
+					const newMap = new Map(state.maybeSelectedProducts);
+					const { quantity, sku, unitCost } = cartInfo;
+					const totalCost = quantity * unitCost;
+
+					if (quantity <= 0) {
+						const newSet = new Set(state.selectedProductSkus);
+						newMap.delete(sku);
+						newSet.delete(sku);
+						return {
+							maybeSelectedProducts: newMap,
+							selectedProductSkus: newSet,
+						};
 					}
-					return { items: newItems };
+
+					newMap.set(sku, {
+						...cartInfo,
+						total: totalCost,
+					});
+
+					return {
+						maybeSelectedProducts: newMap,
+					};
 				});
 			},
 
 			getQuantity: (sku) => {
-				return get().items.get(sku)?.quantity || 0;
+				return get().maybeSelectedProducts.get(sku)?.quantity || 0;
 			},
 
-			clear: () => set({ items: new Map() }),
+			clear: () => set({ maybeSelectedProducts: new Map() }),
+
+			getIsProductSelected: (sku) => {
+				const { selectedProductSkus } = get();
+				return selectedProductSkus.has(sku);
+			},
+
+			toggleProduct: (sku) => {
+				set((state) => {
+					const selectedProductSkus = state.selectedProductSkus;
+					const newSet = new Set(selectedProductSkus);
+
+					if (newSet.has(sku)) {
+						newSet.delete(sku);
+					} else {
+						newSet.add(sku);
+					}
+
+					return {
+						selectedProductSkus: newSet,
+					};
+				});
+			},
+
+			canSelectProduct: (sku) => {
+				const { maybeSelectedProducts } = get();
+				return maybeSelectedProducts.has(sku);
+			},
 		}),
 		{
 			name: "cart-storage",
@@ -124,10 +106,16 @@ export const useCartStore = create<CartStore>()(
 					const str = localStorage.getItem(name);
 					if (!str) return null;
 					const { state } = JSON.parse(str);
+					const newSet = new Set(
+						state.selectedProductSkus || [],
+					) as Set<string>;
 					return {
 						state: {
 							...state,
-							items: new Map(Object.entries(state.items || {})),
+							maybeSelectedProducts: new Map(
+								Object.entries(state.maybeSelectedProducts || {}),
+							),
+							selectedProductSkus: newSet,
 						},
 					};
 				},
@@ -137,7 +125,12 @@ export const useCartStore = create<CartStore>()(
 						JSON.stringify({
 							state: {
 								...value.state,
-								items: Object.fromEntries(value.state.items),
+								maybeSelectedProducts: Object.fromEntries(
+									value.state.maybeSelectedProducts,
+								),
+								selectedProductSkus: Array.from(
+									value.state.selectedProductSkus,
+								),
 							},
 						}),
 					);

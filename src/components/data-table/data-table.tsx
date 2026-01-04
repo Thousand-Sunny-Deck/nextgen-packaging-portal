@@ -1,33 +1,51 @@
-// components/ProductTable.tsx
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-	useReactTable,
-	getCoreRowModel,
-	getSortedRowModel,
-	flexRender,
-	ColumnDef,
-	RowSelectionState,
-	getPaginationRowModel,
-} from "@tanstack/react-table";
-import { Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { ProductTableStore, useCartStore } from "@/lib/store/product-store";
-import { ProductData } from "@/lib/products/products";
-import { Button } from "../ui/button";
 import { usePaginationContext } from "@/hooks/use-pagination-context";
+import { ProductData } from "@/lib/products/products";
+import {
+	CartItem,
+	ProductTableStore,
+	useCartStore,
+} from "@/lib/store/product-store";
+import {
+	ColumnDef,
+	flexRender,
+	getCoreRowModel,
+	getPaginationRowModel,
+	Row,
+	useReactTable,
+} from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "../ui/button";
 
-interface ProductTableProps {
-	products: ProductData[];
-}
-
-export default function ProductTable({ products }: ProductTableProps) {
-	const { items, setQuantity } = useCartStore();
-	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+const ProductTable = ({ products }: { products: ProductData[] }) => {
+	const {
+		maybeSelectedProducts: items,
+		setQuantity,
+		getIsProductSelected,
+		toggleProduct,
+		canSelectProduct,
+	} = useCartStore();
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	});
+	const [isMounted, setIsMounted] = useState(false);
+
+	useEffect(() => {
+		setIsMounted(true);
+	}, []);
+
+	const generateCartInfo = (row: Row<ProductTableStore>): CartItem => {
+		return {
+			sku: row.original.sku,
+			description: row.original.description,
+			quantity: row.original.quantity,
+			total: row.original.total,
+			unitCost: row.original.unitCost,
+		};
+	};
 
 	const data = useMemo(() => {
 		return products.map((product) => ({
@@ -41,20 +59,12 @@ export default function ProductTable({ products }: ProductTableProps) {
 		() => [
 			{
 				id: "select",
-				header: ({ table }) => (
-					<input
-						type="checkbox"
-						checked={table.getIsAllPageRowsSelected()}
-						onChange={table.getToggleAllPageRowsSelectedHandler()}
-						className="h-4 w-4 rounded"
-					/>
-				),
 				cell: ({ row }) => (
 					<input
 						type="checkbox"
-						checked={row.getIsSelected()}
-						disabled={!row.getCanSelect()}
-						onChange={row.getToggleSelectedHandler()}
+						checked={isMounted ? getIsProductSelected(row.original.sku) : false}
+						disabled={isMounted ? !canSelectProduct(row.original.sku) : false}
+						onChange={() => toggleProduct(row.original.sku)}
 						className="h-4 w-4 rounded"
 					/>
 				),
@@ -71,14 +81,17 @@ export default function ProductTable({ products }: ProductTableProps) {
 				id: "quantity",
 				header: "Quantity",
 				cell: ({ row }) => {
-					const qty = row.original.quantity;
+					const productCartInfo = generateCartInfo(row);
+					const { quantity: qty } = productCartInfo;
 					return (
 						<div className="flex items-center justify-center gap-2">
 							<button
 								onClick={() => {
 									const newQty = Math.max(0, qty - 1);
-									setQuantity(row.original.sku, newQty);
-									if (newQty === 0) row.toggleSelected(false);
+									setQuantity({
+										...productCartInfo,
+										quantity: newQty,
+									});
 								}}
 								disabled={qty <= 0}
 								className="h-8 w-8 rounded border disabled:opacity-30"
@@ -89,8 +102,10 @@ export default function ProductTable({ products }: ProductTableProps) {
 							<button
 								onClick={() => {
 									const newQty = qty + 1;
-									setQuantity(row.original.sku, newQty);
-									if (qty === 0) row.toggleSelected(true);
+									setQuantity({
+										...productCartInfo,
+										quantity: newQty,
+									});
 								}}
 								className="h-8 w-8 rounded border"
 							>
@@ -115,20 +130,17 @@ export default function ProductTable({ products }: ProductTableProps) {
 				),
 			},
 		],
-		[setQuantity],
+		[setQuantity, getIsProductSelected, toggleProduct, isMounted],
 	);
 
 	const table = useReactTable({
 		data,
 		columns,
-		state: { rowSelection, pagination },
-		enableRowSelection: (row) => row.original.quantity > 0,
-		onRowSelectionChange: setRowSelection,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
+		state: { pagination },
 		getRowId: (row) => row.sku,
 		getPaginationRowModel: getPaginationRowModel(),
 		onPaginationChange: setPagination,
+		getCoreRowModel: getCoreRowModel(),
 	});
 
 	const {
@@ -234,4 +246,6 @@ export default function ProductTable({ products }: ProductTableProps) {
 			</div>
 		</div>
 	);
-}
+};
+
+export default ProductTable;
