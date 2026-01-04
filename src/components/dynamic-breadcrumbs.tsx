@@ -66,8 +66,6 @@ const DynamicBreadcrumb = () => {
 		})
 		.filter(Boolean);
 
-	console.log(breadcrumbItems);
-
 	return (
 		<Breadcrumb>
 			<BreadcrumbList>

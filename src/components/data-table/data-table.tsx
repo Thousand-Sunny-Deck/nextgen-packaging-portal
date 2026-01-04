@@ -18,8 +18,10 @@ import {
 import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 const ProductTable = ({ products }: { products: ProductData[] }) => {
+	// state management with zustand
 	const {
 		maybeSelectedProducts: items,
 		setQuantity,
@@ -27,10 +29,13 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		toggleProduct,
 		canSelectProduct,
 	} = useCartStore();
+
+	// pagination with tanstack/table
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	});
+
 	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {
@@ -47,6 +52,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		};
 	};
 
+	// table data
 	const data = useMemo(() => {
 		return products.map((product) => ({
 			...product,
@@ -55,6 +61,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		}));
 	}, [products, items]);
 
+	// table columns
 	const columns = useMemo<ColumnDef<ProductTableStore>[]>(
 		() => [
 			{
@@ -83,6 +90,13 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 				cell: ({ row }) => {
 					const productCartInfo = generateCartInfo(row);
 					const { quantity: qty } = productCartInfo;
+					const getNewQuantity = (value: string): number => {
+						if (value.length > 3) {
+							const trimmed = value.trim().slice(0, 3);
+							return parseInt(trimmed, 10) || 0;
+						}
+						return parseInt(value) || 0;
+					};
 					return (
 						<div className="flex items-center justify-center gap-2">
 							<button
@@ -98,7 +112,19 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 							>
 								<Minus className="h-4 w-4 mx-auto" />
 							</button>
-							<span className="w-10 text-center font-semibold">{qty}</span>
+							<Input
+								type="number"
+								value={qty || ""}
+								placeholder="0"
+								onChange={(e) =>
+									setQuantity({
+										...productCartInfo,
+										quantity: getNewQuantity(e.target.value),
+									})
+								}
+								className="h-8 w-16 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+								min="0"
+							/>
 							<button
 								onClick={() => {
 									const newQty = qty + 1;
@@ -133,6 +159,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		[setQuantity, getIsProductSelected, toggleProduct, isMounted],
 	);
 
+	// tanstack table
 	const table = useReactTable({
 		data,
 		columns,
@@ -156,7 +183,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 	});
 
 	return (
-		<div className="w-full">
+		<div className="w-full mt-4">
 			<table className="w-full border-collapse">
 				<thead>
 					{table.getHeaderGroups().map((headerGroup) => (
@@ -176,7 +203,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					{table.getRowModel().rows.map((row) => (
 						<tr
 							key={row.id}
-							className={`border-b ${row.getIsSelected() ? "bg-blue-50" : "hover:bg-gray-50"}`}
+							className={`border-b ${row.getIsSelected() ? "bg-blue-50" : "hover:bg-gray-50"} bg-orange-50`}
 						>
 							{row.getVisibleCells().map((cell) => (
 								<td key={cell.id} className="px-4 py-4">

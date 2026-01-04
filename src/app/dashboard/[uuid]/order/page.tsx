@@ -5,6 +5,7 @@ import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProducts } from "@/lib/products/products";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/data-table/data-table";
+import { CheckoutButton } from "@/components/CheckoutButton";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -39,13 +40,15 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 				<DynamicBreadcrumb />
 				<h1 className="mt-5 text-3xl">Orders</h1>
 				<h1 className="mt-1 text-xs text-gray-400">
-					Select products and proceed.
+					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
 				{showNewTable ? (
 					<ProductTable products={products} />
 				) : (
 					<OrdersTable products={products} />
 				)}
+
+				<CheckoutButton />
 			</div>
 		</>
 	);

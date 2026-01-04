@@ -70,7 +70,13 @@ export const useCartStore = create<CartStore>()(
 				return get().maybeSelectedProducts.get(sku)?.quantity || 0;
 			},
 
-			clear: () => set({ maybeSelectedProducts: new Map() }),
+			// TODO: when User logs out, we need to call this.
+			// TODO: when User checks out successfully, we need to call this
+			clear: () =>
+				set({
+					maybeSelectedProducts: new Map(),
+					selectedProductSkus: new Set(),
+				}),
 
 			getIsProductSelected: (sku) => {
 				const { selectedProductSkus } = get();
