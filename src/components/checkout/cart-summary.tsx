@@ -11,10 +11,10 @@ const CartSummary = () => {
 	}, [getCart]);
 
 	return (
-		<div className="w-[60%]">
-			{cart.map((item) => (
+		<div className="w-[60%] max-h-[600px] overflow-y-auto">
+			{cart.map((item, id) => (
 				<CartRow
-					key={item.sku}
+					key={id}
 					sku={item.sku}
 					description={item.description}
 					quantity={item.quantity}
