@@ -31,6 +31,8 @@ interface CartStore {
 
 	// can select product
 	canSelectProduct: (sku: string) => boolean;
+
+	getCart: () => CartItem[];
 }
 
 export const useCartStore = create<CartStore>()(
@@ -103,6 +105,19 @@ export const useCartStore = create<CartStore>()(
 			canSelectProduct: (sku) => {
 				const { maybeSelectedProducts } = get();
 				return maybeSelectedProducts.has(sku);
+			},
+
+			getCart: () => {
+				const { selectedProductSkus, maybeSelectedProducts } = get();
+				const arr = Array.from(maybeSelectedProducts.values());
+				return arr
+					.map((item) => {
+						const sku = item.sku;
+						if (selectedProductSkus.has(sku)) {
+							return item;
+						} else return null;
+					})
+					.filter((x) => x !== null);
 			},
 		}),
 		{

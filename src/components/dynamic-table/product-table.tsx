@@ -174,6 +174,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		getPaginationRowModel: getPaginationRowModel(),
 		onPaginationChange: setPagination,
 		getCoreRowModel: getCoreRowModel(),
+		autoResetPageIndex: false,
 	});
 
 	const {
