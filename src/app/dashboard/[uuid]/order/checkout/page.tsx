@@ -3,7 +3,6 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
-import CartSummary from "@/components/checkout/cart-summary";
 import CheckoutForm from "@/components/checkout/checkout-form";
 
 interface CheckoutPageProps {
@@ -39,12 +38,7 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 
 				{/* This is the main section */}
 
-				<div className="w-full mt-10 flex justify-between gap-6">
-					{/* Current Cart info*/}
-					<CartSummary />
-					{/* Summary Info and checkout */}
-					<CheckoutForm />
-				</div>
+				<CheckoutForm />
 			</div>
 		</>
 	);

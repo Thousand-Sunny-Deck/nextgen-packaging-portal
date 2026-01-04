@@ -1,9 +1,16 @@
+"use client";
+
 interface OrderSummaryProps {
 	cartSize: number;
 	totalCost: number;
+	showBillingInfo: boolean;
 }
 
-const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
+const OrderSummary = ({
+	cartSize,
+	totalCost,
+	showBillingInfo,
+}: OrderSummaryProps) => {
 	const shouldAddServiceFee = totalCost < 150;
 	const serviceFee = 10;
 	const finalTotalCost = shouldAddServiceFee
@@ -13,6 +20,7 @@ const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 	return (
 		<div className="mt-4 px-4 py-2 flex flex-col w-full">
 			<p className="font-bold text-xl">Order Summary</p>
+			{/* subtotal + service fee, etc */}
 			<div className="flex flex-col mt-2">
 				<div className="pt-2 flex flex-col">
 					<div className="flex flex-row justify-between">
@@ -38,11 +46,16 @@ const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 
 					<hr className="mt-2" />
 				</div>
+				{/* Billing info (if exists) */}
 
+				{showBillingInfo && <div>here is billing info </div>}
+
+				{/* total */}
 				<div className="flex flex-row justify-between mt-2">
 					<p className="font-bold text-md">Total</p>
 					<p className="font-bold text-md">${finalTotalCost}</p>
 				</div>
+				<hr className="mt-2" />
 			</div>
 		</div>
 	);

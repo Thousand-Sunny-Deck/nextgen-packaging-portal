@@ -1,54 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ProgressBar } from "./progress-bar";
-import { CartItem, useCartStore } from "@/lib/store/product-store";
-import OrderSummary from "./order-summary";
+import { useState } from "react";
+import CartSummary from "./cart/cart-summary";
+import OrderInfo from "./order/order-info";
+
+export type CheckoutState = "cart" | "billing" | "order" | "shipped";
 
 const CheckoutForm = () => {
-	const [cart, setCart] = useState<CartItem[]>([]);
-	const [totalCartCost, setTotalCartCost] = useState<number>(0);
-	const [isClient, setIsClient] = useState(false);
-	const [currentStep, setCurrentStep] = useState(0);
+	const [checkoutState, setCheckoutState] = useState<CheckoutState>("cart");
 
-	const { getCart, getTotalCartCost } = useCartStore();
+	const updateCheckoutState = (state: CheckoutState) => {
+		switch (state) {
+			case "cart":
+				setCheckoutState("cart");
+				break;
+			case "billing":
+				setCheckoutState("billing");
+				break;
+			case "order":
+				setCheckoutState("order");
+				break;
+			case "shipped":
+				setCheckoutState("shipped");
+				break;
+			default:
+				// optionally handle an unknown state
+				break;
+		}
+	};
 
-	useEffect(() => {
-		setIsClient(true);
-		setCart(getCart());
-		setTotalCartCost(getTotalCartCost());
-	}, [getCart, getTotalCartCost]);
+	const isReviewOrderState = checkoutState === "cart";
+	// const isConfirmDetailsState = checkoutState === "confirm-details";
+	const isOrderState = checkoutState === "order";
 
-	if (!isClient) {
-		return null; // or a loading skeleton
-	}
-
-	const steps = [
-		{ label: "Review Order", completed: true },
-		{ label: "Confirm details", completed: false },
-		{ label: "Order Placement", completed: false },
-	];
 	return (
-		<div className="w-[40%] border flex flex-col items-start">
-			<ProgressBar steps={steps} currentStep={currentStep} />
-			<OrderSummary cartSize={cart.length} totalCost={totalCartCost} />
-			{/* Demo buttons */}
-			<div className="flex gap-4 justify-center mt-8">
-				<button
-					onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-					className="px-4 py-2 bg-gray-200 rounded"
-				>
-					Previous
-				</button>
-				<button
-					onClick={() =>
-						setCurrentStep(Math.min(steps.length - 1, currentStep + 1))
-					}
-					className="px-4 py-2 bg-black text-white rounded"
-				>
-					Next
-				</button>
-			</div>
+		<div className="w-full mt-10 flex justify-between gap-6">
+			{/* Current Cart info*/}
+			{(isReviewOrderState || isOrderState) && <CartSummary />}
+
+			{/* Summary Info and checkout */}
+			<OrderInfo
+				setCheckoutState={updateCheckoutState}
+				checkoutState={checkoutState}
+			/>
 		</div>
 	);
 };
