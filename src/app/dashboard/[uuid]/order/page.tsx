@@ -3,7 +3,7 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProducts } from "@/lib/products/products";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
-import ProductTable from "@/components/data-table/data-table";
+import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
 
 interface OrdersPageProps {

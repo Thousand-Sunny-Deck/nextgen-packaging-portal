@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCart } from "@/contexts/cart-context";
+import { useCart } from "../../../../../../tmp/contexts/cart-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
