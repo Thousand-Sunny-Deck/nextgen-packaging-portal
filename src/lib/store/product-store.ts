@@ -19,6 +19,9 @@ export type ProductTableStore = ProductData & {
 interface CartStore {
 	maybeSelectedProducts: Map<string, CartItem>;
 	selectedProductSkus: Set<string>;
+	cart: CartItem[];
+	cartSize: number;
+	totalCost: number;
 	setQuantity: (cartInfo: CartItem) => void;
 	getQuantity: (sku: string) => number;
 	clear: () => void;
@@ -33,6 +36,9 @@ interface CartStore {
 	canSelectProduct: (sku: string) => boolean;
 
 	getCart: () => CartItem[];
+	getTotalCartCost: () => number;
+
+	prepareCartForCheckout: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -40,6 +46,9 @@ export const useCartStore = create<CartStore>()(
 		(set, get) => ({
 			maybeSelectedProducts: new Map(),
 			selectedProductSkus: new Set(),
+			cart: [],
+			cartSize: 0,
+			totalCost: 0,
 
 			setQuantity: (cartInfo) => {
 				set((state) => {
@@ -108,16 +117,36 @@ export const useCartStore = create<CartStore>()(
 			},
 
 			getCart: () => {
-				const { selectedProductSkus, maybeSelectedProducts } = get();
-				const arr = Array.from(maybeSelectedProducts.values());
-				return arr
-					.map((item) => {
-						const sku = item.sku;
-						if (selectedProductSkus.has(sku)) {
-							return item;
-						} else return null;
-					})
-					.filter((x) => x !== null);
+				const { cart } = get();
+				return cart;
+			},
+
+			getTotalCartCost: () => {
+				const { totalCost } = get();
+				return totalCost;
+			},
+
+			prepareCartForCheckout: () => {
+				set((state) => {
+					const { selectedProductSkus, maybeSelectedProducts } = state;
+					const arr = Array.from(maybeSelectedProducts.values());
+					const cart = arr
+						.map((item) => {
+							const sku = item.sku;
+							if (selectedProductSkus.has(sku)) {
+								return item;
+							} else return null;
+						})
+						.filter((x) => x !== null);
+
+					const totalCost = cart.reduce((sum, item) => sum + item.total, 0);
+
+					return {
+						cart: cart,
+						cartSize: cart.length,
+						totalCost: totalCost,
+					};
+				});
 			},
 		}),
 		{

@@ -10,6 +10,7 @@ interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
 }
 
+// TODO: this page takes ages to load. 1. add skeleton 2. figure out why its taking so long
 const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const { error, session } = await getUserSession();
 
