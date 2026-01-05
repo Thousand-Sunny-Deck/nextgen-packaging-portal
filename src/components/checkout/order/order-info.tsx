@@ -6,18 +6,32 @@ import { CartItem, useCartStore } from "@/lib/store/product-store";
 import OrderSummary from "./order-summary";
 import { CheckoutState } from "../checkout-form";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { usePathname, useRouter } from "next/navigation";
 
 interface OrderInfoProps {
 	setCheckoutState: (state: CheckoutState) => void;
 	checkoutState: CheckoutState;
 }
 
+const getDashboardBasePath = (path: string) => {
+	const segments = path.split("/").filter(Boolean);
+	if (segments.length >= 2 && segments[0] === "dashboard") {
+		return `/dashboard/${segments[1]}`;
+	}
+	return "/";
+};
+
 const OrderInfo = (props: OrderInfoProps) => {
 	const [cart, setCart] = useState<CartItem[]>([]);
 	const [totalCartCost, setTotalCartCost] = useState<number>(0);
 	const [isClient, setIsClient] = useState(false);
+	const [hasOrderPlaced, setHasOrderPlaced] = useState(false);
 
 	const { getCart, getTotalCartCost } = useCartStore();
+	const pathname = usePathname();
+	const router = useRouter();
 
 	useEffect(() => {
 		setIsClient(true);
@@ -48,6 +62,35 @@ const OrderInfo = (props: OrderInfoProps) => {
 		{ label: "Confirm details", completed: false },
 		{ label: "Order Placement", completed: false },
 	];
+
+	const handlePlaceOrder = async () => {
+		setHasOrderPlaced(true);
+		props.setCheckoutState("shipped");
+
+		try {
+			// TODO: call await prepareAndFire();
+
+			toast.success("Your order has been placed successfully.");
+			confetti({
+				particleCount: 200,
+				spread: 70,
+				origin: { x: 0, y: 0.6 },
+			});
+			confetti({
+				particleCount: 200,
+				spread: 70,
+				origin: { x: 1, y: 0.6 },
+			});
+
+			const baseDashboardPath = getDashboardBasePath(pathname);
+			router.push(`${baseDashboardPath}/home`);
+			return;
+
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		} catch (e: unknown) {
+			toast.error("Something went wrong. Please contact us.");
+		}
+	};
 
 	const isCartState = props.checkoutState === "cart";
 	const isBilling = props.checkoutState === "billing";
@@ -82,22 +125,18 @@ const OrderInfo = (props: OrderInfoProps) => {
 				{isOrderState && (
 					<>
 						{/**TODO: onclick handler here that will place the order, server action. Also, clear all localstorage once placed order
-						 * TODO: also, add toast
-						 * TODO: also, redirect to /dashboard/[uuid]/home, once order is placed
-						 * TODO: also would be cool to do a confetti when order is successfully placed.
-						 * TODO: im tired, get some sleep.
 						 */}
 						<Button
 							className="w-[150px]"
-							disabled={props.checkoutState === "shipped"}
-							onClick={() => props.setCheckoutState("shipped")}
+							disabled={hasOrderPlaced}
+							onClick={handlePlaceOrder}
 						>
 							Place Order
 						</Button>
 						<Button
 							variant="link"
 							className="w-[150px] font-light text-sm"
-							disabled={props.checkoutState === "shipped"}
+							disabled={hasOrderPlaced}
 							onClick={() => props.setCheckoutState("billing")}
 						>
 							Edit Billing Info
