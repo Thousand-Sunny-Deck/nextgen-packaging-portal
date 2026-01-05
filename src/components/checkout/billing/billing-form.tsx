@@ -79,8 +79,6 @@ const BillingForm = ({ email, updateState }: BillingFormProps) => {
 	const { setBillingInfo } = useBillingInfoStore();
 
 	const onSubmit = (data: BillingFormSchema) => {
-		console.log("Form submitted:", data);
-
 		const parseDataForStore = (data: BillingFormSchema): BillingInfoItem => {
 			return {
 				email: data.email,
