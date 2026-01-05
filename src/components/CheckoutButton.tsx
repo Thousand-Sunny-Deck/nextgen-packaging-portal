@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 
 export function CheckoutButton() {
-	const { selectedProductSkus } = useCartStore();
+	const { selectedProductSkus, prepareCartForCheckout } = useCartStore();
 	const router = useRouter();
 	const pathname = usePathname();
 
 	const hasSelectedProducts = selectedProductSkus.size > 0;
 
 	const handleCheckout = () => {
+		prepareCartForCheckout();
 		router.push(`${pathname}/checkout`);
 	};
 
