@@ -9,7 +9,6 @@ const validateABN = (abn: string): boolean => {
 	// Full ABN checksum validation
 	// const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
 	const abnDigits = cleanABN.split("").map(Number);
-	console.log(abnDigits);
 	return abnDigits.length === 11;
 	// abnDigits[0] -= 1;
 	// const sum = abnDigits.reduce((total, digit, index) => {

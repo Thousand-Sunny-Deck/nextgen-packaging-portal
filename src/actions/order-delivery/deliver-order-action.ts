@@ -1,9 +1,10 @@
 "use server";
 
 import { OrderSummaryInfo } from "@/components/checkout/order/order-summary";
+import { env } from "@/lib/env-validation/env";
 import { BillingInfoItem as BillingInfoPayload } from "@/lib/store/billing-info-store";
 import { CartItem } from "@/lib/store/product-store";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
 export type OrderPayload = {
 	cart: CartPayload;
@@ -29,21 +30,12 @@ export const preparePayloadAndFire = async (
 		billingInfo: billingInfo,
 	};
 
-	console.dir(payload, {
-		depth: 100,
-	});
-
-	const headersList = await headers();
-	const host = headersList.get("host");
-	const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-	const baseUrl = `${protocol}://${host}`;
-
-	console.log(baseUrl);
-
-	const response = await fetch(`${baseUrl}/api/orders`, {
+	const cookies = await getCookieHeader();
+	const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/orders`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
+			Cookie: cookies,
 		},
 		body: JSON.stringify(payload),
 	});
@@ -59,4 +51,16 @@ export const preparePayloadAndFire = async (
 	return {
 		ok: true,
 	};
+};
+
+const getCookieHeader = async (): Promise<string> => {
+	const cookieStore = await cookies();
+
+	// ✅ Convert cookies to Cookie header string
+	const cookieHeader = cookieStore
+		.getAll()
+		.map((cookie) => `${cookie.name}=${cookie.value}`)
+		.join("; ");
+
+	return cookieHeader;
 };
