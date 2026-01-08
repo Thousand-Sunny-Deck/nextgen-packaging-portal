@@ -26,6 +26,7 @@ model User {
 
   sessions Session[]
   accounts Account[]
+  orders   Order[]
 
   @@map("users")
 }
@@ -77,4 +78,101 @@ model Verification {
   expiresAt  DateTime
 
   @@map("verifications")
+}
+
+// Main Order model
+model Order {
+  id      String  @id @default(cuid())
+  orderId String  @unique // Custom order ID like "ORD-20260108-X7K9P"
+  userId  String? // Optional if you have auth
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Order status
+  status OrderStatus @default(PENDING)
+
+  // Customer information (denormalized for easy access)
+  customerEmail        String
+  customerFirstName    String
+  customerLastName     String
+  customerOrganization String
+
+  serviceFee     Int
+  totalOrderCost Float
+  cartSubTotal   Float
+  cartSize       Int
+
+  // Billing address
+  billingAddress BillingAddress?
+
+  // Order items
+  items OrderItem[]
+
+  // Invoice processing
+  invoiceGenerated Boolean @default(false)
+  invoiceUrl       String? // S3 URL
+  invoiceS3Key     String? // S3 object key for deletion/updates
+
+  // Email tracking
+  emailSent   Boolean   @default(false)
+  emailSentAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([customerEmail])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("orders")
+}
+
+// Order items (cart items)
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Product information (snapshot at time of order)
+  sku         String
+  quantity    Int
+  description String
+
+  // Pricing
+  total    Float
+  unitCost Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// Billing address
+model BillingAddress {
+  id      String @id @default(cuid())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  email        String
+  organization String
+  address      String
+  ABN          String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("billing_addresses")
+}
+
+// Enums
+enum OrderStatus {
+  PENDING // Just created, background job queued
+  PROCESSING // Background job is running
+  COMPLETED // Everything done (PDF generated, email sent)
+  FAILED // Processing failed after retries
+
+  @@map("order_status")
 }
