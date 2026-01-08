@@ -106,13 +106,18 @@ const OrderInfo = (props: OrderInfoProps) => {
 			}
 
 			// prepares the payload and sends it off to the backend for pdf generation
-			preparePayloadAndFire(
+			const response = await preparePayloadAndFire(
 				{
 					items: cartItems,
 					extraCartInfo: orderSummaryInfo,
 				},
 				billingInfo,
 			);
+
+			if (!response.ok || response.error) {
+				setHasOrderPlaced(false);
+				throw new Error("Something went wrong.");
+			}
 
 			// delete data from localStorage
 			clearCart();

@@ -56,9 +56,9 @@ export const useCartStore = create<CartStore>()(
 					const newMap = new Map(state.maybeSelectedProducts);
 					const { quantity, sku, unitCost } = cartInfo;
 					const totalCost = Math.round(quantity * unitCost * 100) / 100;
+					const newSet = new Set(state.selectedProductSkus);
 
 					if (quantity <= 0) {
-						const newSet = new Set(state.selectedProductSkus);
 						newMap.delete(sku);
 						newSet.delete(sku);
 						return {
@@ -72,8 +72,11 @@ export const useCartStore = create<CartStore>()(
 						total: totalCost,
 					});
 
+					newSet.add(sku);
+
 					return {
 						maybeSelectedProducts: newMap,
+						selectedProductSkus: newSet,
 					};
 				});
 			},
