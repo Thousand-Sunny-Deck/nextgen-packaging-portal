@@ -22,9 +22,10 @@ interface CartStore {
 	cart: CartItem[];
 	cartSize: number;
 	totalCost: number;
+
 	setQuantity: (cartInfo: CartItem) => void;
 	getQuantity: (sku: string) => number;
-	clear: () => void;
+	clearCart: () => void;
 
 	// is Row checked?
 	getIsProductSelected: (sku: string) => boolean;
@@ -83,11 +84,15 @@ export const useCartStore = create<CartStore>()(
 
 			// TODO: when User logs out, we need to call this.
 			// TODO: when User checks out successfully, we need to call this
-			clear: () =>
+			clearCart: () => {
 				set({
 					maybeSelectedProducts: new Map(),
 					selectedProductSkus: new Set(),
-				}),
+					cart: [],
+					cartSize: 0,
+					totalCost: 0,
+				});
+			},
 
 			getIsProductSelected: (sku) => {
 				const { selectedProductSkus } = get();

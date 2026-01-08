@@ -22,10 +22,11 @@ export const useBillingInfoStore = create<BillingInfoStore>()(
 
 			// TODO: once user clicks "Place Order", we need to clear it from here.
 			// TODO: once user logs out, this should be called too
-			clearBillingInfo: () =>
+			clearBillingInfo: () => {
 				set({
 					billingInfo: new Map(),
-				}),
+				});
+			},
 
 			setBillingInfo: (info) => {
 				set((state) => {

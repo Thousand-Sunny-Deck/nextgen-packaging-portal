@@ -2,17 +2,19 @@
 
 import { useBillingInfoStore } from "@/lib/store/billing-info-store";
 
-interface OrderSummaryProps {
-	cartSize: number;
+export type OrderSummaryInfo = {
+	subTotal: number;
 	totalCost: number;
+	extraCost: Record<string, number>;
+	cartSize: number;
+};
+
+interface OrderSummaryProps {
+	info: OrderSummaryInfo;
 }
 
-const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
-	const shouldAddServiceFee = totalCost < 150;
-	const serviceFee = 10;
-	const finalTotalCost = shouldAddServiceFee
-		? totalCost + serviceFee
-		: totalCost;
+const OrderSummary = ({ info }: OrderSummaryProps) => {
+	const { subTotal, cartSize, totalCost, extraCost } = info;
 
 	const { getBillingInfo } = useBillingInfoStore();
 	const billingInfoArr = getBillingInfo();
@@ -32,7 +34,7 @@ const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 					<hr className="mt-2" />
 					<div className="flex flex-row justify-between mt-2">
 						<p className="font-light text-sm">Sub total</p>
-						<p className="font-semibold text-sm">${totalCost}</p>
+						<p className="font-semibold text-sm">${subTotal}</p>
 					</div>
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Shipping</p>
@@ -41,9 +43,7 @@ const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Service Fee</p>
-						<p className="font-semibold text-sm">
-							${shouldAddServiceFee ? serviceFee : 0}
-						</p>
+						<p className="font-semibold text-sm">${extraCost["serviceFee"]}</p>
 					</div>
 
 					<hr className="mt-2" />
@@ -76,7 +76,7 @@ const OrderSummary = ({ cartSize, totalCost }: OrderSummaryProps) => {
 				{/* total */}
 				<div className="flex flex-row justify-between mt-2">
 					<p className="font-bold text-md">Total</p>
-					<p className="font-bold text-md">${finalTotalCost}</p>
+					<p className="font-bold text-md">${totalCost}</p>
 				</div>
 				<hr className="mt-2" />
 			</div>
