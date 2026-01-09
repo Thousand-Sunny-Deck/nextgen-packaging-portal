@@ -4,7 +4,7 @@ import { OrderSummaryInfo } from "@/components/checkout/order/order-summary";
 import { env } from "@/lib/env-validation/env";
 import { BillingInfoItem as BillingInfoPayload } from "@/lib/store/billing-info-store";
 import { CartItem } from "@/lib/store/product-store";
-import { cookies } from "next/headers";
+import { getCookieHeader } from "./common";
 
 export type OrderPayload = {
 	cart: CartPayload;
@@ -51,16 +51,4 @@ export const preparePayloadAndFire = async (
 	return {
 		ok: true,
 	};
-};
-
-const getCookieHeader = async (): Promise<string> => {
-	const cookieStore = await cookies();
-
-	// ✅ Convert cookies to Cookie header string
-	const cookieHeader = cookieStore
-		.getAll()
-		.map((cookie) => `${cookie.name}=${cookie.value}`)
-		.join("; ");
-
-	return cookieHeader;
 };

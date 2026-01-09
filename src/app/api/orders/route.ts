@@ -2,15 +2,16 @@ import { OrderPayload } from "@/actions/order-delivery/deliver-order-action";
 import { NextRequest, NextResponse } from "next/server";
 import { orderPayloadSchema } from "./validate-request";
 import { auth } from "@/lib/config/auth";
+import {
+	fetchOrdersForUser,
+	storePreparedOrderInDb,
+} from "@/lib/store/orders-store";
 
 export async function POST(request: NextRequest) {
 	try {
-		console.log("headers", request.headers);
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
-
-		console.log("Parth", session);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
@@ -45,13 +46,52 @@ export async function POST(request: NextRequest) {
 		}
 
 		const payload: OrderPayload = validationResult.data;
+		const order = await storePreparedOrderInDb(payload, session.user.id);
 
 		return NextResponse.json({
 			success: true,
-			data: payload,
+			data: {
+				orderId: order.orderId,
+				id: order.id,
+			},
 		});
 	} catch (err: unknown) {
-		console.log("Parth", err);
+		return NextResponse.json(
+			{
+				err,
+				message: "Something went wrong",
+			},
+			{
+				status: 500,
+			},
+		);
+	}
+}
+
+export async function GET(request: NextRequest) {
+	try {
+		const session = await auth.api.getSession({
+			headers: request.headers,
+		});
+
+		if (!session || !session.user) {
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Unauthorized",
+				},
+				{ status: 401 },
+			);
+		}
+
+		const userId = session.user.id;
+		const orders = await fetchOrdersForUser(userId);
+
+		return NextResponse.json({
+			success: true,
+			data: orders,
+		});
+	} catch (err: unknown) {
 		return NextResponse.json(
 			{
 				err,
