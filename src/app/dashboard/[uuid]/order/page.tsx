@@ -5,12 +5,13 @@ import { fetchProducts } from "@/lib/products/products";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
+import { Suspense } from "react";
+import Loading from "./loading"; // Import the loading component
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
 }
 
-// TODO: this page takes ages to load. 1. add skeleton 2. figure out why its taking so long
 const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const { error, session } = await getUserSession();
 
@@ -26,22 +27,21 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const { error: orgIdError } = verifyOrgId(session, slug);
 
 	if (orgIdError) {
-		// User is authenticated but trying to access another user's dashboard
-		// Redirect to their own dashboard or show 404
 		notFound();
 	}
 
-	const products = await fetchProducts();
+	const products = await fetchProducts(); // This is the slow part
 
 	return (
-		// TODO: on bigger screens, the table goes to the left. UI defact
 		<div className="ml-80 mt-15 w-7/12 h-full pb-20">
 			<DynamicBreadcrumb />
 			<h1 className="mt-5 text-3xl">Orders</h1>
 			<h1 className="mt-1 text-xs text-gray-400">
 				Select desired quantity (max. 999) and proceed to checkout below.
 			</h1>
-			<ProductTable products={products} />
+			<Suspense fallback={<Loading />}>
+				<ProductTable products={products} />
+			</Suspense>
 			<CheckoutButton />
 		</div>
 	);
