@@ -92,8 +92,6 @@ model Order {
 
   // Customer information (denormalized for easy access)
   customerEmail        String
-  customerFirstName    String
-  customerLastName     String
   customerOrganization String
 
   serviceFee     Int
