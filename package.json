@@ -23,6 +23,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"dotenv": "^16.6.1",
+		"inngest": "^3.49.1",
 		"lucide": "^0.561.0",
 		"lucide-react": "^0.552.0",
 		"next": "15.5.9",
