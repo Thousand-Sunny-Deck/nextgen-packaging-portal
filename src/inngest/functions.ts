@@ -1,26 +1,67 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+	fetchOrderByUserAndOrderId,
+	removeOrderFromDb,
+} from "@/lib/store/orders-store";
 import { inngest } from "./client";
+import { validateEventData } from "./utils";
+import { NonRetriableError } from "inngest";
+import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
+import * as fs from "node:fs";
 
 export const helloWorld = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
-	{ event: "order/post" },
+	{ event: "invoice/generate" },
 	async ({ event, step }) => {
+		if (!validateEventData(event.data)) {
+			return { success: false, message: "Cannot validate event." };
+		}
+
 		const pdf = await step.run("generate-pdf", async () => {
-			// there is data in event.data
-			/**
-			 *
-			 * event.data = userId, orderId, email
-			 */
-			/**
-			 * 1. fetch orderData using orderId and userId from db.
-			 * 		this will include the order status.
-			 * 		this will also include the cart + billing info
-			 * 2. use all data to generate a pdf
-			 * 3. update db state
-			 * 4. return pdf
-			 *
-			 */
+			const { orderId, userId, email } = event.data;
+			const order = await fetchOrderByUserAndOrderId(orderId, userId);
+			if (!order) {
+				throw new NonRetriableError(
+					`Order ${orderId} not found for user ${userId}.`,
+				);
+			}
+
+			if (order.cartSize <= 0) {
+				throw new NonRetriableError(
+					`Order ${orderId} for user ${userId} has no items in cart.`,
+				);
+			}
+
+			if (order.status !== "PENDING") {
+				throw new NonRetriableError(
+					`Order ${orderId} for user ${userId} - invoice already generated.`,
+				);
+			}
+
+			const invoiceData = {
+				orderNumber: order.orderId,
+				date: new Date(order.createdAt).toLocaleDateString(),
+				customer: {
+					name: order.customerEmail || email,
+					address: order.billingAddress?.address,
+					abn: order.billingAddress?.ABN,
+				},
+				items: order.items.map((item) => ({
+					name: item.description,
+					quantity: item.quantity,
+					price: item.unitCost,
+					sku: item.sku,
+				})),
+				total: order.totalOrderCost,
+			};
+
+			const pdfBuffer = await generateInvoicePdf(invoiceData);
+			return pdfBuffer;
 		});
+
+		if (pdf) {
+			return { success: true };
+		}
 
 		const s3Url = await step.run("upload-to-s3", async () => {
 			/**

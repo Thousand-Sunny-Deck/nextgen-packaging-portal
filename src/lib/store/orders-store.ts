@@ -55,6 +55,9 @@ export async function storePreparedOrderInDb(
 			invoiceGenerated: false,
 			emailSent: false,
 
+			// timestamps
+			createdAt: new Date(),
+
 			// Create related order items
 			items: {
 				create: items.map((item) => ({
@@ -107,4 +110,56 @@ export async function fetchOrdersForUser(userId: string) {
 	});
 
 	return orders;
+}
+
+/**
+ * Fetches a single order by orderId and userId.
+ * Returns the order with its related items, billing address, and status.
+ *
+ * @param orderId - The order ID to fetch
+ * @param userId - The user ID to verify ownership
+ * @returns The Order record with items, billingAddress, and status, or null if not found
+ */
+export async function fetchOrderByUserAndOrderId(
+	orderId: string,
+	userId: string,
+) {
+	const order = await prisma.order.findFirst({
+		where: {
+			orderId,
+			userId,
+		},
+		include: {
+			items: true,
+			billingAddress: true,
+		},
+	});
+
+	return order;
+}
+
+export async function updateStateForOrder(
+	orderId: string,
+	userId: string,
+	state: OrderStatus,
+) {
+	await prisma.order.update({
+		where: {
+			orderId,
+			userId,
+		},
+		data: {
+			status: state,
+			updatedAt: new Date(),
+		},
+	});
+}
+
+export async function removeOrderFromDb(orderId: string, userId: string) {
+	await prisma.order.delete({
+		where: {
+			orderId,
+			userId,
+		},
+	});
 }

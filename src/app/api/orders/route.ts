@@ -6,6 +6,7 @@ import {
 	fetchOrdersForUser,
 	storePreparedOrderInDb,
 } from "@/lib/store/orders-store";
+import { inngest } from "@/inngest/client";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -47,6 +48,15 @@ export async function POST(request: NextRequest) {
 
 		const payload: OrderPayload = validationResult.data;
 		const order = await storePreparedOrderInDb(payload, session.user.id);
+
+		await inngest.send({
+			name: "invoice/generate",
+			data: {
+				orderId: order.orderId,
+				userId: order.userId,
+				email: order.customerEmail,
+			},
+		});
 
 		return NextResponse.json({
 			success: true,
