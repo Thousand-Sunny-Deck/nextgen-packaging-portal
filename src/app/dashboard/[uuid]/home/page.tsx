@@ -1,8 +1,7 @@
 import PortalContent from "@/components/portal-content";
-import OrdersList from "@/components/orders-list";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession } from "@/hooks/use-session";
-import { fetchOrdersForUser } from "@/lib/store/orders-store";
+// import { fetchOrdersForUser } from "@/lib/store/orders-store";
 import { redirect, notFound } from "next/navigation";
 
 interface PortalPageProps {
@@ -30,14 +29,14 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	}
 
 	// Fetch orders for the user
-	const orders = await fetchOrdersForUser(session.user.id);
+	// const orders = await fetchOrdersForUser(session.user.id);
 
 	return (
 		<>
 			<PortalContent session={session} />
-			<div className="px-7 py-16 container mx-auto max-w-screen">
+			{/* <div className="px-7 py-16 container mx-auto max-w-screen">
 				<OrdersList orders={orders} userId={session.user.id} />
-			</div>
+			</div> */}
 			<div>myuuid: {orgId}</div>
 		</>
 	);

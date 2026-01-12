@@ -4,6 +4,8 @@ import { verifyOrgId } from "@/hooks/use-org-id";
 
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import CheckoutForm from "@/components/checkout/checkout-form";
+import { Suspense } from "react";
+import CheckoutLoading from "./loading";
 
 interface CheckoutPageProps {
 	params: Promise<{ uuid: string }>;
@@ -38,11 +40,13 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 
 				{/* This is the main section */}
 
-				<CheckoutForm
-					userMetadata={{
-						email: session.user.email,
-					}}
-				/>
+				<Suspense fallback={<CheckoutLoading />}>
+					<CheckoutForm
+						userMetadata={{
+							email: session.user.email,
+						}}
+					/>
+				</Suspense>
 			</div>
 		</>
 	);
