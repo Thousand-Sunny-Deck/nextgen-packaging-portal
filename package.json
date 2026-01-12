@@ -3,7 +3,8 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "npx prisma generate && next dev --turbopack",
+		"dev:app": "npx prisma generate && next dev --turbopack",
+		"dev:job": "npx --ignore-scripts=false inngest-cli@latest dev",
 		"build": "npx prisma generate && next build --turbopack",
 		"start": "npx prisma generate && next start",
 		"lint": "eslint",
@@ -16,6 +17,7 @@
 		"@radix-ui/react-checkbox": "^1.3.3",
 		"@radix-ui/react-label": "^2.1.7",
 		"@radix-ui/react-slot": "^1.2.3",
+		"@react-pdf/renderer": "^4.3.2",
 		"@tanstack/react-table": "^8.21.3",
 		"@types/canvas-confetti": "^1.9.0",
 		"better-auth": "^1.3.34",
