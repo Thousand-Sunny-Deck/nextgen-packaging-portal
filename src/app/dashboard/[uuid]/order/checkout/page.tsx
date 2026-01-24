@@ -33,20 +33,24 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 
 	return (
 		<>
-			<div className="ml-80 mt-15 w-7/12 h-full pb-20">
-				<DynamicBreadcrumb />
-				<p className="mt-15 text-3xl font-bold">Checkout</p>
-				<p className="mt-1 text-sm text-gray-400">Review and confirm order.</p>
+			<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
+				<div className="w-full md:w-11/12 lg:w-9/12 xl:w-8/12 max-w-7xl">
+					<DynamicBreadcrumb />
+					<p className="mt-5 text-2xl md:text-3xl font-bold">Checkout</p>
+					<p className="mt-1 text-xs md:text-sm text-gray-400">
+						Review and confirm order.
+					</p>
 
-				{/* This is the main section */}
+					{/* This is the main section */}
 
-				<Suspense fallback={<CheckoutLoading />}>
-					<CheckoutForm
-						userMetadata={{
-							email: session.user.email,
-						}}
-					/>
-				</Suspense>
+					<Suspense fallback={<CheckoutLoading />}>
+						<CheckoutForm
+							userMetadata={{
+								email: session.user.email,
+							}}
+						/>
+					</Suspense>
+				</div>
 			</div>
 		</>
 	);

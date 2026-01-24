@@ -151,7 +151,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 		props.checkoutState === "order" || props.checkoutState === "shipped";
 
 	return (
-		<div className="w-[40%] border flex flex-col items-start">
+		<div className="w-full md:w-[42%] lg:w-[40%] border flex flex-col items-start">
 			<ProgressBar steps={steps} currentStep={currentStep} />
 			<OrderSummary info={orderSummaryInfo} />
 

@@ -41,7 +41,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 	const isOrderState = checkoutState === "order" || checkoutState === "shipped";
 
 	return (
-		<div className="w-full mt-10 flex justify-between gap-6">
+		<div className="w-full mt-10 flex justify-between gap-4 md:gap-6 lg:gap-8">
 			{/* Current Cart info*/}
 			{(isReviewOrderState || isOrderState) && <CartSummary />}
 			{isBillingState && (
