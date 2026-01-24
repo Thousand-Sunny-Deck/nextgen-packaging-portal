@@ -1,5 +1,5 @@
 import { env } from "@/lib/env-validation/env";
-import { InvoiceData } from "@/lib/pdf/template";
+import { InvoiceData } from "@/lib/pdf/types";
 import { OrderDetailsForOrderId as OrderDetails } from "@/lib/store/orders-store";
 
 interface EventData {
