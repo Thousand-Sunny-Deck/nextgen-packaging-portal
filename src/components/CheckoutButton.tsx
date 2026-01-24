@@ -17,7 +17,7 @@ export function CheckoutButton() {
 	};
 
 	return (
-		<div className="w-full flex pt-6 items-center justify-center">
+		<div className="w-full flex pt-6 md:pt-8 items-center justify-center">
 			<Button
 				size="sm"
 				disabled={!hasSelectedProducts}
