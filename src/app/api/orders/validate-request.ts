@@ -45,7 +45,7 @@ const cartPayloadSchema = z.object({
 });
 
 const billingInfoSchema = z.object({
-	email: z.string().email("Invalid email address"),
+	email: z.email("Invalid email address"),
 	organization: z.string().min(1, "Organization name is required"),
 	address: z
 		.string()

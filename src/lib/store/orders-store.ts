@@ -1,7 +1,15 @@
 import { OrderPayload } from "@/actions/order-delivery/deliver-order-action";
 import { prisma } from "@/lib/config/prisma";
 import { OrderStatus } from "@/generated/prisma/enums";
-import { Order } from "@/generated/prisma/client";
+import { Order, OrderItem, BillingAddress } from "@/generated/prisma/client";
+
+/**
+ * Type representing an Order with its related items and billing address
+ */
+export type OrderDetailsForOrderId = Order & {
+	items: OrderItem[];
+	billingAddress: BillingAddress | null;
+};
 
 /**
  * Generates a custom order ID in the format: ORD-YYYYMMDD-XXXXX
@@ -123,7 +131,7 @@ export async function fetchOrdersForUser(userId: string) {
 export async function fetchOrderByUserAndOrderId(
 	orderId: string,
 	userId: string,
-) {
+): Promise<OrderDetailsForOrderId | null> {
 	const order = await prisma.order.findFirst({
 		where: {
 			orderId,
