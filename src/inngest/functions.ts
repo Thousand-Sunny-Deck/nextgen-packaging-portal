@@ -1,13 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-	fetchOrderByUserAndOrderId,
-	removeOrderFromDb,
-} from "@/lib/store/orders-store";
+import { fetchOrderByUserAndOrderId } from "@/lib/store/orders-store";
 import { inngest } from "./client";
-import { validateEventData } from "./utils";
+import { enrichInvoiceData, validateEventData } from "./utils";
 import { NonRetriableError } from "inngest";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
-import * as fs from "node:fs";
 
 export const helloWorld = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
@@ -38,23 +34,7 @@ export const helloWorld = inngest.createFunction(
 				);
 			}
 
-			const invoiceData = {
-				orderNumber: order.orderId,
-				date: new Date(order.createdAt).toLocaleDateString(),
-				customer: {
-					name: order.customerEmail || email,
-					address: order.billingAddress?.address,
-					abn: order.billingAddress?.ABN,
-				},
-				items: order.items.map((item) => ({
-					name: item.description,
-					quantity: item.quantity,
-					price: item.unitCost,
-					sku: item.sku,
-				})),
-				total: order.totalOrderCost,
-			};
-
+			const invoiceData = enrichInvoiceData(order);
 			const pdfBuffer = await generateInvoicePdf(invoiceData);
 			return pdfBuffer;
 		});

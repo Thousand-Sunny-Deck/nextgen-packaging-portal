@@ -1,128 +1,162 @@
+import React from "react";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { inoviceStyles } from "./styles";
+import { InvoiceData } from "./types";
+import { pdfTemplateStyles as styles } from "./styles";
 
-export type InvoiceData = {
-	invoice: {
-		orderNumber: string;
-		date: string;
-		customer: {
-			name: string;
-			address: string;
-			abn: string;
-		};
-		items: {
-			sku: string;
-			quantity: number;
-			price: number;
-			name: string;
-		}[];
-		total: number;
-	};
-};
+interface InvoiceProps {
+	invoiceData: InvoiceData;
+}
 
-export const InvoicePDF = ({ invoice }: InvoiceData) => (
-	<Document>
-		<Page size="A4" style={inoviceStyles.page}>
-			{/* Header */}
-			<View style={inoviceStyles.header}>
-				<View>
-					<Text style={inoviceStyles.companyName}>NextGen Packaging</Text>
-					<Text style={inoviceStyles.companyDetails}>
-						123 Business Street{"\n"}
-						Adelaide, SA 5000{"\n"}
-						ABN: 12 345 678 901{"\n"}
-						admin@nextgenpacking.com.au
-					</Text>
-				</View>
-				<View style={{ alignItems: "flex-end" }}>
-					<Text style={inoviceStyles.invoiceTitle}>INVOICE</Text>
-					<Text style={inoviceStyles.invoiceDetails}>
-						Invoice #: {invoice.orderNumber}
-						{"\n"}
-						Date: {invoice.date}
-						{"\n"}
-						Due Date: {invoice.date}
-					</Text>
-				</View>
-			</View>
+const Invoice = ({ invoiceData }: InvoiceProps) => {
+	const {
+		invoiceNumber,
+		issueDate,
+		dueDate,
+		billTo,
+		shipTo,
+		items,
+		subtotal,
+		tax,
+		total,
+		totalPaid,
+		balanceDue,
+		bankDetails,
+	} = invoiceData;
 
-			{/* Bill To */}
-			<View style={inoviceStyles.billingSection}>
-				<Text style={inoviceStyles.sectionTitle}>Bill To</Text>
-				<Text style={inoviceStyles.billingInfo}>
-					{invoice.customer.name}
-					{"\n"}
-					{invoice.customer.address}
-					{invoice.customer.abn && `\nABN: ${invoice.customer.abn}`}
-				</Text>
-			</View>
-
-			{/* Items Table */}
-			<View style={inoviceStyles.table}>
-				{/* Table Header */}
-				<View style={inoviceStyles.tableHeader}>
-					<Text style={[inoviceStyles.tableHeaderText, inoviceStyles.col1]}>
-						Description
-					</Text>
-					<Text style={[inoviceStyles.tableHeaderText, inoviceStyles.col2]}>
-						Qty
-					</Text>
-					<Text style={[inoviceStyles.tableHeaderText, inoviceStyles.col3]}>
-						Unit Price
-					</Text>
-					<Text style={[inoviceStyles.tableHeaderText, inoviceStyles.col4]}>
-						Amount
-					</Text>
+	return (
+		<Document>
+			<Page size="A4" style={styles.page}>
+				{/* Header */}
+				<View style={styles.header}>
+					<Text style={styles.companyName}>NextGen Packaging</Text>
+					<Text style={styles.invoiceTitle}>Tax invoice</Text>
+					<View style={styles.row}>
+						<Text>Invoice number: {invoiceNumber}</Text>
+						<Text>Issue date: {issueDate}</Text>
+						<Text>Due date: {dueDate}</Text>
+					</View>
 				</View>
 
-				{/* Table Rows */}
-				{invoice.items.map((item, index) => (
-					<View key={index} style={inoviceStyles.tableRow}>
-						<Text style={[inoviceStyles.tableCell, inoviceStyles.col1]}>
-							{item.name}
+				{/* Bill To and Ship To */}
+				<View style={styles.addressSection}>
+					<View style={styles.addressBox}>
+						<Text style={styles.addressLabel}>Bill to</Text>
+						<Text style={styles.addressText}>{billTo.name}</Text>
+						<Text style={styles.addressText}>{billTo.company}</Text>
+						<Text style={styles.addressText}>{billTo.streetAddress}</Text>
+						<Text style={styles.addressText}>
+							{[billTo.suburb, billTo.postcode].join(", ")}
 						</Text>
-						<Text style={[inoviceStyles.tableCell, inoviceStyles.col2]}>
-							{item.quantity}
+						<Text style={styles.addressText}>{billTo.country}</Text>
+					</View>
+					<View style={styles.addressBox}>
+						<Text style={styles.addressLabel}>Ship to</Text>
+						<Text style={styles.addressText}>{shipTo.name}</Text>
+						<Text style={styles.addressText}>{shipTo.company}</Text>
+						<Text style={styles.addressText}>{shipTo.streetAddress}</Text>
+						<Text style={styles.addressText}>
+							{[shipTo.suburb, shipTo.postcode].join(", ")}
 						</Text>
-						<Text style={[inoviceStyles.tableCell, inoviceStyles.col3]}>
-							${item.price.toFixed(2)}
+						<Text style={styles.addressText}>{shipTo.country}</Text>
+					</View>
+				</View>
+
+				{/* Table */}
+				<View style={styles.table}>
+					{/* Table Header */}
+					<View style={styles.tableHeader}>
+						<Text style={styles.itemCodeCol}>Item ID</Text>
+						<Text style={styles.descriptionCol}>Description</Text>
+						<Text style={styles.qtyCol}>Qty</Text>
+						<Text style={styles.unitPriceCol}>Unit price ($)</Text>
+						<Text style={styles.amountCol}>Amount ($)</Text>
+					</View>
+
+					{/* Table Rows */}
+					{items.map((item, index: number) => (
+						<View key={index} style={styles.tableRow}>
+							<Text style={styles.itemCodeCol}>{item.itemId}</Text>
+							<Text style={styles.descriptionCol}>{item.description}</Text>
+							<Text style={styles.qtyCol}>{item.qty}</Text>
+							<Text style={styles.unitPriceCol}>
+								{item.unitPrice.toFixed(2)}
+							</Text>
+							<Text style={styles.amountCol}>{item.amount.toFixed(2)}</Text>
+						</View>
+					))}
+				</View>
+
+				{/* Totals */}
+				<View style={styles.totalsSection}>
+					<View style={styles.totalRow}>
+						<Text>Subtotal (exc. tax)</Text>
+						<Text>${subtotal.toFixed(2)}</Text>
+					</View>
+					<View style={styles.totalRow}>
+						<Text>Tax</Text>
+						<Text>${tax.toFixed(2)}</Text>
+					</View>
+					<View style={[styles.totalRow, styles.grandTotal]}>
+						<Text style={styles.totalLabel}>Total Amount (inc. tax)</Text>
+						<Text style={styles.totalLabel}>${total.toFixed(2)}</Text>
+					</View>
+					<View style={styles.totalRow}>
+						<Text>Total paid</Text>
+						<Text>${totalPaid.toFixed(2)}</Text>
+					</View>
+					<View style={styles.totalRow}>
+						<Text style={styles.totalLabel}>Balance due</Text>
+						<Text style={styles.totalLabel}>${balanceDue.toFixed(2)}</Text>
+					</View>
+				</View>
+
+				{/* Payment Information */}
+				<View style={styles.paymentSection}>
+					<Text style={styles.paymentTitle}>How to pay</Text>
+					{/* Row 1: Bank deposit title */}
+					<Text style={styles.paymentType}>Bank deposit</Text>
+					{/* Row 2: Bank and Name */}
+					<View style={styles.paymentRow}>
+						<Text>
+							<Text style={styles.boldLabel}>Bank: </Text>
+							{bankDetails.bank}
 						</Text>
-						<Text style={[inoviceStyles.tableCell, inoviceStyles.col4]}>
-							${(item.quantity * item.price).toFixed(2)}
+						<Text>
+							<Text style={styles.boldLabel}>Name: </Text>
+							{bankDetails.name}
 						</Text>
 					</View>
-				))}
-			</View>
-
-			{/* Summary */}
-			<View style={inoviceStyles.summarySection}>
-				<View style={inoviceStyles.summaryRow}>
-					<Text style={inoviceStyles.summaryLabel}>Subtotal</Text>
-					<Text style={inoviceStyles.summaryValue}>
-						${invoice.total.toFixed(2)}
-					</Text>
-				</View>
-				{/** TODO: add a tax field here */}
-				<View style={inoviceStyles.summaryRow}>
-					<Text style={inoviceStyles.summaryLabel}>Tax</Text>
-					<Text style={inoviceStyles.summaryValue}>
-						${invoice.total.toFixed(2)}
-					</Text>
+					{/* Row 3: BSB, AC#, Ref# */}
+					<View style={styles.paymentRow}>
+						<Text>
+							<Text style={styles.boldLabel}>BSB: </Text>
+							{bankDetails.bsb}
+						</Text>
+						<Text>
+							<Text style={styles.boldLabel}>AC#: </Text>
+							{bankDetails.account}
+						</Text>
+						<Text>
+							<Text style={styles.boldLabel}>Ref#: </Text>
+							{bankDetails.reference}
+						</Text>
+					</View>
 				</View>
 
-				<View style={inoviceStyles.totalRow}>
-					<Text style={inoviceStyles.totalLabel}>Total</Text>
-					<Text style={inoviceStyles.totalValue}>
-						${invoice.total.toFixed(2)}
-					</Text>
+				{/* Footer */}
+				<View style={styles.footer}>
+					<Text
+						render={({ pageNumber, totalPages }) =>
+							`Page ${pageNumber} of ${totalPages}`
+						}
+					/>
+					<Text>Invoice no: {invoiceNumber}</Text>
+					<Text>Due date: {dueDate}</Text>
+					<Text>Balance due: ${balanceDue.toFixed(2)}</Text>
 				</View>
-			</View>
+			</Page>
+		</Document>
+	);
+};
 
-			{/* Footer */}
-			<Text style={inoviceStyles.footer}>
-				Thank you for your business!{"\n"}
-				For any questions, please contact us at hello@yourcompany.com
-			</Text>
-		</Page>
-	</Document>
-);
+export default Invoice;

@@ -1,150 +1,126 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-export const inoviceStyles = StyleSheet.create({
+export const pdfTemplateStyles = StyleSheet.create({
 	page: {
 		padding: 40,
 		fontSize: 10,
 		fontFamily: "Helvetica",
-		color: "#333",
 	},
-
-	// Header
 	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 40,
-		paddingBottom: 20,
-		borderBottomWidth: 2,
-		borderBottomColor: "#000",
+		marginBottom: 30,
 	},
 	companyName: {
-		fontSize: 24,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
-		marginBottom: 4,
-	},
-	companyDetails: {
-		fontSize: 9,
-		color: "#666",
-		lineHeight: 1.4,
+		fontSize: 20,
+		fontWeight: "bold",
+		marginBottom: 15,
 	},
 	invoiceTitle: {
-		fontSize: 14,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
-		marginBottom: 8,
-	},
-	invoiceDetails: {
-		fontSize: 9,
-		color: "#666",
-		lineHeight: 1.5,
-	},
-
-	// Billing section
-	billingSection: {
-		marginBottom: 40,
-	},
-	sectionTitle: {
 		fontSize: 11,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
-		marginBottom: 8,
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
+		fontWeight: "bold",
+		marginBottom: 10,
 	},
-	billingInfo: {
-		fontSize: 10,
-		lineHeight: 1.5,
-		color: "#333",
+	row: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginBottom: 5,
 	},
-
-	// Table
-	table: {
+	addressSection: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginTop: 20,
 		marginBottom: 30,
+	},
+	addressBox: {
+		width: "48%",
+	},
+	addressLabel: {
+		fontSize: 9,
+		fontWeight: "bold",
+		marginBottom: 5,
+	},
+	addressText: {
+		fontSize: 9,
+		lineHeight: 1.4,
+	},
+	table: {
+		marginTop: 20,
+		marginBottom: 20,
 	},
 	tableHeader: {
 		flexDirection: "row",
-		backgroundColor: "#f8f9fa",
-		padding: 12,
-		borderRadius: 4,
-		marginBottom: 2,
-	},
-	tableHeaderText: {
+		backgroundColor: "#f0f0f0",
+		padding: 8,
+		fontWeight: "bold",
 		fontSize: 9,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
-		textTransform: "uppercase",
-		letterSpacing: 0.5,
 	},
 	tableRow: {
 		flexDirection: "row",
-		paddingVertical: 12,
-		paddingHorizontal: 12,
 		borderBottomWidth: 1,
-		borderBottomColor: "#e9ecef",
+		borderBottomColor: "#e0e0e0",
+		padding: 8,
+		fontSize: 9,
 	},
-	tableCell: {
-		fontSize: 10,
-		color: "#333",
-	},
-
-	// Column widths
-	col1: { width: "50%" },
-	col2: { width: "15%", textAlign: "center" },
-	col3: { width: "17.5%", textAlign: "right" },
-	col4: { width: "17.5%", textAlign: "right" },
-
-	// Summary
-	summarySection: {
+	itemCodeCol: { width: "16%" },
+	descriptionCol: { width: "40%" },
+	qtyCol: { width: "12%", textAlign: "center" },
+	unitPriceCol: { width: "16%", textAlign: "center" },
+	amountCol: { width: "16%", textAlign: "center" },
+	totalsSection: {
 		marginTop: 20,
 		alignItems: "flex-end",
 	},
-	summaryRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		width: 200,
-		paddingVertical: 6,
-	},
-	summaryLabel: {
-		fontSize: 10,
-		color: "#666",
-	},
-	summaryValue: {
-		fontSize: 10,
-		color: "#333",
-		fontFamily: "Helvetica-Bold",
-	},
 	totalRow: {
 		flexDirection: "row",
+		width: 250,
 		justifyContent: "space-between",
-		width: 200,
-		paddingVertical: 10,
-		marginTop: 8,
+		marginBottom: 5,
+		fontSize: 10,
+	},
+	totalLabel: {
+		fontWeight: "bold",
+	},
+	grandTotal: {
+		marginTop: 10,
+		paddingTop: 10,
 		borderTopWidth: 2,
 		borderTopColor: "#000",
 	},
-	totalLabel: {
-		fontSize: 12,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
+	paymentSection: {
+		marginTop: 30,
+		padding: 15,
+		backgroundColor: "#f8f8f8",
 	},
-	totalValue: {
-		fontSize: 12,
-		fontFamily: "Helvetica-Bold",
-		color: "#000",
+	paymentTitle: {
+		fontSize: 11,
+		fontWeight: "bold",
+		marginBottom: 10,
 	},
-
-	// Footer
+	paymentDetails: {
+		fontSize: 9,
+		lineHeight: 1.5,
+	},
+	paymentType: {
+		fontSize: 9,
+		lineHeight: 1.5,
+		paddingBottom: 6,
+	},
+	boldLabel: {
+		fontWeight: "bold",
+	},
+	paymentRow: {
+		flexDirection: "column",
+		marginBottom: 6,
+		fontSize: 9,
+		lineHeight: 1.5,
+	},
 	footer: {
 		position: "absolute",
 		bottom: 40,
 		left: 40,
 		right: 40,
-		paddingTop: 20,
-		borderTopWidth: 1,
-		borderTopColor: "#e9ecef",
-		fontSize: 8,
-		color: "#999",
-		textAlign: "center",
+		flexDirection: "row",
+		justifyContent: "space-between",
+		fontSize: 9,
+		color: "#666",
 	},
 });

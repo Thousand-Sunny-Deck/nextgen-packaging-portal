@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchOrderByUserAndOrderId } from "@/lib/store/orders-store";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
+import { enrichInvoiceData } from "@/inngest/utils";
 
 // THIS IS TEMP... purely for testing teh invoice template
 export async function POST(request: NextRequest) {
@@ -33,26 +34,8 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		// Transform order data into invoice format
-		const invoiceData = {
-			orderNumber: order.orderId,
-			date: new Date(order.createdAt).toLocaleDateString(),
-			customer: {
-				name: order.billingAddress?.email || order.customerEmail,
-				address: order.billingAddress?.address || "",
-				abn: order.billingAddress?.ABN || "",
-			},
-			items: order.items.map((item) => ({
-				name: item.description,
-				quantity: item.quantity,
-				price: item.unitCost,
-				sku: item.sku,
-			})),
-			total: order.totalOrderCost,
-		};
-
 		// Generate PDF buffer
-		const pdfBuffer = await generateInvoicePdf(invoiceData);
+		const pdfBuffer = await generateInvoicePdf(enrichInvoiceData(order));
 
 		// Convert Buffer to Uint8Array for NextResponse
 		const pdfUint8Array = new Uint8Array(pdfBuffer);

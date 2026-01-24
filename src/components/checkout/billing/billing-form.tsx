@@ -51,10 +51,7 @@ const formSchema = z.object({
 	organizationName: z
 		.string()
 		.min(1, { message: "Organization name is required" }),
-	billingAddress: z
-		.string()
-		.min(1, { message: "Billing address is required" })
-		.min(10, { message: "Please enter a complete address" }),
+	billingAddress: z.string().min(1, { message: "Billing address is required" }),
 	abnNumber: z
 		.string()
 		.min(1, { message: "ABN number is required" })
@@ -161,7 +158,8 @@ const BillingForm = ({ email, updateState }: BillingFormProps) => {
 										/>
 									</FormControl>
 									<FormDescription className="text-xs text-slate-500">
-										Complete address including street, city, state, and postcode
+										Complete address including street, city, state, postcode and
+										country.
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
