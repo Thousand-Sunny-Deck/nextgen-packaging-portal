@@ -206,7 +206,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					onChange={(event) =>
 						table.getColumn("description")?.setFilterValue(event.target.value)
 					}
-					className="w-[40%] rounded-sm"
+					className="w-full md:w-[50%] lg:w-[40%] rounded-sm"
 				/>
 			</div>
 			<table className="w-full border-collapse">
@@ -214,7 +214,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id} className="border-b">
 							{headerGroup.headers.map((header) => (
-								<th key={header.id} className="px-4 py-3 text-center">
+								<th key={header.id} className="px-3 md:px-4 py-3 text-center">
 									{flexRender(
 										header.column.columnDef.header,
 										header.getContext(),
@@ -231,7 +231,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 							className={`border-b ${row.getIsSelected() ? "bg-blue-50" : "hover:bg-gray-50"} bg-orange-50`}
 						>
 							{row.getVisibleCells().map((cell) => (
-								<td key={cell.id} className="px-4 py-4">
+								<td key={cell.id} className="px-3 md:px-4 py-4">
 									{flexRender(cell.column.columnDef.cell, cell.getContext())}
 								</td>
 							))}
@@ -239,7 +239,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					))}
 				</tbody>
 			</table>
-			<div className="flex items-center justify-between py-4">
+			<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
 				<div className="text-sm text-gray-600">
 					Showing {startRow} to {endRow} of {totalRows} products
 				</div>
@@ -250,10 +250,10 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 							size="sm"
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
-							className="h-8 px-3"
+							className="h-8 px-2 md:px-3"
 						>
 							<ChevronLeft className="h-4 w-4" />
-							<span className="ml-1">Previous</span>
+							<span className="ml-1 hidden md:inline">Previous</span>
 						</Button>
 
 						<div className="flex items-center gap-1">
@@ -288,9 +288,9 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 							size="sm"
 							onClick={() => table.nextPage()}
 							disabled={!table.getCanNextPage()}
-							className="h-8 px-3"
+							className="h-8 px-2 md:px-3"
 						>
-							<span className="mr-1">Next</span>
+							<span className="mr-1 hidden md:inline">Next</span>
 							<ChevronRight className="h-4 w-4" />
 						</Button>
 					</div>

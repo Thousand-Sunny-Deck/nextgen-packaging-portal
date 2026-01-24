@@ -33,16 +33,18 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const products = await fetchProducts(); // This is the slow part
 
 	return (
-		<div className="ml-80 mt-15 w-7/12 h-full pb-20">
-			<DynamicBreadcrumb />
-			<h1 className="mt-5 text-3xl">Orders</h1>
-			<h1 className="mt-1 text-xs text-gray-400">
-				Select desired quantity (max. 999) and proceed to checkout below.
-			</h1>
-			<Suspense fallback={<Loading />}>
-				<ProductTable products={products} />
-			</Suspense>
-			<CheckoutButton />
+		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
+			<div className="w-full md:w-11/12 lg:w-7/12 xl:w-6/12 max-w-7xl">
+				<DynamicBreadcrumb />
+				<h1 className="mt-5 text-2xl md:text-3xl">Orders</h1>
+				<h1 className="mt-1 text-xs md:text-sm text-gray-400">
+					Select desired quantity (max. 999) and proceed to checkout below.
+				</h1>
+				<Suspense fallback={<Loading />}>
+					<ProductTable products={products} />
+				</Suspense>
+				<CheckoutButton />
+			</div>
 		</div>
 	);
 };
