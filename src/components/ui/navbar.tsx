@@ -5,18 +5,25 @@ import { SignOutUser } from "@/actions/auth/sign-out-action";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import { LogOut } from "lucide-react";
+import { useCartStore } from "@/lib/store/product-store";
+import { useBillingInfoStore } from "@/lib/store/billing-info-store";
 
 export function Navbar() {
 	const [isPending, setIsPending] = useState<boolean>(false);
+	const { clearCart } = useCartStore();
+	const { clearBillingInfo } = useBillingInfoStore();
 
 	const handleSignOutButton = async () => {
 		setIsPending(true);
+
 		const { error } = await SignOutUser();
 
 		if (error) {
 			setIsPending(false);
 			toast.error(error);
 		} else {
+			clearCart();
+			clearBillingInfo();
 			redirect("/auth/login");
 		}
 	};
