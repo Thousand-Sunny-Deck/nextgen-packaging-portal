@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
 	}
 
 	if (isLoggedIn && isLoginRoute) {
-		return NextResponse.redirect(new URL("/entry", req.url));
+		return NextResponse.redirect(new URL("/", req.url));
 	}
 
 	return NextResponse.next();
