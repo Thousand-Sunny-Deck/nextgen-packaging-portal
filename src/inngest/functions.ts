@@ -61,7 +61,7 @@ export const helloWorld = inngest.createFunction(
 
 			await updateOrderWithInvoice(orderId, userId, {
 				invoiceS3Key: s3Key,
-				invoiceS3Url: s3Url,
+				invoiceS3Url: url,
 				status: OrderStatus.PDF_STORED,
 			});
 
