@@ -1,15 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	fetchOrderByUserAndOrderId,
+	updateOrderWithEmail,
 	updateOrderWithInvoice,
 	updateStateForOrder,
 } from "@/lib/store/orders-store";
 import { inngest } from "./client";
-import { enrichInvoiceData, validateEventData } from "./utils";
+import {
+	createAdminDetailsForEmail,
+	enrichInvoiceData,
+	validateEventData,
+} from "./utils";
 import { NonRetriableError } from "inngest";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { S3Service } from "@/service/s3";
+import { PostOffice } from "@/service/post-office";
+import { EmailTemplate } from "@/lib/resend/template";
 
 export const helloWorld = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
@@ -71,21 +78,24 @@ export const helloWorld = inngest.createFunction(
 			};
 		});
 
-		if (s3Key || s3Url) {
-			console.log(s3Key, s3Url);
-			return true;
-		}
+		// THIS IS WORKING NOW. I NEED TO CONFIGURE DNS and DOMAIN thing for emails.
+		// from email needs to be congiured correctly
+		await step.run("send-email", async () => {
+			const { orderId, userId, email } = event.data;
+			const postOffice = new PostOffice(createAdminDetailsForEmail());
+			const { data, error } = await postOffice.deliver(
+				{
+					to: ["pvyas1512@gmail.com"],
+				},
+				EmailTemplate({ firstName: userId }),
+				Buffer.from(pdf.data),
+			);
 
-		const email = await step.run("send-email", async () => {
-			/**
-			 *
-			 * you have orderId, email, userId, s3 url, pdf buffer
-			 *
-			 * 1. we may/maynot need to generate a signedUrl.
-			 * 2. use resend to send email with pdf buffer in the attachment.
-			 * 3. update db state to be completed.
-			 *
-			 */
+			console.log("parth data", data);
+			console.log("parth error", error);
+
+			await updateOrderWithEmail(orderId, userId, OrderStatus.EMAIL_SENT);
+			return data;
 		});
 	},
 );
