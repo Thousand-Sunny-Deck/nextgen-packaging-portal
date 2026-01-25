@@ -14,7 +14,7 @@ export const helloWorld = inngest.createFunction(
 		}
 
 		const pdf = await step.run("generate-pdf", async () => {
-			const { orderId, userId, email } = event.data;
+			const { orderId, userId } = event.data;
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
 			if (!order) {
 				throw new NonRetriableError(
