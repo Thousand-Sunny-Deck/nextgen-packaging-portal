@@ -92,9 +92,6 @@ export const helloWorld = inngest.createFunction(
 				Buffer.from(pdf.data),
 			);
 
-			console.log("parth data", data);
-			console.log("parth error", error);
-
 			await updateOrderWithEmail(orderId, userId, OrderStatus.EMAIL_SENT);
 			return data;
 		});
