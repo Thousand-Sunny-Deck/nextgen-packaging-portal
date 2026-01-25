@@ -68,7 +68,7 @@ export const validateEventData = (data: unknown): boolean => {
 export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 	const issueDate = new Date(order.createdAt).toLocaleDateString();
 	const dueDate = new Date(
-		order.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000,
+		order.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000,
 	).toLocaleDateString();
 
 	const addressString = order.billingAddress?.address || "";
