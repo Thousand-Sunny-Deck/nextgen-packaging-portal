@@ -1,9 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { fetchOrderByUserAndOrderId } from "@/lib/store/orders-store";
+import {
+	fetchOrderByUserAndOrderId,
+	updateOrderWithInvoice,
+	updateStateForOrder,
+} from "@/lib/store/orders-store";
 import { inngest } from "./client";
 import { enrichInvoiceData, validateEventData } from "./utils";
 import { NonRetriableError } from "inngest";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
+import { OrderStatus } from "@/generated/prisma/enums";
+import { S3Service } from "@/service/s3";
 
 export const helloWorld = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
@@ -13,7 +19,7 @@ export const helloWorld = inngest.createFunction(
 			return { success: false, message: "Cannot validate event." };
 		}
 
-		const pdf = await step.run("generate-pdf", async () => {
+		const { pdf } = await step.run("generate-pdf", async () => {
 			const { orderId, userId } = event.data;
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
 			if (!order) {
@@ -34,25 +40,41 @@ export const helloWorld = inngest.createFunction(
 				);
 			}
 
+			await updateStateForOrder(orderId, userId, OrderStatus.PROCESSING);
+
 			const invoiceData = enrichInvoiceData(order);
 			const pdfBuffer = await generateInvoicePdf(invoiceData);
-			return pdfBuffer;
+
+			await updateStateForOrder(orderId, userId, OrderStatus.PDF_GENERATED);
+			return {
+				pdf: pdfBuffer,
+			};
 		});
 
-		if (pdf) {
-			return { success: true };
+		const { s3Key, s3Url } = await step.run("upload-to-s3", async () => {
+			const { orderId, userId } = event.data;
+			const s3Key = `invoices/${orderId}.pdf`;
+			const pdfBuffer = Buffer.from(pdf.data);
+
+			const s3 = new S3Service();
+			const { url } = await s3.uploadFile(s3Key, pdfBuffer, "application/pdf");
+
+			await updateOrderWithInvoice(orderId, userId, {
+				invoiceS3Key: s3Key,
+				invoiceS3Url: url,
+				status: OrderStatus.PDF_STORED,
+			});
+
+			return {
+				s3Key,
+				s3Url: url,
+			};
+		});
+
+		if (s3Key || s3Url) {
+			console.log(s3Key, s3Url);
+			return true;
 		}
-
-		const s3Url = await step.run("upload-to-s3", async () => {
-			/**
-			 * get orderId, userId, email from db
-			 *
-			 * 1. use the pdf buffer returned from above to generate a s3 url
-			 * 2. store in s3
-			 * 3. update db with s3 url and state
-			 * 3. return s3 url
-			 */
-		});
 
 		const email = await step.run("send-email", async () => {
 			/**
