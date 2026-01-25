@@ -11,6 +11,7 @@ export const env = createEnv({
 		AWS_ACCESS_KEY_ID: z.string(),
 		AWS_SECRET_ACCESS_KEY: z.string(),
 		AWS_S3_BUCKET_NAME: z.string(),
+		RESEND_API_KEY: z.string(),
 	},
 	client: {
 		NEXT_PUBLIC_API_URL: z.url(),
@@ -27,5 +28,6 @@ export const env = createEnv({
 		AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID as string,
 		AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY as string,
 		AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME as string,
+		RESEND_API_KEY: process.env.RESEND_API_KEY as string,
 	},
 });

@@ -195,3 +195,22 @@ export async function updateOrderWithInvoice(
 		},
 	});
 }
+
+export async function updateOrderWithEmail(
+	orderId: string,
+	userId: string,
+	status: OrderStatus,
+) {
+	return await prisma.order.update({
+		where: {
+			orderId: orderId,
+			userId: userId,
+		},
+		data: {
+			emailSent: true,
+			emailSentAt: new Date(),
+			updatedAt: new Date(),
+			status: status,
+		},
+	});
+}

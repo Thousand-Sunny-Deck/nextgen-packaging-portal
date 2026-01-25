@@ -1,6 +1,7 @@
 import { env } from "@/lib/env-validation/env";
 import { InvoiceData } from "@/lib/pdf/types";
 import { OrderDetailsForOrderId as OrderDetails } from "@/lib/store/orders-store";
+import { AdminDetails } from "@/service/post-office";
 
 interface EventData {
 	orderId?: unknown;
@@ -116,4 +117,14 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 	};
 
 	return invoiceData;
+};
+
+export const createAdminDetailsForEmail = (): AdminDetails => {
+	const from = "Onboarding <onboarding@resend.dev>";
+	const subject = "Your Invoce is ready!";
+
+	return {
+		from,
+		subject,
+	};
 };
