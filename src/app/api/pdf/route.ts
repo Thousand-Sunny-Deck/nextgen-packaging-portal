@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchOrderByUserAndOrderId } from "@/lib/store/orders-store";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
 import { enrichInvoiceData } from "@/inngest/utils";
+import { S3Service } from "@/service/s3";
 
 // THIS IS TEMP... purely for testing teh invoice template
 export async function POST(request: NextRequest) {
@@ -39,6 +40,12 @@ export async function POST(request: NextRequest) {
 
 		// Convert Buffer to Uint8Array for NextResponse
 		const pdfUint8Array = new Uint8Array(pdfBuffer);
+
+		const s3 = new S3Service();
+		const key = `invoices/${orderId}.pdf`;
+		if (!(await s3.fileExists(key))) {
+			await s3.uploadFile(key, pdfUint8Array, "application/pdf");
+		}
 
 		// Return PDF with proper headers to open in browser
 		return new NextResponse(pdfUint8Array, {
