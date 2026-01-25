@@ -80,6 +80,7 @@ export const helloWorld = inngest.createFunction(
 
 		// THIS IS WORKING NOW. I NEED TO CONFIGURE DNS and DOMAIN thing for emails.
 		// from email needs to be congiured correctly
+		// TODO: Design for Email and Domain config
 		await step.run("send-email", async () => {
 			const { orderId, userId, email } = event.data;
 			const postOffice = new PostOffice(createAdminDetailsForEmail());
