@@ -78,7 +78,7 @@ export default function OrdersList({ orders, userId }: OrdersListProps) {
 								<span className="font-semibold">{order.orderId}</span>
 								<span
 									className={`px-2 py-1 rounded text-xs ${
-										order.status === "COMPLETED"
+										order.status === "EMAIL_SENT"
 											? "bg-green-100 text-green-800"
 											: order.status === "PENDING"
 												? "bg-yellow-100 text-yellow-800"
