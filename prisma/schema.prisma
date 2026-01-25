@@ -168,8 +168,10 @@ model BillingAddress {
 // Enums
 enum OrderStatus {
   PENDING // Just created, background job queued
-  PROCESSING // Background job is running
-  COMPLETED // Everything done (PDF generated, email sent)
+  PROCESSING // backgroud jobs are running
+  PDF_GENERATED // PDF_GENERATED
+  PDF_STORED // pdf is stored in s3
+  EMAIL_SENT // email sent with pdf
   FAILED // Processing failed after retries
 
   @@map("order_status")
