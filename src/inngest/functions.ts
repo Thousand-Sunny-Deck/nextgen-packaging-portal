@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	fetchOrderByUserAndOrderId,
+	updateOrderWithInvoice,
 	updateStateForOrder,
 } from "@/lib/store/orders-store";
 import { inngest } from "./client";
@@ -18,7 +19,7 @@ export const helloWorld = inngest.createFunction(
 			return { success: false, message: "Cannot validate event." };
 		}
 
-		const { pdf, order } = await step.run("generate-pdf", async () => {
+		const { pdf } = await step.run("generate-pdf", async () => {
 			const { orderId, userId } = event.data;
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
 			if (!order) {
@@ -47,7 +48,6 @@ export const helloWorld = inngest.createFunction(
 			await updateStateForOrder(orderId, userId, OrderStatus.PDF_GENERATED);
 			return {
 				pdf: pdfBuffer,
-				order,
 			};
 		});
 
@@ -58,7 +58,13 @@ export const helloWorld = inngest.createFunction(
 
 			const s3 = new S3Service();
 			const { url } = await s3.uploadFile(s3Key, pdfBuffer, "application/pdf");
-			await updateStateForOrder(orderId, userId, OrderStatus.PDF_STORED);
+
+			await updateOrderWithInvoice(orderId, userId, {
+				invoiceS3Key: s3Key,
+				invoiceS3Url: s3Url,
+				status: OrderStatus.PDF_STORED,
+			});
+
 			return {
 				s3Key,
 				s3Url: url,

@@ -171,3 +171,27 @@ export async function removeOrderFromDb(orderId: string, userId: string) {
 		},
 	});
 }
+
+export async function updateOrderWithInvoice(
+	orderId: string,
+	userId: string,
+	invoiceDetails: {
+		invoiceS3Url: string;
+		invoiceS3Key: string;
+		status?: OrderStatus;
+	},
+) {
+	return await prisma.order.update({
+		where: {
+			orderId: orderId,
+			userId: userId,
+		},
+		data: {
+			invoiceGenerated: true,
+			invoiceUrl: invoiceDetails.invoiceS3Url,
+			invoiceS3Key: invoiceDetails.invoiceS3Key,
+			status: invoiceDetails.status || "PDF_STORED",
+			updatedAt: new Date(),
+		},
+	});
+}
