@@ -57,7 +57,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 				</div>
 			</div>
 			{/* show orders and invoices table */}
-			<div className="w-full bg-orange-50 flex flex-1 px-8 md:px-20 lg:px-32">
+			<div className="w-full bg-orange-50 flex flex-1 px-8 md:px-20 lg:px-32 mt-6">
 				<div className="w-full  flex"></div>
 			</div>
 

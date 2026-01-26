@@ -21,7 +21,7 @@ interface MainHeaderProps {
 const MainHeader = (props: MainHeaderProps) => {
 	return (
 		<>
-			<div className="w-full flex flex-col h-full gap-4">
+			<div className="w-full flex flex-col h-full gap-8">
 				<div className="flex-none px-6 py-4">
 					<p className={cn(heading, "text-gray-700")}>Welcome,</p>
 					<p
@@ -38,7 +38,7 @@ const MainHeader = (props: MainHeaderProps) => {
 				</div>
 
 				<div className="flex flex-1 gap-4 px-6">
-					<div className="flex flex-col w-full lg:w-[250px] xl:w-[350px] gap-2">
+					<div className="flex flex-col w-full lg:w-[250px] xl:w-[350px] gap-4">
 						<OrderButton />
 						<ActiveOrders
 							userDetails={props.userDetails}
