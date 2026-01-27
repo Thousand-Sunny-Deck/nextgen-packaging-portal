@@ -24,7 +24,7 @@ const ActiveOrderCard = ({
 	const currentStatus = statusConfig[status] || statusConfig["Processing"];
 
 	return (
-		<div className="bg-white rounded-lg p-2 flex items-center justify-between">
+		<div className="bg-white rounded-lg p-2 flex items-center justify-between hover:bg-slate-50">
 			{/* Left side - Order number and price stacked */}
 			<div className="flex flex-col gap-1">
 				<h3 className="font-bold text-md">Order #{orderNumber}</h3>

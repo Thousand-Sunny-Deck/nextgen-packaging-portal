@@ -1,5 +1,6 @@
 "use client";
 
+import { RECENT_ORDERS } from "@/lib/mock-data/temp";
 import RecentOrderCard, { OrderItem } from "./RecentOrderCard";
 
 export interface RecentOrder {
@@ -11,39 +12,7 @@ export interface RecentOrder {
 }
 
 const RecentOrdersSection = () => {
-	const recentOrders: RecentOrder[] = [
-		{
-			id: 1,
-			orderNumber: "123",
-			timeAgo: "2d",
-			items: [
-				{ name: "Clear PLA Unbranded Cups", quantity: 2 },
-				{ name: "Clear PLA Unbranded Cups", quantity: 3 },
-			],
-			price: "AU$0.01",
-		},
-		{
-			id: 2,
-			orderNumber: "123",
-			timeAgo: "2d",
-			items: [
-				{ name: "Clear PLA Unbranded Cups", quantity: 2 },
-				{ name: "Clear PLA Unbranded Cups", quantity: 3 },
-			],
-			price: "AU$0.01",
-		},
-		{
-			id: 3,
-			orderNumber: "123",
-			timeAgo: "2d",
-			items: [
-				{ name: "Clear PLA Unbranded Cups", quantity: 2 },
-				{ name: "Clear PLA Unbranded Cups", quantity: 3 },
-			],
-			price: "AU$0.01",
-		},
-	];
-
+	const recentOrders = RECENT_ORDERS;
 	const onReorder = (id: number) => {
 		console.log(recentOrders.at(id));
 	};

@@ -1,18 +1,16 @@
 "use client";
-
-import { ProductTableStore } from "@/lib/store/product-store";
 import { Table } from "@tanstack/react-table";
 
-type PaginationContextInfo = {
-	table: Table<ProductTableStore>;
+type PaginationContextInfo<TData> = {
+	table: Table<TData>;
 	pagination: {
 		pageIndex: number;
 		pageSize: number;
 	};
 };
 
-export const usePaginationContext = (
-	paginationContextInfo: PaginationContextInfo,
+export const usePaginationContext = <TData,>(
+	paginationContextInfo: PaginationContextInfo<TData>,
 ) => {
 	const { table, pagination } = paginationContextInfo;
 	const totalPages = table.getPageCount();
@@ -20,8 +18,8 @@ export const usePaginationContext = (
 	const currentPage = pagination.pageIndex + 1;
 	const pageSize = pagination.pageSize;
 
-	const startRow = currentPage * pageSize + 1;
-	const endRow = Math.min((currentPage + 1) * pageSize, totalRows);
+	const startRow = pagination.pageIndex * pageSize + 1;
+	const endRow = Math.min(currentPage * pageSize, totalRows);
 
 	const generatePageNumbers = () => {
 		const pages: (number | string)[] = [];

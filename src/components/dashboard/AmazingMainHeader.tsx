@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import ActiveOrderCard from "./ActiveOrderCard";
 import RecentOrdersSection from "./RecentOrdersSection";
@@ -13,24 +15,10 @@ export type UserDetails = {
 
 interface MainHeaderProps {
 	userDetails: UserDetails;
-	activeOrders: string[];
+	activeOrders: any[];
 }
 
 export const AmazingMainHeader = (props: MainHeaderProps) => {
-	const activeOrders = [
-		{
-			id: 1,
-			orderNumber: "123",
-			price: "AU$0.01",
-			status: "Order Placed",
-		},
-		{
-			id: 2,
-			orderNumber: "123",
-			price: "AU$0.01",
-			status: "Processing",
-		},
-	];
 	return (
 		<>
 			{/* OUTER CONTAINER - Contains everything */}
@@ -65,8 +53,8 @@ export const AmazingMainHeader = (props: MainHeaderProps) => {
 
 							{/* Order cards container - stacked vertically with spacing */}
 							<div className="space-y-2">
-								{activeOrders.length > 0 ? (
-									activeOrders.map((order) => (
+								{props.activeOrders.length > 0 ? (
+									props.activeOrders.map((order) => (
 										<ActiveOrderCard
 											key={order.id}
 											orderNumber={order.orderNumber}

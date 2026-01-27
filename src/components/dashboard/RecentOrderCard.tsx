@@ -24,7 +24,7 @@ const RecentOrderCard = ({
 	const displayedItems = items.slice(0, initialItemsToShow);
 
 	return (
-		<div className="bg-white rounded-lg p-4 flex items-center justify-between gap-6">
+		<div className="bg-white rounded-lg p-4 flex items-center justify-between gap-6 hover:bg-slate-50">
 			{/* Left side - Order info and items */}
 			<div className="flex-1 min-w-0">
 				<div className="flex items-baseline gap-3 mb-2">
