@@ -109,6 +109,8 @@ export const AllInvoicesTableColumns: ColumnDef<Invoice>[] = [
 						<DropdownMenuItem
 							onClick={() => navigator.clipboard.writeText(invoice.invoiceId)}
 						>
+							{/* TODO: add a toast here when you call the API on onclick. This will tell the users that
+							something is happening */}
 							View invoice
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
