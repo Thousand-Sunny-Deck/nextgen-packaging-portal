@@ -1,8 +1,9 @@
 import { AmazingMainHeader } from "@/components/dashboard/AmazingMainHeader";
+import AllInvoices from "@/components/dashboard/AllInvoices";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
-import { fetchActiveOrders } from "@/lib/dashboard/orders";
 import { redirect, notFound } from "next/navigation";
+import { ACTIVE_ORDERS, PAST_INVOICES } from "@/lib/mock-data/temp";
 
 interface PortalPageProps {
 	params: Promise<{ uuid: string }>;
@@ -43,26 +44,32 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	}
 
 	const userDetails = extractUserDetailsFromSession(session);
-	const activeOrders = await fetchActiveOrders(userDetails.orgId);
-	console.log(activeOrders);
+	// const activeOrders = await fetchActiveOrders(userDetails.orgId);
 
 	return (
 		<div className="w-screen h-screen flex flex-col">
 			{/* background image */}
-			<div className="h-[20vh] w-full bg-gray-100"></div>
+			<div className="min-h-[20vh] w-full bg-gray-100"></div>
 			{/* main content */}
 			<div className="w-full flex flex-1 px-8 md:px-20 lg:px-32">
 				{/* Welcome, active and recent orders component */}
 				<div className="w-full flex flex-col p-1">
-					<AmazingMainHeader userDetails={userDetails} activeOrders={[]} />
+					<AmazingMainHeader
+						userDetails={userDetails}
+						activeOrders={ACTIVE_ORDERS}
+					/>
 				</div>
 			</div>
 			{/* show orders and invoices table */}
 			<div className="w-full bg-orange-50 flex flex-1 px-8 md:px-20 lg:px-32 mt-6">
-				<div className="w-full  flex"></div>
+				<div className="w-full min-h-[200px] md:min-h-[450px] mb-24">
+					{/* my amazing table */}
+					<AllInvoices invoices={PAST_INVOICES} />
+				</div>
 			</div>
 
 			{/* footer */}
+			<div className="w-full flex flex-1 bg-neutral-400">new box</div>
 		</div>
 	);
 };
