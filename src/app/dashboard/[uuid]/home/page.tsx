@@ -1,4 +1,4 @@
-import MainHeader from "@/components/dashboard/MainHeader";
+import { AmazingMainHeader } from "@/components/dashboard/AmazingMainHeader";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
 import { fetchActiveOrders } from "@/lib/dashboard/orders";
@@ -44,6 +44,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 
 	const userDetails = extractUserDetailsFromSession(session);
 	const activeOrders = await fetchActiveOrders(userDetails.orgId);
+	console.log(activeOrders);
 
 	return (
 		<div className="w-screen h-screen flex flex-col">
@@ -53,7 +54,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 			<div className="w-full flex flex-1 px-8 md:px-20 lg:px-32">
 				{/* Welcome, active and recent orders component */}
 				<div className="w-full flex flex-col p-1">
-					<MainHeader userDetails={userDetails} activeOrders={activeOrders} />
+					<AmazingMainHeader userDetails={userDetails} activeOrders={[]} />
 				</div>
 			</div>
 			{/* show orders and invoices table */}
