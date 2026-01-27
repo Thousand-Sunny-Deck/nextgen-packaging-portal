@@ -11,7 +11,7 @@ interface AllInvoicesProps {
 const AllInvoices = (props: AllInvoicesProps) => {
 	const columns = AllInvoicesTableColumns;
 	return (
-		<div className="w-full h-full flex flex-col gap-2">
+		<div className="w-full h-full flex flex-col gap-2 pt-6">
 			<div className="py-4 px-2 flex flex-col gap-2">
 				<p className="text-3xl font-bold">Review Past Orders 📝</p>
 				<p className="text-md font-light">
