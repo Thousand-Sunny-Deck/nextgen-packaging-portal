@@ -2,10 +2,9 @@
 
 import { ProgressBar } from "./progress-bar";
 import OrderSummary, { OrderSummaryInfo } from "./order-summary";
-import { CheckoutState } from "../checkout-form";
 import { Button } from "@/components/ui/button";
 import { BillingInfoItem } from "@/lib/store/billing-info-store";
-import { ProgressStep } from "@/hooks/use-checkout-flow";
+import { CheckoutState, ProgressStep } from "@/hooks/use-checkout-flow";
 
 interface OrderInfoProps {
 	currentStep: CheckoutState;
