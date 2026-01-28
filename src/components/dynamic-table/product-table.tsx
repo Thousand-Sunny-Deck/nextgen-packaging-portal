@@ -21,6 +21,7 @@ import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { RestartOrderButton } from "../RestartOrderButton";
 
 const ProductTable = ({ products }: { products: ProductData[] }) => {
 	// state management with zustand
@@ -30,6 +31,9 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		getIsProductSelected,
 		toggleProduct,
 		canSelectProduct,
+		toggleAllProducts,
+		areAllEnabledProductsSelected,
+		areSomeEnabledProductsSelected,
 	} = useCartStore();
 
 	// pagination with tanstack/table
@@ -70,6 +74,31 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		() => [
 			{
 				id: "select",
+				header: () => {
+					const allSelected = isMounted && areAllEnabledProductsSelected();
+					const someSelected = isMounted && areSomeEnabledProductsSelected();
+
+					return (
+						<input
+							type="checkbox"
+							checked={allSelected}
+							ref={(el) => {
+								if (el) {
+									el.indeterminate = someSelected;
+								}
+							}}
+							onChange={() => {
+								if (allSelected || someSelected) {
+									toggleAllProducts(false);
+								} else {
+									toggleAllProducts(true);
+								}
+							}}
+							disabled={someSelected}
+							className="h-4 w-4 rounded"
+						/>
+					);
+				},
 				cell: ({ row }) => (
 					<input
 						type="checkbox"
@@ -165,6 +194,9 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 			getIsProductSelected,
 			toggleProduct,
 			canSelectProduct,
+			toggleAllProducts,
+			areAllEnabledProductsSelected,
+			areSomeEnabledProductsSelected,
 			isMounted,
 		],
 	);
@@ -197,7 +229,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 
 	return (
 		<div className="w-full mt-4">
-			<div className="w-full flex justify-end pb-4">
+			<div className="w-full flex justify-between items-center pb-4 gap-4">
 				<Input
 					placeholder="Filter by item"
 					value={
@@ -208,6 +240,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					}
 					className="w-full md:w-[50%] lg:w-[40%] rounded-sm"
 				/>
+				<RestartOrderButton />
 			</div>
 			<table className="w-full border-collapse">
 				<thead>

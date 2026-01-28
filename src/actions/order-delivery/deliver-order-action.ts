@@ -42,9 +42,10 @@ export const preparePayloadAndFire = async (
 
 	if (!response.ok) {
 		const errorData = await response.json();
+		console.error(errorData);
 		return {
 			ok: false,
-			error: errorData.errors || "Failed to process order",
+			error: errorData.message || "Failed to process order",
 		};
 	}
 

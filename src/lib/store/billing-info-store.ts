@@ -9,77 +9,31 @@ export interface BillingInfoItem {
 }
 
 interface BillingInfoStore {
-	billingInfo: Map<string, BillingInfoItem>;
-	clearBillingInfo: () => void;
+	billingInfo: BillingInfoItem | null;
 	setBillingInfo: (info: BillingInfoItem) => void;
-	getBillingInfo: () => BillingInfoItem[];
+	clearBillingInfo: () => void;
+	hasBillingInfo: () => boolean;
 }
 
 export const useBillingInfoStore = create<BillingInfoStore>()(
 	persist(
 		(set, get) => ({
-			billingInfo: new Map(),
-
-			// TODO: once user clicks "Place Order", we need to clear it from here.
-			// TODO: once user logs out, this should be called too
-			clearBillingInfo: () => {
-				set({
-					billingInfo: new Map(),
-				});
-			},
+			billingInfo: null,
 
 			setBillingInfo: (info) => {
-				set((state) => {
-					const newMap = new Map(state.billingInfo);
-					const { email } = info;
-
-					if (newMap.has(email)) {
-						newMap.delete(email);
-					}
-
-					newMap.set(email, {
-						...info,
-					});
-
-					return {
-						billingInfo: newMap,
-					};
-				});
+				set({ billingInfo: info });
 			},
 
-			getBillingInfo: () => {
-				const { billingInfo } = get();
-				const arr = Array.from(billingInfo.values());
-				return arr;
+			clearBillingInfo: () => {
+				set({ billingInfo: null });
+			},
+
+			hasBillingInfo: () => {
+				return get().billingInfo !== null;
 			},
 		}),
 		{
 			name: "billing-info-storage",
-			storage: {
-				getItem: (name) => {
-					const str = localStorage.getItem(name);
-					if (!str) return null;
-					const { state } = JSON.parse(str);
-					return {
-						state: {
-							...state,
-							billingInfo: new Map(Object.entries(state.billingInfo || {})),
-						},
-					};
-				},
-				setItem: (name, value) => {
-					localStorage.setItem(
-						name,
-						JSON.stringify({
-							state: {
-								...value.state,
-								billingInfo: Object.fromEntries(value.state.billingInfo),
-							},
-						}),
-					);
-				},
-				removeItem: (name) => localStorage.removeItem(name),
-			},
 		},
 	),
 );

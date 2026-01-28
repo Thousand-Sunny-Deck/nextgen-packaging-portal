@@ -50,7 +50,7 @@ export function DashboardNavbar() {
 		<header className="fixed top-0 left-0 right-0 z-50 h-12 backdrop-blur bg-orange-50">
 			<div className="grid h-full grid-cols-3 items-center px-4">
 				{/* Left: Navigation Links */}
-				<div className="flex gap-6">
+				<div className="flex gap-6 px-6">
 					<Link
 						href={`/dashboard/${uuid}/order`}
 						className="px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-white/60 rounded-md transition-all"
