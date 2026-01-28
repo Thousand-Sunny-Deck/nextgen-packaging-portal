@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import CartSummary from "./cart/cart-summary";
 import OrderInfo from "./order/order-info";
 import BillingForm from "./billing/billing-form";
-
-export type CheckoutState = "cart" | "billing" | "order" | "shipped";
+import EmptyCartState from "./empty-cart-state";
+import { useCheckoutFlow } from "@/hooks/use-checkout-flow";
 
 interface CheckoutFormProps {
 	userMetadata: {
@@ -14,47 +13,59 @@ interface CheckoutFormProps {
 }
 
 const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
-	const [checkoutState, setCheckoutState] = useState<CheckoutState>("cart");
+	const {
+		currentStep,
+		isHydrated,
+		isLoading,
+		cart,
+		orderSummary,
+		billingInfo,
+		isCartEmpty,
+		canProceedToBilling,
+		canPlaceOrder,
+		goToCart,
+		goToBilling,
+		goToOrder,
+		placeOrder,
+		progressSteps,
+		currentStepIndex,
+	} = useCheckoutFlow();
 
-	const updateCheckoutState = (state: CheckoutState) => {
-		switch (state) {
-			case "cart":
-				setCheckoutState("cart");
-				break;
-			case "billing":
-				setCheckoutState("billing");
-				break;
-			case "order":
-				setCheckoutState("order");
-				break;
-			case "shipped":
-				setCheckoutState("shipped");
-				break;
-			default:
-				// optionally handle an unknown state
-				break;
-		}
-	};
+	// Wait for hydration before rendering
+	if (!isHydrated) {
+		return null;
+	}
 
-	const isReviewOrderState = checkoutState === "cart";
-	const isBillingState = checkoutState === "billing";
-	const isOrderState = checkoutState === "order" || checkoutState === "shipped";
+	// Show empty cart state if cart is empty
+	if (isCartEmpty) {
+		return <EmptyCartState />;
+	}
+
+	const isReviewOrderState = currentStep === "cart";
+	const isBillingState = currentStep === "billing";
+	const isOrderState = currentStep === "order" || currentStep === "shipped";
 
 	return (
 		<div className="w-full mt-10 flex justify-between gap-4 md:gap-6 lg:gap-8">
 			{/* Current Cart info*/}
-			{(isReviewOrderState || isOrderState) && <CartSummary />}
+			{(isReviewOrderState || isOrderState) && <CartSummary cart={cart} />}
 			{isBillingState && (
-				<BillingForm
-					email={userMetadata.email}
-					updateState={setCheckoutState}
-				/>
+				<BillingForm email={userMetadata.email} onBillingComplete={goToOrder} />
 			)}
 
 			{/* Summary Info and checkout */}
 			<OrderInfo
-				setCheckoutState={updateCheckoutState}
-				checkoutState={checkoutState}
+				currentStep={currentStep}
+				currentStepIndex={currentStepIndex}
+				progressSteps={progressSteps}
+				orderSummary={orderSummary}
+				billingInfo={billingInfo}
+				isLoading={isLoading}
+				canProceedToBilling={canProceedToBilling}
+				canPlaceOrder={canPlaceOrder}
+				onGoToBilling={goToBilling}
+				onGoToCart={goToCart}
+				onPlaceOrder={placeOrder}
 			/>
 		</div>
 	);

@@ -1,23 +1,13 @@
 "use client";
 
-import { CartItem, useCartStore } from "@/lib/store/product-store";
+import { CartItem } from "@/lib/store/product-store";
 import { CartRow } from "./cart-row";
-import { useEffect, useState } from "react";
 
-const CartSummary = () => {
-	const { getCart } = useCartStore();
-	const [cart, setCart] = useState<CartItem[]>([]);
-	const [isClient, setIsClient] = useState(false);
+interface CartSummaryProps {
+	cart: CartItem[];
+}
 
-	useEffect(() => {
-		setIsClient(true);
-		setCart(getCart());
-	}, [getCart]);
-
-	if (!isClient) {
-		return null; // or a loading skeleton
-	}
-
+const CartSummary = ({ cart }: CartSummaryProps) => {
 	return (
 		<div className="w-[60%] max-h-[600px] overflow-y-auto">
 			{cart.map((item) => (

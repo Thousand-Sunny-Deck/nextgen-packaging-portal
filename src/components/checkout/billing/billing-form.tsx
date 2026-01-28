@@ -13,7 +13,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Building, House, IdCard, Mail } from "lucide-react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { CheckoutState } from "../checkout-form";
 import {
 	BillingInfoItem,
 	useBillingInfoStore,
@@ -21,7 +20,7 @@ import {
 
 interface BillingFormProps {
 	email: string;
-	updateState: (state: CheckoutState) => void;
+	onBillingComplete: () => void;
 }
 
 const validateABN = (abn: string, isTest: boolean): boolean => {
@@ -62,7 +61,7 @@ const formSchema = z.object({
 
 type BillingFormSchema = z.infer<typeof formSchema>;
 
-const BillingForm = ({ email, updateState }: BillingFormProps) => {
+const BillingForm = ({ email, onBillingComplete }: BillingFormProps) => {
 	const form = useForm<BillingFormSchema>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -76,17 +75,21 @@ const BillingForm = ({ email, updateState }: BillingFormProps) => {
 	const { setBillingInfo } = useBillingInfoStore();
 
 	const onSubmit = (data: BillingFormSchema) => {
-		const parseDataForStore = (data: BillingFormSchema): BillingInfoItem => {
-			return {
-				email: data.email,
-				organization: data.organizationName,
-				address: data.billingAddress,
-				ABN: data.abnNumber,
+		try {
+			const parseDataForStore = (data: BillingFormSchema): BillingInfoItem => {
+				return {
+					email: data.email,
+					organization: data.organizationName,
+					address: data.billingAddress,
+					ABN: data.abnNumber,
+				};
 			};
-		};
 
-		setBillingInfo(parseDataForStore(data));
-		updateState("order");
+			setBillingInfo(parseDataForStore(data));
+			onBillingComplete();
+		} catch (error) {
+			console.error("Error saving billing info:", error);
+		}
 	};
 
 	return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useBillingInfoStore } from "@/lib/store/billing-info-store";
+import { BillingInfoItem } from "@/lib/store/billing-info-store";
 
 export type OrderSummaryInfo = {
 	subTotal: number;
@@ -11,15 +11,12 @@ export type OrderSummaryInfo = {
 
 interface OrderSummaryProps {
 	info: OrderSummaryInfo;
+	billingInfo: BillingInfoItem | null;
 }
 
-const OrderSummary = ({ info }: OrderSummaryProps) => {
+const OrderSummary = ({ info, billingInfo }: OrderSummaryProps) => {
 	const { subTotal, cartSize, totalCost, extraCost } = info;
-
-	const { getBillingInfo } = useBillingInfoStore();
-	const billingInfoArr = getBillingInfo();
-	const isBillingState = billingInfoArr.length === 0 ? false : true;
-	const billingInfo = billingInfoArr.at(0);
+	const isBillingState = billingInfo !== null;
 
 	return (
 		<div className="mt-4 px-4 py-2 flex flex-col w-full">
