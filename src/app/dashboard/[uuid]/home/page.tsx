@@ -1,5 +1,6 @@
 import { AmazingMainHeader } from "@/components/dashboard/AmazingMainHeader";
 import AllInvoices from "@/components/dashboard/AllInvoices";
+import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
 import { redirect, notFound } from "next/navigation";
@@ -69,7 +70,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 			</div>
 
 			{/* footer */}
-			<div className="w-full flex flex-1 bg-neutral-400">new box</div>
+			<DashboardFooter />
 		</div>
 	);
 };
