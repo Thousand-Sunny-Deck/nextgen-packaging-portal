@@ -1,6 +1,7 @@
 import { AmazingMainHeader } from "@/components/dashboard/AmazingMainHeader";
 import AllInvoices from "@/components/dashboard/AllInvoices";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
+import { HashScrollHandler } from "@/components/dashboard/hash-scroll-handler";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
 import { redirect, notFound } from "next/navigation";
@@ -49,6 +50,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 
 	return (
 		<div className="w-screen h-screen flex flex-col">
+			<HashScrollHandler />
 			{/* background image */}
 			<div className="min-h-[20vh] w-full bg-gray-100"></div>
 			{/* main content */}
@@ -62,7 +64,10 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 				</div>
 			</div>
 			{/* show orders and invoices table */}
-			<div className="w-full bg-orange-50 flex flex-1 px-8 md:px-20 lg:px-32 mt-6">
+			<div
+				id="all-invoices"
+				className="w-full bg-orange-50 flex flex-1 px-8 md:px-20 lg:px-32 mt-6"
+			>
 				<div className="w-full min-h-[200px] md:min-h-[450px] mb-24">
 					{/* my amazing table */}
 					<AllInvoices invoices={PAST_INVOICES} />

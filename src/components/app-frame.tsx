@@ -9,7 +9,9 @@ import { Navbar } from "@/components/ui/navbar";
 export function AppFrame({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();
 	const showNavbar =
-		pathname !== "/auth/login" && pathname !== "/auth/register";
+		!pathname.startsWith("/dashboard/") &&
+		pathname !== "/auth/login" &&
+		pathname !== "/auth/register";
 
 	return (
 		<>
