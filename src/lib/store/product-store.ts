@@ -36,6 +36,18 @@ interface CartStore {
 	// can select product
 	canSelectProduct: (sku: string) => boolean;
 
+	// Toggle all enabled products (select/deselect all)
+	toggleAllProducts: (selectAll: boolean) => void;
+
+	// Get all enabled SKUs
+	getEnabledSkus: () => string[];
+
+	// Check if all enabled products are selected
+	areAllEnabledProductsSelected: () => boolean;
+
+	// Check if some but not all enabled products are selected
+	areSomeEnabledProductsSelected: () => boolean;
+
 	getCart: () => CartItem[];
 	getTotalCartCost: () => number;
 
@@ -85,7 +97,6 @@ export const useCartStore = create<CartStore>()(
 				return get().maybeSelectedProducts.get(sku)?.quantity || 0;
 			},
 
-			// TODO: when User logs out, we need to call this.
 			// TODO: when User checks out successfully, we need to call this
 			clearCart: () => {
 				set({
@@ -122,6 +133,52 @@ export const useCartStore = create<CartStore>()(
 			canSelectProduct: (sku) => {
 				const { maybeSelectedProducts } = get();
 				return maybeSelectedProducts.has(sku);
+			},
+
+			toggleAllProducts: (selectAll) => {
+				set((state) => {
+					const enabledSkus = Array.from(state.maybeSelectedProducts.keys());
+					const newSet = new Set(state.selectedProductSkus);
+
+					if (selectAll) {
+						// Add all enabled SKUs to selection
+						enabledSkus.forEach((sku) => newSet.add(sku));
+					} else {
+						// Remove all enabled SKUs from selection
+						enabledSkus.forEach((sku) => newSet.delete(sku));
+					}
+
+					return {
+						selectedProductSkus: newSet,
+					};
+				});
+			},
+
+			getEnabledSkus: () => {
+				const { maybeSelectedProducts } = get();
+				return Array.from(maybeSelectedProducts.keys());
+			},
+
+			areAllEnabledProductsSelected: () => {
+				const { maybeSelectedProducts, selectedProductSkus } = get();
+				const enabledSkus = Array.from(maybeSelectedProducts.keys());
+
+				if (enabledSkus.length === 0) return false;
+
+				return enabledSkus.every((sku) => selectedProductSkus.has(sku));
+			},
+
+			areSomeEnabledProductsSelected: () => {
+				const { maybeSelectedProducts, selectedProductSkus } = get();
+				const enabledSkus = Array.from(maybeSelectedProducts.keys());
+
+				if (enabledSkus.length === 0) return false;
+
+				const selectedCount = enabledSkus.filter((sku) =>
+					selectedProductSkus.has(sku),
+				).length;
+
+				return selectedCount > 0 && selectedCount < enabledSkus.length;
 			},
 
 			getCart: () => {

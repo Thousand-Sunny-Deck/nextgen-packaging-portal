@@ -12,8 +12,9 @@ export default function Loading() {
 
 				{/* Search input skeleton */}
 				<div className="w-full mt-4">
-					<div className="w-full flex justify-end pb-4">
+					<div className="w-full flex justify-between pb-4">
 						<div className="w-full md:w-[50%] lg:w-[40%] h-10 bg-gray-200 rounded-sm animate-pulse" />
+						<div className="h-9 w-9 sm:w-32 bg-gray-200 rounded-md animate-pulse" />
 					</div>
 
 					{/* Table skeleton */}
