@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+// TODO: need to update this for later
 const footerLinks = [
 	{ label: "Support", href: "/support" },
 	{ label: "Contact", href: "/contact" },
