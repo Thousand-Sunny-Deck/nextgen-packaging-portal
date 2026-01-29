@@ -52,6 +52,7 @@ interface CartStore {
 	getTotalCartCost: () => number;
 
 	prepareCartForCheckout: () => void;
+	populateCartFromOrder: (items: CartItem[]) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -213,6 +214,28 @@ export const useCartStore = create<CartStore>()(
 						cartSize: cart.length,
 						totalCost: totalCost,
 					};
+				});
+			},
+
+			populateCartFromOrder: (items: CartItem[]) => {
+				const newMap = new Map<string, CartItem>();
+				const newSet = new Set<string>();
+
+				for (const item of items) {
+					newMap.set(item.sku, item);
+					newSet.add(item.sku);
+				}
+
+				const totalCost =
+					Math.round(items.reduce((sum, item) => sum + item.total, 0) * 100) /
+					100;
+
+				set({
+					maybeSelectedProducts: newMap,
+					selectedProductSkus: newSet,
+					cart: items,
+					cartSize: items.length,
+					totalCost: totalCost,
 				});
 			},
 		}),
