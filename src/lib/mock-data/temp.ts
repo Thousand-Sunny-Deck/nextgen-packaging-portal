@@ -104,7 +104,7 @@ export const RECENT_ORDERS: RecentOrder[] = [
 	},
 	{
 		id: 2,
-		orderNumber: "123",
+		orderNumber: "241",
 		timeAgo: "2d",
 		items: [
 			{ name: "Clear PLA Unbranded Cups", quantity: 2 },
@@ -114,7 +114,7 @@ export const RECENT_ORDERS: RecentOrder[] = [
 	},
 	{
 		id: 3,
-		orderNumber: "123",
+		orderNumber: "823",
 		timeAgo: "2d",
 		items: [
 			{ name: "Clear PLA Unbranded Cups", quantity: 2 },

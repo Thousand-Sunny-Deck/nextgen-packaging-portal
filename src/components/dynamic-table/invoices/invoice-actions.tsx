@@ -9,15 +9,19 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "./columns";
+import { useReorder } from "@/hooks/use-reorder";
 
 interface InvoiceActionsProps {
 	invoice: Invoice;
 }
 
 export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
+	const { handleReorder, isReordering } = useReorder();
+	const loading = isReordering(invoice.invoiceId);
+
 	const handleViewInvoice = () => {
 		if (!invoice.pdfUrl) {
 			toast.error(
@@ -36,9 +40,13 @@ export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="h-8 w-8 p-0">
+				<Button variant="ghost" className="h-8 w-8 p-0" disabled={loading}>
 					<span className="sr-only">Open menu</span>
-					<MoreHorizontal className="h-4 w-4" />
+					{loading ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<MoreHorizontal className="h-4 w-4" />
+					)}
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
@@ -47,7 +55,19 @@ export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
 					View invoice
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem>Reorder</DropdownMenuItem>
+				<DropdownMenuItem
+					onClick={() => handleReorder(invoice.invoiceId)}
+					disabled={loading}
+				>
+					{loading ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+							Loading...
+						</>
+					) : (
+						"Reorder"
+					)}
+				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
