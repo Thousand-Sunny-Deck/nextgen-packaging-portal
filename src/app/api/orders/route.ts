@@ -7,6 +7,7 @@ import {
 	storePreparedOrderInDb,
 } from "@/lib/store/orders-store";
 import { inngest } from "@/inngest/client";
+import { prepareAllOrdersData } from "./utils";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -95,11 +96,12 @@ export async function GET(request: NextRequest) {
 		}
 
 		const userId = session.user.id;
-		const orders = await fetchOrdersForUser(userId);
+		const allOrdersResponse = await fetchOrdersForUser(userId);
+		const allOrders = prepareAllOrdersData(allOrdersResponse);
 
 		return NextResponse.json({
 			success: true,
-			data: orders,
+			data: allOrders,
 		});
 	} catch (err: unknown) {
 		return NextResponse.json(

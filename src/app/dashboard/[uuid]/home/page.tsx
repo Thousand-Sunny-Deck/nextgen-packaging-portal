@@ -5,7 +5,10 @@ import { HashScrollHandler } from "@/components/dashboard/hash-scroll-handler";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
 import { redirect, notFound } from "next/navigation";
-import { ACTIVE_ORDERS, PAST_INVOICES } from "@/lib/mock-data/temp";
+import { fetchOrdersForUser } from "@/actions/order-delivery/fetch-orders-action";
+// import { getActiveOrdersFromInvoices } from "@/app/api/orders/utils";
+import { Invoice } from "@/components/dynamic-table/invoices/columns";
+import { ACTIVE_ORDERS } from "@/lib/mock-data/temp";
 
 interface PortalPageProps {
 	params: Promise<{ uuid: string }>;
@@ -46,7 +49,11 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	}
 
 	const userDetails = extractUserDetailsFromSession(session);
-	// const activeOrders = await fetchActiveOrders(userDetails.orgId);
+
+	// Fetch orders from API
+	const ordersResponse = await fetchOrdersForUser();
+	const invoices: Invoice[] = ordersResponse.ok ? ordersResponse.data : [];
+	// const activeOrders = getActiveOrdersFromInvoices(invoices);
 
 	return (
 		<div className="w-screen h-screen flex flex-col">
@@ -70,7 +77,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 			>
 				<div className="w-full min-h-[200px] md:min-h-[450px] mb-24">
 					{/* my amazing table */}
-					<AllInvoices invoices={PAST_INVOICES} />
+					<AllInvoices invoices={invoices} />
 				</div>
 			</div>
 
