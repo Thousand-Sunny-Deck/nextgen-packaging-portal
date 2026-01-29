@@ -2,7 +2,7 @@ import { ActiveOrder } from "@/actions/order-delivery/fetch-orders-action";
 import { getDisplayOrderId } from "@/lib/utils";
 
 const ActiveOrderCard = ({ orderId, price, status }: ActiveOrder) => {
-	const displayId = getDisplayOrderId(orderId);
+	const displayId = getDisplayOrderId(orderId, "active");
 
 	const statusConfig = {
 		"Order Placed": {

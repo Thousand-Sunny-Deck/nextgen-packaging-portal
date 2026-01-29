@@ -1,19 +1,14 @@
 "use client";
 
-import { RECENT_ORDERS } from "@/lib/mock-data/temp";
-import RecentOrderCard, { OrderItem } from "./RecentOrderCard";
+import { RecentOrder } from "@/actions/order-delivery/fetch-orders-action";
+import RecentOrderCard from "./RecentOrderCard";
 import { useReorder } from "@/hooks/use-reorder";
 
-export interface RecentOrder {
-	id: number;
-	orderNumber: string;
-	timeAgo: string;
-	items: OrderItem[];
-	price: string;
+interface RecentOrderSectionProps {
+	recentOrders: RecentOrder[];
 }
 
-const RecentOrdersSection = () => {
-	const recentOrders = RECENT_ORDERS;
+const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 	const { handleReorder, isReordering } = useReorder();
 
 	return (
@@ -22,17 +17,17 @@ const RecentOrdersSection = () => {
 			<h2 className="text-lg font-bold mb-4">Recent</h2>
 
 			{/* Order cards container - vertically stacked */}
-			{recentOrders.length > 0 ? (
+			{props.recentOrders.length > 0 ? (
 				<div className="space-y-4">
-					{recentOrders.map((order) => (
+					{props.recentOrders.map((order) => (
 						<RecentOrderCard
-							key={order.id}
-							orderNumber={order.orderNumber}
+							key={order.orderId}
+							orderId={order.orderId}
 							items={order.items}
 							price={order.price}
 							timeAgo={order.timeAgo}
-							onReorder={() => handleReorder(order.orderNumber)}
-							isLoading={isReordering(order.orderNumber)}
+							onReorder={() => handleReorder(order.orderId)}
+							isLoading={isReordering(order.orderId)}
 						/>
 					))}
 				</div>

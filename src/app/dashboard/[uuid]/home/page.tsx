@@ -8,6 +8,7 @@ import { redirect, notFound } from "next/navigation";
 import {
 	fetchActiveOrders,
 	fetchOrdersForUser,
+	fetchRecentOrders,
 } from "@/actions/order-delivery/fetch-orders-action";
 import { Invoice } from "@/components/dynamic-table/invoices/columns";
 
@@ -55,6 +56,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	const ordersResponse = await fetchOrdersForUser();
 	const invoices: Invoice[] = ordersResponse.ok ? ordersResponse.data : [];
 	const activeOrders = await fetchActiveOrders();
+	const recentOrders = await fetchRecentOrders();
 	// const activeOrders = getActiveOrdersFromInvoices(invoices);
 
 	return (
@@ -69,6 +71,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 					<AmazingMainHeader
 						userDetails={userDetails}
 						activeOrders={activeOrders}
+						recentOrders={recentOrders}
 					/>
 				</div>
 			</div>

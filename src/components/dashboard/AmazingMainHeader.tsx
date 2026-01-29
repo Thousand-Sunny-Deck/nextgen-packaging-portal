@@ -4,7 +4,10 @@ import { cn } from "@/lib/utils";
 import ActiveOrderCard from "./ActiveOrderCard";
 import RecentOrdersSection from "./RecentOrdersSection";
 import OrderButton from "./OrderButton";
-import { ActiveOrder } from "@/actions/order-delivery/fetch-orders-action";
+import {
+	ActiveOrder,
+	RecentOrder,
+} from "@/actions/order-delivery/fetch-orders-action";
 
 const heading = "text-xl md:text-2xl lg:text-4xl";
 
@@ -17,6 +20,7 @@ export type UserDetails = {
 interface MainHeaderProps {
 	userDetails: UserDetails;
 	activeOrders: ActiveOrder[];
+	recentOrders: RecentOrder[];
 }
 
 export const AmazingMainHeader = (props: MainHeaderProps) => {
@@ -79,7 +83,7 @@ export const AmazingMainHeader = (props: MainHeaderProps) => {
 					</div>
 
 					{/* RIGHT COLUMN - Takes remaining space, aligns top with left column */}
-					<RecentOrdersSection />
+					<RecentOrdersSection recentOrders={props.recentOrders} />
 				</div>
 			</div>
 		</>
