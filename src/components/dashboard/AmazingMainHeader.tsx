@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import ActiveOrderCard from "./ActiveOrderCard";
 import RecentOrdersSection from "./RecentOrdersSection";
 import OrderButton from "./OrderButton";
+import { ActiveOrder } from "@/actions/order-delivery/fetch-orders-action";
 
 const heading = "text-xl md:text-2xl lg:text-4xl";
 
@@ -15,7 +16,7 @@ export type UserDetails = {
 
 interface MainHeaderProps {
 	userDetails: UserDetails;
-	activeOrders: any[];
+	activeOrders: ActiveOrder[];
 }
 
 export const AmazingMainHeader = (props: MainHeaderProps) => {
@@ -56,10 +57,10 @@ export const AmazingMainHeader = (props: MainHeaderProps) => {
 								{props.activeOrders.length > 0 ? (
 									props.activeOrders.map((order) => (
 										<ActiveOrderCard
-											key={order.id}
-											orderNumber={order.orderNumber}
+											key={order.orderId}
+											orderId={order.orderId}
 											price={order.price}
-											status={order.status as "Order Placed" | "Processing"}
+											status={order.status}
 										/>
 									))
 								) : (

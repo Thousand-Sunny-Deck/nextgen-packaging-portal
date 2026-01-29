@@ -68,26 +68,3 @@ export const prepareAllOrdersData = async (
 	// TODO: Consider returning { invoices, failedOrderIds } if you want to show failures in UI
 	return invoices;
 };
-
-export type ActiveOrder = {
-	id: string;
-	orderNumber: string;
-	price: string;
-	status: "Order Placed" | "Processing";
-};
-
-export const getActiveOrdersFromInvoices = (
-	invoices: Invoice[],
-): ActiveOrder[] => {
-	return invoices
-		.filter(
-			(invoice) =>
-				invoice.status === "Pending" || invoice.status === "Processing",
-		)
-		.map((invoice, index) => ({
-			id: `${invoice.invoiceId}-${index}`,
-			orderNumber: invoice.invoiceId,
-			price: `AU$${invoice.amount.toFixed(2)}`,
-			status: invoice.status === "Pending" ? "Order Placed" : "Processing",
-		}));
-};
