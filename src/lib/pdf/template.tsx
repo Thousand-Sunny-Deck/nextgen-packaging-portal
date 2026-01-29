@@ -24,7 +24,7 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 	} = invoiceData;
 
 	return (
-		<Document>
+		<Document title={`Invoice - ${invoiceNumber} - ${issueDate}`}>
 			<Page size="A4" style={styles.page}>
 				{/* Header */}
 				<View style={styles.header}>

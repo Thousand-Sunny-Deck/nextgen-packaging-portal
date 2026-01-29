@@ -9,7 +9,6 @@ export async function HEAD(request: NextRequest) {
 	try {
 		const orderId = request.nextUrl.searchParams.get("orderId");
 		const result = await validatePdfAccess(request, orderId);
-		// HEAD responses should not have a body, just return status
 		return new NextResponse(null, { status: result.status });
 	} catch {
 		return new NextResponse(null, { status: 500 });

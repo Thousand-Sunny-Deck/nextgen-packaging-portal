@@ -32,7 +32,6 @@ export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
 
 		setIsLoading(true);
 		toast.info("Fetching invoice...");
-
 		const pdfUrl = `/api/pdf?orderId=${encodeURIComponent(invoice.invoiceId)}`;
 
 		try {
