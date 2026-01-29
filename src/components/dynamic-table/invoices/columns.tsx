@@ -55,7 +55,19 @@ export const AllInvoicesTableColumns: ColumnDef<Invoice>[] = [
 	},
 	{
 		accessorKey: "amount",
-		header: () => <div className="text-center">Amount</div>,
+		header: ({ column }) => {
+			return (
+				<div className="flex items-center justify-center">
+					<Button
+						variant="ghost"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					>
+						Amount
+						<ArrowUpDown />
+					</Button>
+				</div>
+			);
+		},
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("amount"));
 			const formatted = new Intl.NumberFormat("en-AU", {
