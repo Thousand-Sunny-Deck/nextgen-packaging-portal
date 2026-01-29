@@ -11,6 +11,7 @@ export type Invoice = {
 	amount: number;
 	status: "Pending" | "Processing" | "Success" | "Failed";
 	date: string;
+	pdfUrl?: string;
 };
 
 const LozengeAppereanceMap = (status: Invoice["status"]) => {
