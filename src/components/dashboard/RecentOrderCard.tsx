@@ -1,43 +1,39 @@
 // RecentOrderCard.tsx
 import React from "react";
 import { Loader2 } from "lucide-react";
+import { RecentOrderItem } from "@/actions/order-delivery/fetch-orders-action";
+import { getDisplayOrderId } from "@/lib/utils";
 
-export interface OrderItem {
-	name: string;
-	quantity: number;
-}
 interface RecentOrderCardProps {
-	orderNumber: string;
-	items: OrderItem[];
-	price: string;
+	orderId: string;
+	items: RecentOrderItem[];
+	price: number;
 	timeAgo: string;
 	onReorder: () => void;
 	isLoading?: boolean;
 }
 
 const RecentOrderCard = ({
-	orderNumber,
+	orderId,
 	items,
 	price,
 	timeAgo,
 	onReorder,
 	isLoading = false,
 }: RecentOrderCardProps) => {
-	const initialItemsToShow = 3;
-	const displayedItems = items.slice(0, initialItemsToShow);
-
+	const displayOrderId = getDisplayOrderId(orderId, "recent");
 	return (
 		<div className="bg-white rounded-lg p-4 flex items-center justify-between gap-6 hover:bg-slate-50">
 			{/* Left side - Order info and items */}
 			<div className="flex-1 min-w-0">
 				<div className="flex items-baseline gap-3 mb-2">
-					<h3 className="font-semibold text-md">Order #{orderNumber}</h3>
+					<h3 className="font-semibold text-md">#{displayOrderId}</h3>
 					<span className="text-sm text-neutral-400">{timeAgo}</span>
 				</div>
 
 				{/* Items list */}
 				<div className="space-y-0.5">
-					{displayedItems.map((item, index) => (
+					{items.map((item, index) => (
 						<p key={index} className="text-neutral-400 text-sm">
 							{item.quantity} X {item.name}
 						</p>
@@ -47,7 +43,7 @@ const RecentOrderCard = ({
 
 			{/* Right side - Price and re-order button */}
 			<div className="flex items-center gap-6 flex-shrink-0">
-				<p className="font-bold text-md">{price}</p>
+				<p className="font-bold text-md">AU ${price}</p>
 
 				<button
 					onClick={onReorder}

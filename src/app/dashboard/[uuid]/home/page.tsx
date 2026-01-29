@@ -5,10 +5,12 @@ import { HashScrollHandler } from "@/components/dashboard/hash-scroll-handler";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { getUserSession, SessionType } from "@/hooks/use-session";
 import { redirect, notFound } from "next/navigation";
-import { fetchOrdersForUser } from "@/actions/order-delivery/fetch-orders-action";
-// import { getActiveOrdersFromInvoices } from "@/app/api/orders/utils";
+import {
+	fetchActiveOrders,
+	fetchOrdersForUser,
+	fetchRecentOrders,
+} from "@/actions/order-delivery/fetch-orders-action";
 import { Invoice } from "@/components/dynamic-table/invoices/columns";
-import { ACTIVE_ORDERS } from "@/lib/mock-data/temp";
 
 interface PortalPageProps {
 	params: Promise<{ uuid: string }>;
@@ -53,6 +55,8 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	// Fetch orders from API
 	const ordersResponse = await fetchOrdersForUser();
 	const invoices: Invoice[] = ordersResponse.ok ? ordersResponse.data : [];
+	const activeOrders = await fetchActiveOrders();
+	const recentOrders = await fetchRecentOrders();
 	// const activeOrders = getActiveOrdersFromInvoices(invoices);
 
 	return (
@@ -66,7 +70,8 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 				<div className="w-full flex flex-col p-1">
 					<AmazingMainHeader
 						userDetails={userDetails}
-						activeOrders={ACTIVE_ORDERS}
+						activeOrders={activeOrders}
+						recentOrders={recentOrders}
 					/>
 				</div>
 			</div>

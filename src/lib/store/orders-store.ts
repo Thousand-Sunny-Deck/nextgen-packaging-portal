@@ -214,3 +214,67 @@ export async function updateOrderWithEmail(
 		},
 	});
 }
+
+/**
+ * Fetches the most recent orders for a user (max 3).
+ * Used for the "Recent Orders" section on the dashboard.
+ *
+ * @param userId - The user ID to fetch orders for
+ * @returns Array of up to 3 most recent Order records
+ */
+export async function fetchRecentOrdersForUser(userId: string) {
+	const orders = await prisma.order.findMany({
+		where: {
+			userId,
+		},
+		include: {
+			items: true,
+			billingAddress: true,
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+		take: 3,
+	});
+
+	return orders;
+}
+
+/**
+ * Fetches active/in-flight orders for a user (max 3).
+ * Active orders are those created in the last 4 hours that are still being processed.
+ * Used for the "Active Orders" section on the dashboard.
+ *
+ * @param userId - The user ID to fetch orders for
+ * @returns Array of up to 3 active Order records
+ */
+export async function fetchActiveOrdersForUser(userId: string) {
+	const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
+
+	const orders = await prisma.order.findMany({
+		where: {
+			userId,
+			createdAt: {
+				gte: fourHoursAgo,
+			},
+			status: {
+				in: [
+					OrderStatus.PENDING,
+					OrderStatus.PROCESSING,
+					OrderStatus.PDF_GENERATED,
+					OrderStatus.PDF_STORED,
+				],
+			},
+		},
+		include: {
+			items: true,
+			billingAddress: true,
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+		take: 3,
+	});
+
+	return orders;
+}
