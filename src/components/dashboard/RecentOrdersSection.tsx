@@ -2,6 +2,7 @@
 
 import { RECENT_ORDERS } from "@/lib/mock-data/temp";
 import RecentOrderCard, { OrderItem } from "./RecentOrderCard";
+import { useReorder } from "@/hooks/use-reorder";
 
 export interface RecentOrder {
 	id: number;
@@ -13,9 +14,7 @@ export interface RecentOrder {
 
 const RecentOrdersSection = () => {
 	const recentOrders = RECENT_ORDERS;
-	const onReorder = (id: number) => {
-		console.log(recentOrders.at(id));
-	};
+	const { handleReorder, isReordering } = useReorder();
 
 	return (
 		<div className="bg-orange-50 rounded-xl p-4">
@@ -32,7 +31,8 @@ const RecentOrdersSection = () => {
 							items={order.items}
 							price={order.price}
 							timeAgo={order.timeAgo}
-							onReorder={() => onReorder(order.id)}
+							onReorder={() => handleReorder(order.orderNumber)}
+							isLoading={isReordering(order.orderNumber)}
 						/>
 					))}
 				</div>
