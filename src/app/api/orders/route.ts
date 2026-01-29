@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
 
 		const userId = session.user.id;
 		const allOrdersResponse = await fetchOrdersForUser(userId);
-		const allOrders = prepareAllOrdersData(allOrdersResponse);
+		const allOrders = await prepareAllOrdersData(allOrdersResponse, userId);
 
 		return NextResponse.json({
 			success: true,
