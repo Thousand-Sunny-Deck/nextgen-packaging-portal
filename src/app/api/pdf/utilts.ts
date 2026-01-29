@@ -98,9 +98,13 @@ export async function validatePdfAccess(
 	return NextResponse.json({ success: true }, { status: 200 });
 }
 
+/** Presigned URL expiration time in seconds (15 minutes) */
+const PRESIGNED_URL_EXPIRY = 15 * 60;
+
 /**
- * Fetches and returns the PDF invoice.
- * Authenticates the user and verifies they own the order before serving the file.
+ * Generates a presigned S3 URL and redirects to it.
+ * Authenticates the user and verifies they own the order before generating the URL.
+ * This offloads bandwidth to S3 and reduces server load.
  */
 export async function handlePdfRequest(
 	request: NextRequest,
@@ -112,16 +116,14 @@ export async function handlePdfRequest(
 		return result.response;
 	}
 
-	// Fetch the PDF from S3
+	// Generate presigned URL instead of fetching the file
 	const s3 = new S3Service();
-	const pdfBuffer = await s3.getFile(result.s3Key);
-	const pdfUint8Array = new Uint8Array(pdfBuffer);
+	const presignedUrl = await s3.getPresignedUrl(
+		result.s3Key,
+		PRESIGNED_URL_EXPIRY,
+		"get",
+	);
 
-	return new NextResponse(pdfUint8Array, {
-		status: 200,
-		headers: {
-			"Content-Type": "application/pdf",
-			"Content-Disposition": `inline; filename="invoice-${result.orderId}.pdf"`,
-		},
-	});
+	// Redirect to the presigned S3 URL
+	return NextResponse.redirect(presignedUrl);
 }
