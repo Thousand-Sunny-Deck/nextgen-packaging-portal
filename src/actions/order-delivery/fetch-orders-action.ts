@@ -15,7 +15,8 @@ export const fetchOrdersForUser = async () => {
 		const errorData = await response.json();
 		return {
 			ok: false,
-			error: errorData.errors || "Failed to process order",
+			error: errorData.message || errorData.errors || "Failed to fetch orders",
+			status: response.status,
 		};
 	}
 

@@ -8,6 +8,7 @@ import {
 } from "@/lib/store/orders-store";
 import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
+import { ordersRatelimit } from "@/service/cache";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -96,6 +97,19 @@ export async function GET(request: NextRequest) {
 		}
 
 		const userId = session.user.id;
+
+		// Rate limit: 20 requests per minute per user
+		const { success: withinLimit } = await ordersRatelimit.limit(userId);
+		if (!withinLimit) {
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Too many requests. Please try again later.",
+				},
+				{ status: 429 },
+			);
+		}
+
 		const allOrdersResponse = await fetchOrdersForUser(userId);
 		const allOrders = await prepareAllOrdersData(allOrdersResponse, userId);
 
