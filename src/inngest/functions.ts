@@ -58,6 +58,7 @@ export const helloWorld = inngest.createFunction(
 			};
 		});
 
+		// TODO: make two pdfs, second one needs to map wiht NGP skus
 		const { s3Key, s3Url } = await step.run("upload-to-s3", async () => {
 			const { orderId, userId } = event.data;
 			const s3Key = `invoices/${orderId}.pdf`;
