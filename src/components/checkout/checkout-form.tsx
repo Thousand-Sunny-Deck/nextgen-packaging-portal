@@ -2,7 +2,7 @@
 
 import CartSummary from "./cart/cart-summary";
 import OrderInfo from "./order/order-info";
-import BillingForm from "./billing/billing-form";
+import BillingAddressSelector from "./billing/billing-address-selector";
 import EmptyCartState from "./empty-cart-state";
 import { useCheckoutFlow } from "@/hooks/use-checkout-flow";
 
@@ -50,7 +50,10 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 			{/* Current Cart info*/}
 			{(isReviewOrderState || isOrderState) && <CartSummary cart={cart} />}
 			{isBillingState && (
-				<BillingForm email={userMetadata.email} onBillingComplete={goToOrder} />
+				<BillingAddressSelector
+					email={userMetadata.email}
+					onBillingComplete={goToOrder}
+				/>
 			)}
 
 			{/* Summary Info and checkout */}
