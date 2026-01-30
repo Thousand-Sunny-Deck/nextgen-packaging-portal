@@ -64,6 +64,13 @@ export function DashboardNavbar() {
 					>
 						Invoices
 					</Link>
+					<Link
+						href={`/dashboard/${uuid}/account`}
+						onClick={handleInvoicesClick}
+						className="px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-white/60 rounded-md transition-all"
+					>
+						Account
+					</Link>
 				</div>
 
 				{/* Center: Branding */}
