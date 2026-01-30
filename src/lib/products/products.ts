@@ -144,4 +144,5 @@ const _fetchProductsInternal = async (): Promise<ProductData[]> => {
 
 // Exported function wrapped in React cache for request-level memoization
 // This ensures the CSV is only read once per request, even if called multiple times
+// TODO: filter products per user
 export const fetchProducts = cache(_fetchProductsInternal);
