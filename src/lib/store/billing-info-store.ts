@@ -18,9 +18,6 @@ interface BillingInfoStore {
 	setBillingInfo: (info: BillingInfoItem) => void;
 	clearBillingInfo: () => void;
 	hasBillingInfo: () => boolean;
-	addBillingInfo: (info: BillingInfoItem) => void;
-	updateBillingInfo: (id: string, info: BillingInfoItem) => void;
-	deleteBillingInfo: (id: string) => void;
 }
 
 export const useBillingInfoStore = create<BillingInfoStore>()(
@@ -39,30 +36,6 @@ export const useBillingInfoStore = create<BillingInfoStore>()(
 
 			hasBillingInfo: () => {
 				return get().billingInfo !== null;
-			},
-
-			addBillingInfo: (info) => {
-				const newItem: BillingInfoItemWithId = {
-					...info,
-					id: crypto.randomUUID(),
-				};
-				set((state) => ({
-					billingInfos: [...state.billingInfos, newItem],
-				}));
-			},
-
-			updateBillingInfo: (id, info) => {
-				set((state) => ({
-					billingInfos: state.billingInfos.map((item) =>
-						item.id === id ? { ...info, id } : item,
-					),
-				}));
-			},
-
-			deleteBillingInfo: (id) => {
-				set((state) => ({
-					billingInfos: state.billingInfos.filter((item) => item.id !== id),
-				}));
 			},
 		}),
 		{

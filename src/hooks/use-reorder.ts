@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/product-store";
-import { useBillingInfoStore } from "@/lib/store/billing-info-store";
 import { reorderAction } from "@/actions/order-delivery/reorder-action";
 
 export function useReorder() {
@@ -14,7 +13,6 @@ export function useReorder() {
 	const populateCartFromOrder = useCartStore(
 		(state) => state.populateCartFromOrder,
 	);
-	const setBillingInfo = useBillingInfoStore((state) => state.setBillingInfo);
 	const router = useRouter();
 	const pathname = usePathname();
 
@@ -30,13 +28,9 @@ export function useReorder() {
 				return;
 			}
 
-			const { items, billingInfo } = result.data;
+			const { items } = result.data;
 
 			populateCartFromOrder(items);
-
-			if (billingInfo) {
-				setBillingInfo(billingInfo);
-			}
 
 			const orderRoute = pathname.replace("home", "order");
 			router.push(orderRoute);
