@@ -4,14 +4,12 @@ import { auth } from "@/lib/config/auth";
 import { fetchOrderByUserAndOrderId } from "@/lib/store/orders-store";
 import { headers } from "next/headers";
 import { CartItem } from "@/lib/store/product-store";
-import { BillingInfoItem } from "@/lib/store/billing-info-store";
 
 export type ReorderResponse =
 	| {
 			success: true;
 			data: {
 				items: CartItem[];
-				billingInfo: BillingInfoItem | null;
 			};
 	  }
 	| {
@@ -53,14 +51,6 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 				total: item.total,
 				unitCost: item.unitCost,
 			})),
-			billingInfo: order.billingAddress
-				? {
-						email: order.billingAddress.email,
-						organization: order.billingAddress.organization,
-						address: order.billingAddress.address,
-						ABN: order.billingAddress.ABN,
-					}
-				: null,
 		},
 	};
 }
