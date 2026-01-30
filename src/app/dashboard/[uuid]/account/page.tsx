@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BillingInfoList } from "@/components/account/billing-info-list";
 import { BillingInfoForm } from "@/components/account/billing-info-form";
 import {
-	useBillingInfoStore,
 	BillingInfoItem,
 	BillingInfoItemWithId,
 } from "@/lib/store/billing-info-store";
@@ -12,34 +11,87 @@ import { authClient } from "@/lib/config/auth-client";
 
 const AccountPage = () => {
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [isHydrated, setIsHydrated] = useState(false);
+	const [billingInfos, setBillingInfos] = useState<BillingInfoItemWithId[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isSaving, setIsSaving] = useState(false);
 
 	const { data: session, isPending } = authClient.useSession();
-	const { billingInfos, addBillingInfo, updateBillingInfo, deleteBillingInfo } =
-		useBillingInfoStore();
+
+	const fetchBillingAddresses = useCallback(async () => {
+		try {
+			const response = await fetch("/api/billing-addresses");
+			const result = await response.json();
+			if (result.success) {
+				setBillingInfos(result.data);
+			}
+		} catch (error) {
+			console.error("Error fetching billing addresses:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
 
 	useEffect(() => {
-		setIsHydrated(true);
-	}, []);
+		fetchBillingAddresses();
+	}, [fetchBillingAddresses]);
 
 	const handleEdit = (id: string) => {
 		setEditingId(id);
 	};
 
-	const handleDelete = (id: string) => {
-		deleteBillingInfo(id);
-		if (editingId === id) {
-			setEditingId(null);
+	const handleDelete = async (id: string) => {
+		try {
+			const response = await fetch(`/api/billing-addresses/${id}`, {
+				method: "DELETE",
+			});
+			const result = await response.json();
+			if (result.success) {
+				setBillingInfos((prev) => prev.filter((info) => info.id !== id));
+				if (editingId === id) {
+					setEditingId(null);
+				}
+			}
+		} catch (error) {
+			console.error("Error deleting billing address:", error);
 		}
 	};
 
-	const handleSave = (data: BillingInfoItem) => {
-		if (editingId) {
-			updateBillingInfo(editingId, data);
-		} else {
-			addBillingInfo(data);
+	const handleSave = async (data: BillingInfoItem) => {
+		setIsSaving(true);
+		try {
+			if (editingId) {
+				// Update existing
+				const response = await fetch(`/api/billing-addresses/${editingId}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data),
+				});
+				const result = await response.json();
+				if (result.success) {
+					setBillingInfos((prev) =>
+						prev.map((info) =>
+							info.id === editingId ? { ...result.data } : info,
+						),
+					);
+				}
+			} else {
+				// Create new
+				const response = await fetch("/api/billing-addresses", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data),
+				});
+				const result = await response.json();
+				if (result.success) {
+					setBillingInfos((prev) => [result.data, ...prev]);
+				}
+			}
+			setEditingId(null);
+		} catch (error) {
+			console.error("Error saving billing address:", error);
+		} finally {
+			setIsSaving(false);
 		}
-		setEditingId(null);
 	};
 
 	const handleCancel = () => {
@@ -51,7 +103,7 @@ const AccountPage = () => {
 		return billingInfos.find((info) => info.id === editingId);
 	};
 
-	if (!isHydrated || isPending) {
+	if (isPending || isLoading) {
 		return null;
 	}
 
@@ -93,6 +145,7 @@ const AccountPage = () => {
 							onSave={handleSave}
 							onCancel={handleCancel}
 							isEditing={editingId !== null}
+							isSaving={isSaving}
 						/>
 					</div>
 				</div>

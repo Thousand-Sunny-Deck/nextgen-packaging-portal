@@ -72,7 +72,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 		order.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000,
 	).toLocaleDateString();
 
-	const addressString = order.billingAddress?.address || "";
+	const addressString = order.billingAddress || "";
 	const parsedAddress = parseAddress(addressString);
 
 	const invoiceData: InvoiceData = {
@@ -81,7 +81,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 		dueDate: dueDate,
 		billTo: {
 			name: order.customerEmail,
-			company: order.billingAddress?.organization || "",
+			company: order.billingOrganization || "",
 			streetAddress: parsedAddress.streetAddress,
 			suburb: parsedAddress.suburb,
 			postcode: parsedAddress.postcode,
@@ -89,7 +89,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 		},
 		shipTo: {
 			name: order.customerEmail,
-			company: order.billingAddress?.organization || "",
+			company: order.billingOrganization || "",
 			streetAddress: parsedAddress.streetAddress,
 			suburb: parsedAddress.suburb,
 			postcode: parsedAddress.postcode,

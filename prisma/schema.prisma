@@ -27,6 +27,7 @@ model User {
   sessions Session[]
   accounts Account[]
   orders   Order[]
+  billingAddresses BillingAddress[]
 
   @@map("users")
 }
@@ -99,8 +100,14 @@ model Order {
   cartSubTotal   Float
   cartSize       Int
 
-  // Billing address
-  billingAddress BillingAddress?
+  // snapshot (immutable)
+  billingEmail        String
+  billingOrganization String
+  billingAddress      String
+  billingABN          String
+
+  // optional reference (for UI only)
+  billingAddressId String?
 
   // Order items
   items OrderItem[]
@@ -148,11 +155,10 @@ model OrderItem {
   @@map("order_items")
 }
 
-// Billing address
 model BillingAddress {
-  id      String @id @default(cuid())
-  orderId String @unique
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   email        String
   organization String
@@ -162,6 +168,7 @@ model BillingAddress {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("billing_addresses")
 }
 

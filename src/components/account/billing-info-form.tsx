@@ -24,6 +24,7 @@ interface BillingInfoFormProps {
 	onSave: (data: BillingInfoItem) => void;
 	onCancel: () => void;
 	isEditing: boolean;
+	isSaving?: boolean;
 }
 
 const validateABN = (abn: string, isTest: boolean): boolean => {
@@ -47,7 +48,6 @@ const validateABN = (abn: string, isTest: boolean): boolean => {
 
 const formSchema = z.object({
 	email: z
-		.string()
 		.email({ message: "Please enter a valid email address" })
 		.min(1, { message: "Email is required" }),
 
@@ -71,6 +71,7 @@ export const BillingInfoForm = ({
 	onSave,
 	onCancel,
 	isEditing,
+	isSaving = false,
 }: BillingInfoFormProps) => {
 	const form = useForm<BillingFormSchema>({
 		resolver: zodResolver(formSchema),
@@ -220,8 +221,15 @@ export const BillingInfoForm = ({
 						<Button type="button" variant="outline" onClick={onCancel}>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={form.formState.isSubmitting}>
-							{isEditing ? "Save Changes" : "Add Billing Info"}
+						<Button
+							type="submit"
+							disabled={form.formState.isSubmitting || isSaving}
+						>
+							{isSaving
+								? "Saving..."
+								: isEditing
+									? "Save Changes"
+									: "Add Billing Info"}
 						</Button>
 					</div>
 				</form>
