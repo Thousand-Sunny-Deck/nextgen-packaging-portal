@@ -1,14 +1,13 @@
 import { OrderPayload } from "@/actions/order-delivery/deliver-order-action";
 import { prisma } from "@/lib/config/prisma";
 import { OrderStatus } from "@/generated/prisma/enums";
-import { Order, OrderItem, BillingAddress } from "@/generated/prisma/client";
+import { Order, OrderItem } from "@/generated/prisma/client";
 
 /**
  * Type representing an Order with its related items and billing address
  */
 export type OrderDetailsForOrderId = Order & {
 	items: OrderItem[];
-	billingAddress: BillingAddress | null;
 };
 
 /**
@@ -78,18 +77,13 @@ export async function storePreparedOrderInDb(
 			},
 
 			// Create billing address
-			billingAddress: {
-				create: {
-					email: billingInfo.email,
-					organization: billingInfo.organization,
-					address: billingInfo.address,
-					ABN: billingInfo.ABN,
-				},
-			},
+			billingEmail: billingInfo.email,
+			billingOrganization: billingInfo.organization,
+			billingAddress: billingInfo.address,
+			billingABN: billingInfo.ABN,
 		},
 		include: {
 			items: true,
-			billingAddress: true,
 		},
 	});
 
@@ -110,7 +104,6 @@ export async function fetchOrdersForUser(userId: string) {
 		},
 		include: {
 			items: true,
-			billingAddress: true,
 		},
 		orderBy: {
 			createdAt: "desc",
@@ -139,7 +132,6 @@ export async function fetchOrderByUserAndOrderId(
 		},
 		include: {
 			items: true,
-			billingAddress: true,
 		},
 	});
 
@@ -229,7 +221,6 @@ export async function fetchRecentOrdersForUser(userId: string) {
 		},
 		include: {
 			items: true,
-			billingAddress: true,
 		},
 		orderBy: {
 			createdAt: "desc",
@@ -268,7 +259,6 @@ export async function fetchActiveOrdersForUser(userId: string) {
 		},
 		include: {
 			items: true,
-			billingAddress: true,
 		},
 		orderBy: {
 			createdAt: "desc",
