@@ -67,6 +67,24 @@ export const ordersRatelimit = isDevelopment
 		});
 
 /**
+ * Rate limiter for billing addresses API - 30 requests per minute per user
+ */
+export const billingAddressesRatelimit = isDevelopment
+	? {
+			limit: async () => ({
+				success: true,
+				limit: 30,
+				remaining: 30,
+				reset: Date.now() + 60_000,
+			}),
+		}
+	: new Ratelimit({
+			redis: redis!,
+			limiter: Ratelimit.slidingWindow(30, "1 m"),
+			prefix: "ratelimit:billing-addresses",
+		});
+
+/**
  * Generic cache service for storing and retrieving data with TTL.
  * Uses file-based cache in development, Upstash Redis in production.
  */
@@ -144,3 +162,9 @@ export class CacheService {
 		await redis!.del(fullKey);
 	}
 }
+
+/**
+ * Cache service instance for billing addresses
+ * TTL: 5 minutes - balances freshness with performance
+ */
+export const billingAddressesCache = new CacheService("billing-addresses");

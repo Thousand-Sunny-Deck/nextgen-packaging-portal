@@ -4,6 +4,10 @@ import {
 	updateBillingAddress,
 	deleteBillingAddress,
 } from "@/lib/store/billing-addresses-store";
+import {
+	billingAddressesRatelimit,
+	billingAddressesCache,
+} from "@/service/cache";
 import { z } from "zod";
 
 const billingAddressSchema = z.object({
@@ -17,6 +21,10 @@ type RouteParams = {
 	params: Promise<{ id: string }>;
 };
 
+function getCacheKey(userId: string): string {
+	return `user:${userId}`;
+}
+
 export async function PUT(request: NextRequest, { params }: RouteParams) {
 	try {
 		const session = await auth.api.getSession({
@@ -27,6 +35,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 			return NextResponse.json(
 				{ success: false, message: "Unauthorized" },
 				{ status: 401 },
+			);
+		}
+
+		const userId = session.user.id;
+
+		// Rate limiting
+		const { success: withinLimit } =
+			await billingAddressesRatelimit.limit(userId);
+		if (!withinLimit) {
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Too many requests. Please try again later.",
+				},
+				{ status: 429 },
 			);
 		}
 
@@ -48,7 +71,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 		const address = await updateBillingAddress(
 			id,
-			session.user.id,
+			userId,
 			validationResult.data,
 		);
 
@@ -58,6 +81,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 				{ status: 404 },
 			);
 		}
+
+		// Invalidate cache
+		await billingAddressesCache.delete(getCacheKey(userId));
 
 		return NextResponse.json({
 			success: true,
@@ -85,8 +111,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 			);
 		}
 
+		const userId = session.user.id;
+
+		// Rate limiting
+		const { success: withinLimit } =
+			await billingAddressesRatelimit.limit(userId);
+		if (!withinLimit) {
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Too many requests. Please try again later.",
+				},
+				{ status: 429 },
+			);
+		}
+
 		const { id } = await params;
-		const deleted = await deleteBillingAddress(id, session.user.id);
+		const deleted = await deleteBillingAddress(id, userId);
 
 		if (!deleted) {
 			return NextResponse.json(
@@ -94,6 +135,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 				{ status: 404 },
 			);
 		}
+
+		// Invalidate cache
+		await billingAddressesCache.delete(getCacheKey(userId));
 
 		return NextResponse.json({
 			success: true,
