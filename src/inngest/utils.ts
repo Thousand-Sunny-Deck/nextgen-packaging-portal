@@ -2,6 +2,13 @@ import { env } from "@/lib/env-validation/env";
 import { InvoiceData } from "@/lib/pdf/types";
 import { OrderDetailsForOrderId as OrderDetails } from "@/lib/store/orders-store";
 import { AdminDetails } from "@/service/post-office";
+import { EmailDetails } from "@/lib/resend/template";
+
+// Company details - can be moved to env variables if needed
+const COMPANY_NAME = "NextGen Packaging";
+const COMPANY_EMAIL = "info@nextgenpackaging.com";
+const COMPANY_ADDRESS = "Adelaide, SA, Australia";
+const COMPANY_WEBSITE = "https://nextgenpackaging.com.au";
 
 interface EventData {
 	orderId?: unknown;
@@ -121,10 +128,24 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 
 export const createAdminDetailsForEmail = (): AdminDetails => {
 	const from = "Onboarding <onboarding@resend.dev>";
-	const subject = "Your Invoce is ready!";
+	const subject = `${COMPANY_NAME} – Your order is ready`;
 
 	return {
 		from,
 		subject,
+	};
+};
+
+export const createEmailDetails = (
+	customerName: string,
+	portalUrl: string,
+): EmailDetails => {
+	return {
+		customerName,
+		companyName: COMPANY_NAME,
+		companyEmail: COMPANY_EMAIL,
+		companyAddress: COMPANY_ADDRESS,
+		companyWebsite: COMPANY_WEBSITE,
+		portalUrl,
 	};
 };

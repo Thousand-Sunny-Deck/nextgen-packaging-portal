@@ -8,9 +8,11 @@ import {
 import { inngest } from "./client";
 import {
 	createAdminDetailsForEmail,
+	createEmailDetails,
 	enrichInvoiceData,
 	validateEventData,
 } from "./utils";
+import { env } from "@/lib/env-validation/env";
 import { NonRetriableError } from "inngest";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
 import { OrderStatus } from "@/generated/prisma/enums";
@@ -79,17 +81,25 @@ export const helloWorld = inngest.createFunction(
 			};
 		});
 
-		// THIS IS WORKING NOW. I NEED TO CONFIGURE DNS and DOMAIN thing for emails.
-		// from email needs to be congiured correctly
-		// TODO: Design for Email and Domain config
 		await step.run("send-email", async () => {
-			const { orderId, userId, email } = event.data;
+			const { orderId, userId } = event.data;
+
+			// Fetch order to get customer details
+			const order = await fetchOrderByUserAndOrderId(orderId, userId);
+			if (!order) {
+				throw new NonRetriableError(`Order ${orderId} not found for email.`);
+			}
+
+			const customerName = order.billingOrganization || order.customerEmail;
+			const portalUrl = `${env.NEXT_PUBLIC_API_URL}`;
+			const emailDetails = createEmailDetails(customerName, portalUrl);
+
 			const postOffice = new PostOffice(createAdminDetailsForEmail());
-			const { data, error } = await postOffice.deliver(
+			const { data } = await postOffice.deliver(
 				{
 					to: ["pvyas1512@gmail.com"],
 				},
-				EmailTemplate({ firstName: userId }),
+				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),
 			);
 
