@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -28,6 +27,7 @@ model User {
   accounts Account[]
   orders   Order[]
   billingAddresses BillingAddress[]
+  entitledProducts UserProductEntitlement[] // NEW
 
   @@map("users")
 }
@@ -69,16 +69,53 @@ model Account {
   @@map("accounts")
 }
 
-model Verification {
-  id        String    @id @default(uuid())
-  createdAt DateTime?
-  updatedAt DateTime?
 
-  identifier String
-  value      String
-  expiresAt  DateTime
+model Product {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("verifications")
+  // Base product information
+  sku         String  @unique
+  description String
+  unitCost    Float
+  imageUrl    String?
+  
+  // Relations
+  entitledUsers UserProductEntitlement[]
+  orderItems    OrderItem[]
+
+  @@index([sku])
+  @@map("products")
+}
+
+// NEW: User entitlements with per-user customizations
+model UserProductEntitlement {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  productId String
+
+  // Access metadata
+  grantedAt DateTime @default(now())
+  grantedBy String?  // Admin user ID who granted access
+
+  // Per-user customizations (nullable = use product defaults)
+  customSku         String?
+  customDescription String?
+  customUnitCost    Float?
+  customImageUrl    String?
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@map("user_product_entitlements")
 }
 
 // Main Order model
@@ -133,25 +170,27 @@ model Order {
   @@map("orders")
 }
 
-// Order items (cart items)
 model OrderItem {
   id      String @id @default(cuid())
   orderId String
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  // Product information (snapshot at time of order)
+  // Product reference
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  // Product snapshot (what user saw at time of order - IMMUTABLE)
   sku         String
   quantity    Int
   description String
-
-  // Pricing
-  total    Float
-  unitCost Float
+  total       Float
+  unitCost    Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
+  @@index([productId])
   @@map("order_items")
 }
 
@@ -174,12 +213,12 @@ model BillingAddress {
 
 // Enums
 enum OrderStatus {
-  PENDING // Just created, background job queued
-  PROCESSING // backgroud jobs are running
+  PENDING       // Just created, background job queued
+  PROCESSING    // background jobs are running
   PDF_GENERATED // PDF_GENERATED
-  PDF_STORED // pdf is stored in s3
-  EMAIL_SENT // email sent with pdf
-  FAILED // Processing failed after retries
+  PDF_STORED    // pdf is stored in s3
+  EMAIL_SENT    // email sent with pdf
+  FAILED        // Processing failed after retries
 
   @@map("order_status")
 }
