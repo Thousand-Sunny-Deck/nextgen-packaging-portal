@@ -5,7 +5,9 @@ import { auth } from "@/lib/config/auth";
 import {
 	fetchOrdersForUser,
 	storePreparedOrderInDb,
+	updateStateForOrder,
 } from "@/lib/store/orders-store";
+import { OrderStatus } from "@/generated/prisma/enums";
 import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
 import { ordersRatelimit } from "@/service/cache";
@@ -51,14 +53,30 @@ export async function POST(request: NextRequest) {
 		const payload: OrderPayload = validationResult.data;
 		const order = await storePreparedOrderInDb(payload, session.user.id);
 
-		await inngest.send({
-			name: "invoice/generate",
-			data: {
-				orderId: order.orderId,
-				userId: order.userId,
-				email: order.customerEmail,
-			},
-		});
+		try {
+			await inngest.send({
+				name: "invoice/generate",
+				data: {
+					orderId: order.orderId,
+					userId: order.userId,
+					email: order.customerEmail,
+				},
+			});
+		} catch (inngestError) {
+			console.error("Failed to queue invoice generation:", inngestError);
+			await updateStateForOrder(
+				order.orderId,
+				order.userId!,
+				OrderStatus.FAILED,
+			);
+			return NextResponse.json(
+				{
+					success: false,
+					message: "Failed to process order. Please try again.",
+				},
+				{ status: 500 },
+			);
+		}
 
 		return NextResponse.json({
 			success: true,
