@@ -19,7 +19,7 @@ model User {
   updatedAt DateTime
 
   name          String
-  email         String  @unique
+  email         String @unique
   emailVerified Boolean
   image         String?
 
@@ -83,7 +83,6 @@ model Product {
   
   // Relations
   entitledUsers UserProductEntitlement[]
-  orderItems    OrderItem[]
 
   @@index([sku])
   @@map("products")
@@ -177,7 +176,6 @@ model OrderItem {
 
   // Product reference
   productId String?
-  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   // Product snapshot (what user saw at time of order - IMMUTABLE)
   sku         String
