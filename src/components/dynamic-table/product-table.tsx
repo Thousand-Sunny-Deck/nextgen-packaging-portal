@@ -1,7 +1,7 @@
 "use client";
 
 import { usePaginationContext } from "@/hooks/use-pagination-context";
-import { ProductData } from "@/lib/products/products";
+import { ProductData } from "@/actions/products/fetch-products-action";
 import {
 	CartItem,
 	ProductTableStore,
@@ -30,10 +30,9 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		setQuantity,
 		getIsProductSelected,
 		toggleProduct,
-		canSelectProduct,
 		toggleAllProducts,
-		areAllEnabledProductsSelected,
-		areSomeEnabledProductsSelected,
+		areAllProductsSelected,
+		areSomeProductsSelected,
 	} = useCartStore();
 
 	// pagination with tanstack/table
@@ -75,8 +74,8 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 			{
 				id: "select",
 				header: () => {
-					const allSelected = isMounted && areAllEnabledProductsSelected();
-					const someSelected = isMounted && areSomeEnabledProductsSelected();
+					const allSelected = isMounted && areAllProductsSelected(products);
+					const someSelected = isMounted && areSomeProductsSelected(products);
 
 					return (
 						<input
@@ -89,12 +88,11 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 							}}
 							onChange={() => {
 								if (allSelected || someSelected) {
-									toggleAllProducts(false);
+									toggleAllProducts(false, products);
 								} else {
-									toggleAllProducts(true);
+									toggleAllProducts(true, products);
 								}
 							}}
-							disabled={someSelected}
 							className="h-4 w-4 rounded"
 						/>
 					);
@@ -103,7 +101,6 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 					<input
 						type="checkbox"
 						checked={isMounted ? getIsProductSelected(row.original.sku) : false}
-						disabled={isMounted ? !canSelectProduct(row.original.sku) : false}
 						onChange={() => toggleProduct(row.original.sku)}
 						className="h-4 w-4 rounded"
 					/>
@@ -177,7 +174,8 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 			{
 				accessorKey: "unitCost",
 				header: "Unit Cost",
-				cell: ({ row }) => `$${row.getValue("unitCost")}`,
+				cell: ({ row }) =>
+					`$${(row.getValue("unitCost") as number).toFixed(2)}`,
 			},
 			{
 				accessorKey: "total",
@@ -193,11 +191,11 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 			setQuantity,
 			getIsProductSelected,
 			toggleProduct,
-			canSelectProduct,
 			toggleAllProducts,
-			areAllEnabledProductsSelected,
-			areSomeEnabledProductsSelected,
+			areAllProductsSelected,
+			areSomeProductsSelected,
 			isMounted,
+			products,
 		],
 	);
 

@@ -81,7 +81,7 @@ export const helloWorld = inngest.createFunction(
 		});
 
 		await step.run("send-email", async () => {
-			const { orderId, userId, email } = event.data;
+			const { orderId, userId } = event.data;
 
 			// Fetch order to get customer details
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
@@ -96,7 +96,7 @@ export const helloWorld = inngest.createFunction(
 			const postOffice = new PostOffice(createAdminDetailsForEmail());
 			const { data } = await postOffice.deliver(
 				{
-					to: ["pvyas1512@gmail.com", email],
+					to: ["pvyas1512@gmail.com"],
 				},
 				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),

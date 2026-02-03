@@ -1,7 +1,7 @@
 // store/cartStore.ts
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ProductData } from "../products/products";
+import { ProductData } from "@/actions/products/fetch-products-action";
 
 export interface CartItem {
 	sku: string;
@@ -36,17 +36,14 @@ interface CartStore {
 	// can select product
 	canSelectProduct: (sku: string) => boolean;
 
-	// Toggle all enabled products (select/deselect all)
-	toggleAllProducts: (selectAll: boolean) => void;
+	// Toggle all products (select/deselect all)
+	toggleAllProducts: (selectAll: boolean, products: ProductData[]) => void;
 
-	// Get all enabled SKUs
-	getEnabledSkus: () => string[];
+	// Check if all products are selected
+	areAllProductsSelected: (products: ProductData[]) => boolean;
 
-	// Check if all enabled products are selected
-	areAllEnabledProductsSelected: () => boolean;
-
-	// Check if some but not all enabled products are selected
-	areSomeEnabledProductsSelected: () => boolean;
+	// Check if some but not all products are selected
+	areSomeProductsSelected: (products: ProductData[]) => boolean;
 
 	getCart: () => CartItem[];
 	getTotalCartCost: () => number;
@@ -136,50 +133,62 @@ export const useCartStore = create<CartStore>()(
 				return maybeSelectedProducts.has(sku);
 			},
 
-			toggleAllProducts: (selectAll) => {
+			toggleAllProducts: (selectAll, products) => {
 				set((state) => {
-					const enabledSkus = Array.from(state.maybeSelectedProducts.keys());
-					const newSet = new Set(state.selectedProductSkus);
-
 					if (selectAll) {
-						// Add all enabled SKUs to selection
-						enabledSkus.forEach((sku) => newSet.add(sku));
-					} else {
-						// Remove all enabled SKUs from selection
-						enabledSkus.forEach((sku) => newSet.delete(sku));
-					}
+						// Select all products and set quantity to 1
+						const newMap = new Map(state.maybeSelectedProducts);
+						const newSet = new Set(state.selectedProductSkus);
 
-					return {
-						selectedProductSkus: newSet,
-					};
+						for (const product of products) {
+							const existing = newMap.get(product.sku);
+							if (!existing) {
+								// Product not in cart, add with quantity 1
+								newMap.set(product.sku, {
+									sku: product.sku,
+									description: product.description,
+									unitCost: product.unitCost,
+									quantity: 1,
+									total: product.unitCost,
+								});
+							}
+							newSet.add(product.sku);
+						}
+
+						return {
+							maybeSelectedProducts: newMap,
+							selectedProductSkus: newSet,
+						};
+					} else {
+						// Deselect all products and clear quantities
+						return {
+							maybeSelectedProducts: new Map(),
+							selectedProductSkus: new Set(),
+						};
+					}
 				});
 			},
 
-			getEnabledSkus: () => {
-				const { maybeSelectedProducts } = get();
-				return Array.from(maybeSelectedProducts.keys());
+			areAllProductsSelected: (products) => {
+				const { selectedProductSkus } = get();
+
+				if (products.length === 0) return false;
+
+				return products.every((product) =>
+					selectedProductSkus.has(product.sku),
+				);
 			},
 
-			areAllEnabledProductsSelected: () => {
-				const { maybeSelectedProducts, selectedProductSkus } = get();
-				const enabledSkus = Array.from(maybeSelectedProducts.keys());
+			areSomeProductsSelected: (products) => {
+				const { selectedProductSkus } = get();
 
-				if (enabledSkus.length === 0) return false;
+				if (products.length === 0) return false;
 
-				return enabledSkus.every((sku) => selectedProductSkus.has(sku));
-			},
-
-			areSomeEnabledProductsSelected: () => {
-				const { maybeSelectedProducts, selectedProductSkus } = get();
-				const enabledSkus = Array.from(maybeSelectedProducts.keys());
-
-				if (enabledSkus.length === 0) return false;
-
-				const selectedCount = enabledSkus.filter((sku) =>
-					selectedProductSkus.has(sku),
+				const selectedCount = products.filter((product) =>
+					selectedProductSkus.has(product.sku),
 				).length;
 
-				return selectedCount > 0 && selectedCount < enabledSkus.length;
+				return selectedCount > 0 && selectedCount < products.length;
 			},
 
 			getCart: () => {

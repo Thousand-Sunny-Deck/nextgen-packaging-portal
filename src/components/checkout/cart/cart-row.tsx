@@ -15,7 +15,7 @@ export const CartRow = ({
 	sku,
 	unitCost,
 }: CartRowProps) => {
-	const textUnderDescription = `${sku} • $${unitCost}`;
+	const textUnderDescription = `${sku} • $${unitCost.toFixed(2)}`;
 
 	return (
 		<div className="w-full grid grid-cols-[1fr_auto_auto] gap-6 items-start px-3 py-3 border-t hover:bg-gray-50">
@@ -36,7 +36,7 @@ export const CartRow = ({
 
 			{/* Total */}
 			<div className="text-sm font-semibold text-gray-900 text-right min-w-[80px]">
-				${total}
+				${total.toFixed(2)}
 			</div>
 		</div>
 	);

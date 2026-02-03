@@ -25,7 +25,7 @@ async function main() {
 	console.log("Starting entitlement seed...\n");
 
 	// Get user email from command line args
-	const userEmail = process.argv[2] ?? "elvin.warong@gmail.com";
+	const userEmail = process.argv[2] ?? "pvyas1512@gmail.com";
 	if (!userEmail) {
 		console.error("ERROR: Please provide a user email as the first argument");
 		console.error(

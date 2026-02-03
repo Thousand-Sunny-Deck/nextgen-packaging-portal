@@ -21,7 +21,7 @@ const ActiveOrderCard = ({ orderId, price, status }: ActiveOrder) => {
 			{/* Left side - Order number and price stacked */}
 			<div className="flex flex-col gap-1">
 				<h3 className="font-bold text-md">Order #{displayId}</h3>
-				<p className="text-neutral-600">AU ${price}</p>
+				<p className="text-neutral-600">AU ${price.toFixed(2)}</p>
 			</div>
 
 			{/* Right side - Status badge */}

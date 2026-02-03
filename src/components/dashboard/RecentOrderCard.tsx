@@ -43,7 +43,7 @@ const RecentOrderCard = ({
 
 			{/* Right side - Price and re-order button */}
 			<div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 flex-shrink-0">
-				<p className="font-bold text-md">AU ${price}</p>
+				<p className="font-bold text-md">AU ${price.toFixed(2)}</p>
 
 				<button
 					onClick={onReorder}
