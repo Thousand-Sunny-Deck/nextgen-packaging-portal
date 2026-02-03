@@ -43,7 +43,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	}
 
 	const slug = await params;
-	const { error: orgIdError } = verifyOrgId(session, slug);
+	const { error: orgIdError } = await verifyOrgId(session, slug);
 
 	if (orgIdError) {
 		// User is authenticated but trying to access another user's dashboard

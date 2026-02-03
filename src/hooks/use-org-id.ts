@@ -1,31 +1,41 @@
+import { prisma } from "@/lib/config/prisma";
 import { SessionType } from "./use-session";
-
-const ALLOWED_ORGS = ["7e14cd73-cff9-44ae-8463-ba7d6d4deb03"];
 
 type VerifyOrgIdResponse = {
 	orgId: string;
 	error?: Error;
 };
 
-export const verifyOrgId = (
+export const verifyOrgId = async (
 	session: SessionType,
 	slug: {
 		uuid: string;
 	},
-): VerifyOrgIdResponse => {
+): Promise<VerifyOrgIdResponse> => {
 	const id = session.user.id;
 	if (!id) {
 		throw Error("this should not happen");
 	}
 
-	// need to update this to call the DB. This is mocked right now
-	const isKnownOrg = ALLOWED_ORGS.includes(slug.uuid);
-	if (isKnownOrg && id === slug.uuid) {
-		return { orgId: slug.uuid };
+	// Check if the session user ID matches the slug UUID
+	if (id !== slug.uuid) {
+		return {
+			orgId: slug.uuid,
+			error: new Error("Unauthorized"),
+		};
 	}
 
-	return {
-		orgId: slug.uuid,
-		error: new Error("Unauthorized"),
-	};
+	// Verify user exists in the database
+	const user = await prisma.user.findUnique({
+		where: { id: slug.uuid },
+	});
+
+	if (!user) {
+		return {
+			orgId: slug.uuid,
+			error: new Error("User not found"),
+		};
+	}
+
+	return { orgId: slug.uuid };
 };
