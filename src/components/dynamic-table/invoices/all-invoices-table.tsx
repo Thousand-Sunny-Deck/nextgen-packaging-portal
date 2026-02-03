@@ -118,7 +118,7 @@ export function AllInvoicesDataTable<TData, TValue>({
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
-			<div className="overflow-hidden rounded-sm border bg-white">
+			<div className="overflow-x-auto rounded-sm border bg-white">
 				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (

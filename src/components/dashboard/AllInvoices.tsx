@@ -13,8 +13,10 @@ const AllInvoices = (props: AllInvoicesProps) => {
 	return (
 		<div className="w-full h-full flex flex-col gap-2 pt-6">
 			<div className="py-4 px-2 flex flex-col gap-2">
-				<p className="text-3xl font-bold">Review Past Orders 📝</p>
-				<p className="text-md font-light">
+				<p className="text-xl sm:text-2xl md:text-3xl font-bold">
+					Review Past Orders 📝
+				</p>
+				<p className="text-sm md:text-md font-light">
 					Click on more options to view your invoice.
 				</p>
 			</div>
