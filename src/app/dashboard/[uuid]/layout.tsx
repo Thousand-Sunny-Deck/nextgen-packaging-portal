@@ -1,16 +1,20 @@
-"use client";
-
 import { DashboardNavbar } from "@/components/dashboard/dashboard-navbar";
 
-export default function DashboardLayout({
-	children,
-}: {
+interface DashboardLayoutProps {
 	children: React.ReactNode;
-}) {
+	params: Promise<{ uuid: string }>;
+}
+
+export default async function DashboardLayout({
+	children,
+	params,
+}: DashboardLayoutProps) {
+	const { uuid } = await params;
+
 	return (
 		<>
-			<DashboardNavbar />
-			<main className="pt-12">{children}</main>
+			<DashboardNavbar uuid={uuid} />
+			<main>{children}</main>
 		</>
 	);
 }

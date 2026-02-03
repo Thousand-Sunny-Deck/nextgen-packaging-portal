@@ -92,6 +92,14 @@ const EntryPage = () => {
 								</FormItem>
 							)}
 						/>
+						<div className="text-right">
+							<Link
+								href="/auth/forgot-password"
+								className="text-sm text-muted-foreground hover:text-foreground"
+							>
+								Forgot password?
+							</Link>
+						</div>
 						<Button
 							type="submit"
 							className="ml-14 mr-14 mt-2"
@@ -101,13 +109,6 @@ const EntryPage = () => {
 						</Button>
 					</form>
 				</Form>
-
-				<p className="text-muted-foreground text-sm mt-2 text-center">
-					Don&apos;t have an account?{" "}
-					<Link href="/auth/register" className="hover:text-foreground">
-						Register
-					</Link>
-				</p>
 			</div>
 		</div>
 	);
