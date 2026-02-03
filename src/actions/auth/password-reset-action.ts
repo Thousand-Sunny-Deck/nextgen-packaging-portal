@@ -12,7 +12,8 @@ export async function requestPasswordReset(
 	email: string,
 ): Promise<PasswordResetResult> {
 	try {
-		await auth.api.forgetPassword({
+		// TODO: This feature is not working AT ALL! I need to figure this out with better auth.
+		await auth.api.requestPasswordReset({
 			body: {
 				email,
 				redirectTo: "/auth/reset-password",
