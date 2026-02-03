@@ -127,7 +127,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 };
 
 export const createAdminDetailsForEmail = (): AdminDetails => {
-	const from = "Onboarding <onboarding@resend.dev>";
+	const from = "Invoice <invoices@nextgenpackaging-portal.site>";
 	const subject = `${COMPANY_NAME} – Your order is ready`;
 
 	return {

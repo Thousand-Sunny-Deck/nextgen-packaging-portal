@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	fetchOrderByUserAndOrderId,
 	updateOrderWithEmail,
@@ -61,7 +60,7 @@ export const helloWorld = inngest.createFunction(
 		});
 
 		// TODO: make two pdfs, second one needs to map wiht NGP skus
-		const { s3Key, s3Url } = await step.run("upload-to-s3", async () => {
+		await step.run("upload-to-s3", async () => {
 			const { orderId, userId } = event.data;
 			const s3Key = `invoices/${orderId}.pdf`;
 			const pdfBuffer = Buffer.from(pdf.data);
@@ -82,7 +81,7 @@ export const helloWorld = inngest.createFunction(
 		});
 
 		await step.run("send-email", async () => {
-			const { orderId, userId } = event.data;
+			const { orderId, userId, email } = event.data;
 
 			// Fetch order to get customer details
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
@@ -97,7 +96,7 @@ export const helloWorld = inngest.createFunction(
 			const postOffice = new PostOffice(createAdminDetailsForEmail());
 			const { data } = await postOffice.deliver(
 				{
-					to: ["pvyas1512@gmail.com"],
+					to: ["pvyas1512@gmail.com", email],
 				},
 				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),
