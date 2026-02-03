@@ -1,5 +1,4 @@
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
-import { HashScrollHandler } from "@/components/dashboard/hash-scroll-handler";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import OrderButton from "@/components/dashboard/OrderButton";
 import { verifyOrgId } from "@/hooks/use-org-id";
@@ -43,7 +42,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	}
 
 	const slug = await params;
-	const { error: orgIdError } = verifyOrgId(session, slug);
+	const { error: orgIdError } = await verifyOrgId(session, slug);
 
 	if (orgIdError) {
 		// User is authenticated but trying to access another user's dashboard
@@ -54,8 +53,7 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 	const userDetails = extractUserDetailsFromSession(session);
 
 	return (
-		<div className="w-screen h-screen flex flex-col">
-			<HashScrollHandler />
+		<div className="w-screen min-h-screen flex flex-col">
 			{/* background image */}
 			<div className="min-h-[20vh] w-full bg-gray-100"></div>
 			{/* main content */}

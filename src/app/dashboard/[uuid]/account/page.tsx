@@ -21,7 +21,7 @@ const AccountPage = async ({ params }: AccountPageProps) => {
 	}
 
 	const slug = await params;
-	const { error: orgIdError } = verifyOrgId(session, slug);
+	const { error: orgIdError } = await verifyOrgId(session, slug);
 
 	if (orgIdError) {
 		notFound();

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { AppFrame } from "@/components/app-frame";
-
-// TODO: Add fonts here.
 
 export const metadata: Metadata = {
 	title: "NextGen Packaging",
@@ -16,9 +13,9 @@ const RootLayout = ({
 	children: React.ReactNode;
 }>) => {
 	return (
-		<html lang="en">
+		<html lang="en" className="scroll-smooth">
 			<body className="antialiased">
-				<AppFrame>{children}</AppFrame>
+				{children}
 				<Toaster position="bottom-right" />
 			</body>
 		</html>
