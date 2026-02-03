@@ -19,13 +19,13 @@ model User {
   updatedAt DateTime
 
   name          String
-  email         String @unique
+  email         String  @unique
   emailVerified Boolean
   image         String?
 
-  sessions Session[]
-  accounts Account[]
-  orders   Order[]
+  sessions         Session[]
+  accounts         Account[]
+  orders           Order[]
   billingAddresses BillingAddress[]
   entitledProducts UserProductEntitlement[] // NEW
 
@@ -46,6 +46,7 @@ model Session {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+  @@index([userId])
 }
 
 model Account {
@@ -67,8 +68,8 @@ model Account {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("accounts")
+  @@index([userId])
 }
-
 
 model Product {
   id        String   @id @default(cuid())
@@ -76,11 +77,10 @@ model Product {
   updatedAt DateTime @updatedAt
 
   // Base product information
-  sku         String  @unique
-  description String
-  unitCost    Float
-  imageUrl    String?
-  
+  sku           String                   @unique
+  description   String
+  unitCost      Float
+  imageUrl      String?
   // Relations
   entitledUsers UserProductEntitlement[]
 
@@ -89,6 +89,7 @@ model Product {
 }
 
 // NEW: User entitlements with per-user customizations
+
 model UserProductEntitlement {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -99,7 +100,7 @@ model UserProductEntitlement {
 
   // Access metadata
   grantedAt DateTime @default(now())
-  grantedBy String?  // Admin user ID who granted access
+  grantedBy String? // Admin user ID who granted access
 
   // Per-user customizations (nullable = use product defaults)
   customSku         String?
@@ -118,6 +119,7 @@ model UserProductEntitlement {
 }
 
 // Main Order model
+
 model Order {
   id      String  @id @default(cuid())
   orderId String  @unique // Custom order ID like "ORD-20260108-X7K9P"
@@ -193,9 +195,9 @@ model OrderItem {
 }
 
 model BillingAddress {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   email        String
   organization String
@@ -210,13 +212,26 @@ model BillingAddress {
 }
 
 // Enums
+
 enum OrderStatus {
-  PENDING       // Just created, background job queued
-  PROCESSING    // background jobs are running
+  PENDING // Just created, background job queued
+  PROCESSING // background jobs are running
   PDF_GENERATED // PDF_GENERATED
-  PDF_STORED    // pdf is stored in s3
-  EMAIL_SENT    // email sent with pdf
-  FAILED        // Processing failed after retries
+  PDF_STORED // pdf is stored in s3
+  EMAIL_SENT // email sent with pdf
+  FAILED // Processing failed after retries
 
   @@map("order_status")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+  @@index([identifier])
 }

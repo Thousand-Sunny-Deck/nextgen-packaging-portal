@@ -4,8 +4,8 @@ dotenv.config();
 
 import { PrismaClient } from "../../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import * as XLSX from "xlsx";
 import * as path from "path";
+import { readCsvFile } from "./utils/csv-reader";
 
 // ============================================
 // TYPES
@@ -53,8 +53,8 @@ async function main() {
 	const prisma = new PrismaClient({ adapter });
 
 	try {
-		const filePath = path.join(__dirname, "data", "products.xlsx");
-		const rows = readExcelFile(filePath);
+		const filePath = path.join(__dirname, "data", "products.csv");
+		const rows = readFile(filePath);
 		console.log(`Found ${rows.length} rows to process\n`);
 
 		const { valid, invalid } = validateRows(rows);
@@ -79,17 +79,10 @@ async function main() {
 
 // ============================================
 // FILE READING
-// Responsibility: Parse Excel file into raw row objects
+// Responsibility: Parse CSV file into raw row objects
 // ============================================
-function readExcelFile(filePath: string): RawRow[] {
-	console.log(`Reading from: ${filePath}`);
-
-	const workbook = XLSX.readFile(filePath);
-	const sheetName = workbook.SheetNames[0];
-	const sheet = workbook.Sheets[sheetName];
-
-	const rows = XLSX.utils.sheet_to_json<RawRow>(sheet);
-	return rows;
+function readFile(filePath: string): RawRow[] {
+	return readCsvFile<RawRow>(filePath);
 }
 
 // ============================================
