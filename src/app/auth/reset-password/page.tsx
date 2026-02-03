@@ -1,4 +1,5 @@
 "use client";
+import { resetPassword } from "@/actions/auth/password-reset-action";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -49,19 +50,22 @@ const ResetPasswordPage = () => {
 
 		setIsPending(true);
 
-		// TODO: Call resetPassword action once auth config is set up
-		console.log(
-			"Reset password with token:",
-			token,
-			"new password:",
-			data.password,
-		);
+		const result = await resetPassword(token, data.password);
 
-		// Simulate success for now
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		toast.success("Password reset successfully!");
+		if (result.success) {
+			toast.success("Password reset successfully!");
+			router.replace("/auth/login");
+		} else {
+			toast.error(result.error || "Something went wrong.");
+			if (
+				result.error?.includes("invalid") ||
+				result.error?.includes("expired")
+			) {
+				setTokenError(result.error);
+			}
+		}
+
 		setIsPending(false);
-		router.replace("/auth/login");
 	};
 
 	return (

@@ -1,4 +1,5 @@
 "use client";
+import { requestPasswordReset } from "@/actions/auth/password-reset-action";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -33,14 +34,16 @@ const ForgotPasswordPage = () => {
 	const handleSubmit = async (data: ForgotPasswordSchemaT) => {
 		setIsPending(true);
 
-		// TODO: Call requestPasswordReset action once auth config is set up
-		console.log("Request password reset for:", data.email);
+		const result = await requestPasswordReset(data.email);
 
-		// Simulate success for now
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		setEmailSent(true);
+		if (result.success) {
+			setEmailSent(true);
+			toast.success("If an account exists, a reset link has been sent.");
+		} else {
+			toast.error(result.error || "Something went wrong.");
+		}
+
 		setIsPending(false);
-		toast.success("If an account exists, a reset link has been sent.");
 	};
 
 	return (
