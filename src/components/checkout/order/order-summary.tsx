@@ -31,16 +31,18 @@ const OrderSummary = ({ info, billingInfo }: OrderSummaryProps) => {
 					<hr className="mt-2" />
 					<div className="flex flex-row justify-between mt-2">
 						<p className="font-light text-sm">Sub total</p>
-						<p className="font-semibold text-sm">${subTotal}</p>
+						<p className="font-semibold text-sm">${subTotal.toFixed(2)}</p>
 					</div>
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Shipping</p>
-						<p className="font-semibold text-sm">${0}</p>
+						<p className="font-semibold text-sm">${(0).toFixed(2)}</p>
 					</div>
 
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Service Fee</p>
-						<p className="font-semibold text-sm">${extraCost["serviceFee"]}</p>
+						<p className="font-semibold text-sm">
+							${extraCost["serviceFee"].toFixed(2)}
+						</p>
 					</div>
 
 					<hr className="mt-2" />
@@ -73,7 +75,7 @@ const OrderSummary = ({ info, billingInfo }: OrderSummaryProps) => {
 				{/* total */}
 				<div className="flex flex-row justify-between mt-2">
 					<p className="font-bold text-md">Total</p>
-					<p className="font-bold text-md">${totalCost}</p>
+					<p className="font-bold text-md">${totalCost.toFixed(2)}</p>
 				</div>
 				<hr className="mt-2" />
 			</div>

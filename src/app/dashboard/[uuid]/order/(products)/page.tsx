@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
-import { fetchProducts } from "@/lib/products/products";
+import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
@@ -30,7 +30,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 		notFound();
 	}
 
-	const products = await fetchProducts(); // This is the slow part
+	const products = await fetchProductsForUser(session.user.id);
 
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
