@@ -149,3 +149,74 @@ export function readMultiSectionCsv(filePath: string): {
 
 	return { user: userSection, products };
 }
+
+export interface ProductEntry {
+	sku: string;
+	description: string;
+	unitCost: number;
+	imageUrl: string | null;
+}
+
+/**
+ * Parse price string like "$43.75" to number 43.75
+ */
+function parsePrice(value: string): number | null {
+	if (!value || value.trim() === "") return null;
+	// Remove $ and any whitespace, then parse
+	const cleaned = value.replace(/[$,\s]/g, "");
+	const num = parseFloat(cleaned);
+	return isNaN(num) ? null : num;
+}
+
+/**
+ * Read product CSV in the Warong format (no headers):
+ * col0 = SKU, col1 = description, col2 = base price,
+ * col3-4 = ignore, col5 = sleeve price (optional), col6 = ignore
+ *
+ * If col5 has a valid price, creates an additional SLEEVE entry
+ */
+export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
+	console.log(`Reading from: ${filePath}`);
+
+	const content = fs.readFileSync(filePath, "utf-8");
+	const lines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+
+	const products: ProductEntry[] = [];
+
+	for (const line of lines) {
+		const values = parseCsvLine(line);
+
+		// Get SKU (col 0)
+		const sku = values[0]?.trim() ?? "";
+		if (!sku) continue;
+
+		// Get description (col 1)
+		const description = values[1]?.trim() ?? "";
+		if (!description) continue;
+
+		// Get base price (col 2)
+		const basePrice = parsePrice(values[2] ?? "");
+		if (basePrice === null) continue;
+
+		// Add main product
+		products.push({
+			sku: sku,
+			description: description,
+			unitCost: basePrice,
+			imageUrl: null,
+		});
+
+		// Check for sleeve price (col 5, index 5)
+		const sleevePrice = parsePrice(values[5] ?? "");
+		if (sleevePrice !== null && sleevePrice !== basePrice) {
+			products.push({
+				sku: `${sku}-SLV`,
+				description: `${description} SLEEVE`,
+				unitCost: sleevePrice,
+				imageUrl: null,
+			});
+		}
+	}
+
+	return products;
+}
