@@ -23,7 +23,7 @@ const RecentOrderCard = ({
 }: RecentOrderCardProps) => {
 	const displayOrderId = getDisplayOrderId(orderId, "recent");
 	return (
-		<div className="bg-white rounded-lg p-4 flex items-center justify-between gap-6 hover:bg-slate-50">
+		<div className="bg-white rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-slate-50">
 			{/* Left side - Order info and items */}
 			<div className="flex-1 min-w-0">
 				<div className="flex items-baseline gap-3 mb-2">
@@ -42,13 +42,13 @@ const RecentOrderCard = ({
 			</div>
 
 			{/* Right side - Price and re-order button */}
-			<div className="flex items-center gap-6 flex-shrink-0">
+			<div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 flex-shrink-0">
 				<p className="font-bold text-md">AU ${price}</p>
 
 				<button
 					onClick={onReorder}
 					disabled={isLoading}
-					className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-neutral-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+					className="bg-black text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-neutral-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm sm:text-base"
 				>
 					{isLoading ? (
 						<>

@@ -29,7 +29,7 @@ const AccountPage = async ({ params }: AccountPageProps) => {
 
 	return (
 		<div className="w-full min-h-screen bg-white">
-			<div className="w-full px-8 md:px-20 lg:px-32 py-8 flex flex-col gap-8">
+			<div className="w-full px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 py-8 flex flex-col gap-8">
 				<div className="flex flex-col gap-2">
 					<h1 className="text-2xl font-bold text-slate-800">
 						Account Settings
