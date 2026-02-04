@@ -23,6 +23,7 @@ const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 						<RecentOrderCard
 							key={order.orderId}
 							orderId={order.orderId}
+							invoiceId={order.invoiceId}
 							items={order.items}
 							price={order.price}
 							timeAgo={order.timeAgo}

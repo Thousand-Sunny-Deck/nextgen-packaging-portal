@@ -6,6 +6,7 @@ import { getDisplayOrderId } from "@/lib/utils";
 
 interface RecentOrderCardProps {
 	orderId: string;
+	invoiceId: string;
 	items: RecentOrderItem[];
 	price: number;
 	timeAgo: string;
@@ -14,20 +15,20 @@ interface RecentOrderCardProps {
 }
 
 const RecentOrderCard = ({
-	orderId,
 	items,
 	price,
 	timeAgo,
 	onReorder,
+	invoiceId,
 	isLoading = false,
 }: RecentOrderCardProps) => {
-	const displayOrderId = getDisplayOrderId(orderId, "recent");
+	const displayInvoiceId = getDisplayOrderId(invoiceId, "recent");
 	return (
 		<div className="bg-white rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-slate-50">
 			{/* Left side - Order info and items */}
 			<div className="flex-1 min-w-0">
 				<div className="flex items-baseline gap-3 mb-2">
-					<h3 className="font-semibold text-md">#{displayOrderId}</h3>
+					<h3 className="font-semibold text-md">#{displayInvoiceId}</h3>
 					<span className="text-sm text-neutral-400">{timeAgo}</span>
 				</div>
 
