@@ -108,7 +108,7 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 
 	const recentOrder = recentOrdersForUser.map((order): RecentOrder => {
 		return {
-			orderId: order.orderId,
+			orderId: order.invoiceId,
 			timeAgo: calculateTimeAgo(order.updatedAt),
 			price: order.totalOrderCost,
 			items: constructRecentOrderItems(order.items),

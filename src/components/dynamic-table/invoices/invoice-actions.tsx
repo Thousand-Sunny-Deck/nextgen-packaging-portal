@@ -56,7 +56,7 @@ export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem
-					onClick={() => handleReorder(invoice.invoiceId)}
+					onClick={() => handleReorder(invoice.orderId)}
 					disabled={loading}
 				>
 					{loading ? (

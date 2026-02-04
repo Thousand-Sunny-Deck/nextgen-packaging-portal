@@ -8,6 +8,7 @@ import { InvoiceActions } from "./invoice-actions";
 
 export type Invoice = {
 	invoiceId: string;
+	orderId: string;
 	amount: number;
 	status: "Pending" | "Processing" | "Success" | "Failed";
 	date: string;

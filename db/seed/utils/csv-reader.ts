@@ -207,7 +207,7 @@ export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
 		});
 
 		// Check for sleeve price (col 5, index 5)
-		const sleevePrice = parsePrice(values[5] ?? "");
+		const sleevePrice = parsePrice(values[3] ?? "");
 		if (sleevePrice !== null && sleevePrice !== basePrice) {
 			products.push({
 				sku: `${sku}-SLV`,

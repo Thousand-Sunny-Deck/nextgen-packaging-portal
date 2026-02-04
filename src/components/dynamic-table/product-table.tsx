@@ -38,7 +38,7 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 	// pagination with tanstack/table
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
-		pageSize: 10,
+		pageSize: 50,
 	});
 
 	const [isMounted, setIsMounted] = useState(false);
@@ -59,13 +59,27 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 		};
 	};
 
+	// Sort products: non-SLEEVE first, then SLEEVE
+	const sortBySleeveDescription = (
+		a: { description: string },
+		b: { description: string },
+	) => {
+		const aIsSleeve = a.description.toUpperCase().includes("SLEEVE");
+		const bIsSleeve = b.description.toUpperCase().includes("SLEEVE");
+		if (aIsSleeve === bIsSleeve) return 0;
+		return aIsSleeve ? 1 : -1;
+	};
+
 	// table data
 	const data = useMemo(() => {
-		return products.map((product) => ({
-			...product,
-			quantity: items.get(product.sku)?.quantity || 0,
-			total: (items.get(product.sku)?.quantity || 0) * Number(product.unitCost),
-		}));
+		return products
+			.map((product) => ({
+				...product,
+				quantity: items.get(product.sku)?.quantity || 0,
+				total:
+					(items.get(product.sku)?.quantity || 0) * Number(product.unitCost),
+			}))
+			.sort(sortBySleeveDescription);
 	}, [products, items]);
 
 	// table columns

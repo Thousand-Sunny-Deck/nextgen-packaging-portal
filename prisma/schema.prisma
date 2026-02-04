@@ -163,6 +163,8 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  invoiceId String
+
   @@index([orderId])
   @@index([customerEmail])
   @@index([status])

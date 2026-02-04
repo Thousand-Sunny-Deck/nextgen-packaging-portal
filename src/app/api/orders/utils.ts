@@ -40,7 +40,8 @@ export const prepareAllOrdersData = async (
 			}
 
 			return {
-				invoiceId: order.orderId,
+				invoiceId: order.invoiceId,
+				orderId: order.orderId,
 				amount: order.totalOrderCost,
 				status,
 				date: order.createdAt.toISOString().split("T")[0],
