@@ -11,16 +11,22 @@ import { OrderStatus } from "@/generated/prisma/enums";
 import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
 import { ordersRatelimit } from "@/service/cache";
-import { headers } from "next/headers";
 
 export async function POST(request: NextRequest) {
 	try {
-		console.log("what parth is sending:", request.headers);
-		const h = await headers();
-		console.log("what is there:", h);
+		console.log(
+			"POST /api/orders - Cookie header:",
+			request.headers.get("cookie"),
+		);
+
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
+
+		console.log(
+			"POST /api/orders - Session:",
+			session ? `User: ${session.user?.id}` : "null",
+		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
@@ -104,9 +110,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
 	try {
+		console.log(
+			"GET /api/orders - Cookie header:",
+			request.headers.get("cookie"),
+		);
+
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
+
+		console.log(
+			"GET /api/orders - Session:",
+			session ? `User: ${session.user?.id}` : "null",
+		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
