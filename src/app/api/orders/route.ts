@@ -11,9 +11,13 @@ import { OrderStatus } from "@/generated/prisma/enums";
 import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
 import { ordersRatelimit } from "@/service/cache";
+import { headers } from "next/headers";
 
 export async function POST(request: NextRequest) {
 	try {
+		console.log("what parth is sending:", request.headers);
+		const h = await headers();
+		console.log("what is there:", h);
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
