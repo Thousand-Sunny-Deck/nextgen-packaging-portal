@@ -1,39 +1,46 @@
-import { env } from "@/lib/env-validation/env";
-import { getCookieHeader } from "./common";
 import { auth } from "@/lib/config/auth";
 import { headers } from "next/headers";
 import {
 	fetchActiveOrdersForUser,
 	fetchRecentOrdersForUser,
+	fetchOrdersForUser as fetchOrdersFromStore,
 } from "@/lib/store/orders-store";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { OrderItem } from "@/generated/prisma/client";
+import { prepareAllOrdersData } from "@/app/api/orders/utils";
 
 export const fetchOrdersForUser = async () => {
-	const cookies = await getCookieHeader();
-	const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/orders`, {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-			Cookie: cookies,
-		},
+	const session = await auth.api.getSession({
+		headers: await headers(),
 	});
 
-	if (!response.ok) {
-		const errorData = await response.json();
+	if (!session || !session.user) {
 		return {
 			ok: false,
-			error: errorData.message || errorData.errors || "Failed to fetch orders",
-			status: response.status,
+			error: "Unauthorized",
+			status: 401,
+			data: [],
 		};
 	}
 
-	const body = await response.json();
+	try {
+		const userId = session.user.id;
+		const orders = await fetchOrdersFromStore(userId);
+		const data = await prepareAllOrdersData(orders, userId);
 
-	return {
-		ok: true,
-		data: body.data,
-	};
+		return {
+			ok: true,
+			data,
+		};
+	} catch (error) {
+		console.error("Failed to fetch orders:", error);
+		return {
+			ok: false,
+			error: "Failed to fetch orders",
+			status: 500,
+			data: [],
+		};
+	}
 };
 
 export type ActiveOrder = {
