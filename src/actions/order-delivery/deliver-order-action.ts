@@ -1,10 +1,17 @@
 "use server";
 
 import { OrderSummaryInfo } from "@/components/checkout/order/order-summary";
-import { env } from "@/lib/env-validation/env";
 import { BillingInfoItem as BillingInfoPayload } from "@/lib/store/billing-info-store";
 import { CartItem } from "@/lib/store/product-store";
-import { getCookieHeader } from "./common";
+import { auth } from "@/lib/config/auth";
+import { headers } from "next/headers";
+import { orderPayloadSchema } from "@/app/api/orders/validate-request";
+import {
+	storePreparedOrderInDb,
+	updateStateForOrder,
+} from "@/lib/store/orders-store";
+import { OrderStatus } from "@/generated/prisma/enums";
+import { inngest } from "@/inngest/client";
 
 export type OrderPayload = {
 	cart: CartPayload;
@@ -25,31 +32,69 @@ export const preparePayloadAndFire = async (
 	cart: CartPayload,
 	billingInfo: BillingInfoPayload,
 ): Promise<FireResponse> => {
-	const payload: OrderPayload = {
-		cart: cart,
-		billingInfo: billingInfo,
-	};
+	try {
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
 
-	const cookies = await getCookieHeader();
-	const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/orders`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Cookie: cookies,
-		},
-		body: JSON.stringify(payload),
-	});
+		if (!session || !session.user) {
+			return {
+				ok: false,
+				error: "Unauthorized",
+			};
+		}
 
-	if (!response.ok) {
-		const errorData = await response.json();
-		console.error(errorData);
+		const payload: OrderPayload = {
+			cart: cart,
+			billingInfo: billingInfo,
+		};
+
+		const validationResult = orderPayloadSchema.safeParse(payload);
+
+		if (!validationResult.success) {
+			const errors = validationResult.error.issues.map((err) => {
+				const path = err.path.join(".");
+				return path ? `${path}: ${err.message}` : err.message;
+			});
+
+			return {
+				ok: false,
+				error: errors.join(", "),
+			};
+		}
+
+		const order = await storePreparedOrderInDb(payload, session.user.id);
+
+		try {
+			await inngest.send({
+				name: "invoice/generate",
+				data: {
+					orderId: order.orderId,
+					userId: order.userId,
+					email: order.customerEmail,
+				},
+			});
+		} catch (inngestError) {
+			console.error("Failed to queue invoice generation:", inngestError);
+			await updateStateForOrder(
+				order.orderId,
+				order.userId!,
+				OrderStatus.FAILED,
+			);
+			return {
+				ok: false,
+				error: "Failed to process order. Please try again.",
+			};
+		}
+
+		return {
+			ok: true,
+		};
+	} catch (err: unknown) {
+		console.error("Error in preparePayloadAndFire:", err);
 		return {
 			ok: false,
-			error: errorData.message || "Failed to process order",
+			error: "Something went wrong",
 		};
 	}
-
-	return {
-		ok: true,
-	};
 };
