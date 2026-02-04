@@ -14,9 +14,19 @@ import { ordersRatelimit } from "@/service/cache";
 
 export async function POST(request: NextRequest) {
 	try {
+		console.log(
+			"POST /api/orders - Cookie header:",
+			request.headers.get("cookie"),
+		);
+
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
+
+		console.log(
+			"POST /api/orders - Session:",
+			session ? `User: ${session.user?.id}` : "null",
+		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
@@ -100,9 +110,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
 	try {
+		console.log(
+			"GET /api/orders - Cookie header:",
+			request.headers.get("cookie"),
+		);
+
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
+
+		console.log(
+			"GET /api/orders - Session:",
+			session ? `User: ${session.user?.id}` : "null",
+		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
