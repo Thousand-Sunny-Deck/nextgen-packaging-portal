@@ -20,6 +20,25 @@ function generateOrderId(): string {
 	return `ORD-${timestamp}-${randomStr}`;
 }
 
+async function generateInvoiceId(orgName: string): Promise<string> {
+	// Normalize org name - uppercase and replace spaces with hyphens
+	const normalizedOrgName = orgName.toUpperCase().replace(/\s+/g, "-");
+
+	// Count existing invoices for this organization to get the next number
+	const existingCount = await prisma.order.count({
+		where: {
+			invoiceId: {
+				startsWith: `INV-${normalizedOrgName}-`,
+			},
+		},
+	});
+
+	// Next number is count + 1, padded to 4 digits
+	const nextNumber = (existingCount + 1).toString().padStart(4, "0");
+
+	return `INV-${normalizedOrgName}-${nextNumber}`;
+}
+
 /**
  * Stores a prepared order in the database with initial states.
  * Creates the Order, OrderItems, and BillingAddress records.
@@ -35,8 +54,9 @@ export async function storePreparedOrderInDb(
 	const { cart, billingInfo } = payload;
 	const { items, extraCartInfo } = cart;
 
-	// Generate custom order ID
+	// Generate custom order ID and invoice ID
 	const orderId = generateOrderId();
+	const invoiceId = await generateInvoiceId(billingInfo.organization);
 
 	// Calculate service fee (convert to Int as per schema)
 	const serviceFee = Math.round(extraCartInfo.extraCost.serviceFee || 0);
@@ -81,6 +101,8 @@ export async function storePreparedOrderInDb(
 			billingOrganization: billingInfo.organization,
 			billingAddress: billingInfo.address,
 			billingABN: billingInfo.ABN,
+
+			invoiceId: invoiceId,
 		},
 		include: {
 			items: true,

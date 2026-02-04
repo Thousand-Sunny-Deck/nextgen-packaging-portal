@@ -83,7 +83,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 	const parsedAddress = parseAddress(addressString);
 
 	const invoiceData: InvoiceData = {
-		invoiceNumber: order.orderId,
+		invoiceNumber: order.invoiceId,
 		issueDate: issueDate,
 		dueDate: dueDate,
 		billTo: {
