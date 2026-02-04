@@ -19,6 +19,7 @@ export const fetchOrdersForUser = async () => {
 			ok: false,
 			error: "Unauthorized",
 			status: 401,
+			data: [],
 		};
 	}
 
@@ -37,6 +38,7 @@ export const fetchOrdersForUser = async () => {
 			ok: false,
 			error: "Failed to fetch orders",
 			status: 500,
+			data: [],
 		};
 	}
 };
