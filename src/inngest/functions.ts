@@ -103,7 +103,7 @@ export const helloWorld = inngest.createFunction(
 
 			await postOffice.deliver(
 				{
-					to: ["info@nextgenpackaging.com.au"],
+					to: ["nextgenelitesupplies@gmail.com"],
 				},
 				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),
