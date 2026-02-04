@@ -9,6 +9,8 @@ import { PasswordResetEmail } from "../resend/password-reset-template";
 const resend = new Resend(env.RESEND_API_KEY);
 
 export const auth = betterAuth({
+	baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL,
+	trustedOrigins: [env.NEXT_PUBLIC_BETTER_AUTH_URL],
 	database: prismaAdapter(prisma, {
 		provider: "postgresql",
 	}),
