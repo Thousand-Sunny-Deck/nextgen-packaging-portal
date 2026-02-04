@@ -87,6 +87,7 @@ export interface RecentOrder {
 	timeAgo: string;
 	items: RecentOrderItem[];
 	price: number;
+	invoiceId: string;
 }
 
 export interface RecentOrderItem {
@@ -108,7 +109,8 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 
 	const recentOrder = recentOrdersForUser.map((order): RecentOrder => {
 		return {
-			orderId: order.invoiceId,
+			invoiceId: order.invoiceId,
+			orderId: order.orderId,
 			timeAgo: calculateTimeAgo(order.updatedAt),
 			price: order.totalOrderCost,
 			items: constructRecentOrderItems(order.items),
