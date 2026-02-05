@@ -103,7 +103,7 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 
 			await postOffice.deliver(
 				{
-					to: ["info@nextgenpacking.com.au"],
+					to: ["nextgenelitesupplies@gmail.com"],
 				},
 				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),
