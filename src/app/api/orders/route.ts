@@ -12,21 +12,22 @@ import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
 import { ordersRatelimit } from "@/service/cache";
 
+/*
+ * @param request
+ * @returns
+ *
+ * This API (POST and GET) is responsible for creating (or fetching order) a background job during order creation
+ * This is unused and does not work in production due to vercel serverless functions
+ * request.headers does not have better auth cookie header. Vercel drops it during
+ * this API call. So we are getting unauthorised on every request.
+ *
+ * Consider removing this API as a whole
+ */
 export async function POST(request: NextRequest) {
 	try {
-		console.log(
-			"POST /api/orders - Cookie header:",
-			request.headers.get("cookie"),
-		);
-
 		const session = await auth.api.getSession({
-			headers: request.headers,
+			headers: request.headers, // PROBLEM
 		});
-
-		console.log(
-			"POST /api/orders - Session:",
-			session ? `User: ${session.user?.id}` : "null",
-		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
@@ -110,19 +111,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
 	try {
-		console.log(
-			"GET /api/orders - Cookie header:",
-			request.headers.get("cookie"),
-		);
-
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
-
-		console.log(
-			"GET /api/orders - Session:",
-			session ? `User: ${session.user?.id}` : "null",
-		);
 
 		if (!session || !session.user) {
 			return NextResponse.json(
