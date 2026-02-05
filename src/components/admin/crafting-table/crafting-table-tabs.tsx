@@ -3,6 +3,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Users, Package, KeyRound, Zap } from "lucide-react";
 import { UsersTab } from "./users/users-tab";
+import { ProductsTab } from "./products/products-tab";
 
 export function CraftingTableTabs() {
 	return (
@@ -31,7 +32,7 @@ export function CraftingTableTabs() {
 			</TabsContent>
 
 			<TabsContent value="products" className="mt-6">
-				<ProductsTabPlaceholder />
+				<ProductsTab />
 			</TabsContent>
 
 			<TabsContent value="entitlements" className="mt-6">
@@ -42,31 +43,6 @@ export function CraftingTableTabs() {
 				<QuickActionsTabPlaceholder />
 			</TabsContent>
 		</Tabs>
-	);
-}
-
-function ProductsTabPlaceholder() {
-	return (
-		<div className="rounded-lg border border-dashed border-gray-300 p-8">
-			<div className="text-center">
-				<Package className="mx-auto h-12 w-12 text-gray-400" />
-				<h3 className="mt-4 text-lg font-medium text-gray-900">
-					Products Management
-				</h3>
-				<p className="mt-2 text-sm text-gray-500">
-					View all products, add new products, and update descriptions/pricing.
-				</p>
-				<div className="mt-4 text-xs text-gray-400">
-					{/* TODO: Implement ProductsTab component with:
-					    - Products data table with pagination
-					    - Create product modal
-					    - Edit product modal
-					    - Server actions: getProducts, createProduct, updateProduct, deleteProduct
-					*/}
-					Coming in Phase 3
-				</div>
-			</div>
-		</div>
 	);
 }
 
