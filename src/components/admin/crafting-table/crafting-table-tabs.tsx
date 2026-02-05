@@ -2,6 +2,7 @@
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Users, Package, KeyRound, Zap } from "lucide-react";
+import { UsersTab } from "./users/users-tab";
 
 export function CraftingTableTabs() {
 	return (
@@ -26,7 +27,7 @@ export function CraftingTableTabs() {
 			</TabsList>
 
 			<TabsContent value="users" className="mt-6">
-				<UsersTabPlaceholder />
+				<UsersTab />
 			</TabsContent>
 
 			<TabsContent value="products" className="mt-6">
@@ -41,32 +42,6 @@ export function CraftingTableTabs() {
 				<QuickActionsTabPlaceholder />
 			</TabsContent>
 		</Tabs>
-	);
-}
-
-function UsersTabPlaceholder() {
-	return (
-		<div className="rounded-lg border border-dashed border-gray-300 p-8">
-			<div className="text-center">
-				<Users className="mx-auto h-12 w-12 text-gray-400" />
-				<h3 className="mt-4 text-lg font-medium text-gray-900">
-					Users Management
-				</h3>
-				<p className="mt-2 text-sm text-gray-500">
-					Search users, view details, create new users, and manage roles.
-				</p>
-				<div className="mt-4 text-xs text-gray-400">
-					{/* TODO: Implement UsersTab component with:
-					    - Search input (debounced)
-					    - Users data table with pagination
-					    - Create user modal
-					    - User details sheet
-					    - Server actions: getUsers, createUser, updateUserRole, deleteUser
-					*/}
-					Coming in Phase 2
-				</div>
-			</div>
-		</div>
 	);
 }
 
