@@ -19,7 +19,7 @@ import { S3Service } from "@/service/s3";
 import { PostOffice } from "@/service/post-office";
 import { EmailTemplate } from "@/lib/resend/template";
 
-export const helloWorld = inngest.createFunction(
+export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
 	{ event: "invoice/generate" },
 	async ({ event, step }) => {
@@ -103,7 +103,7 @@ export const helloWorld = inngest.createFunction(
 
 			await postOffice.deliver(
 				{
-					to: ["nextgenelitesupplies@gmail.com"],
+					to: ["info@nextgenpacking.com.au"],
 				},
 				EmailTemplate({ emailDetails }),
 				Buffer.from(pdf.data),

@@ -6,7 +6,7 @@ import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { Suspense } from "react";
-import Loading from "./loading"; // Import the loading component
+import Loading from "./loading";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;

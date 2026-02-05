@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePdfRequest, validatePdfAccess } from "./utilts";
 
+// TODO: Consider moving this to a server action.
+
 /**
  * HEAD /api/pdf?orderId=xxx
  * Lightweight validation check - verifies access without downloading the PDF.
