@@ -21,6 +21,7 @@ import { toast } from "sonner";
 const EntryPage = () => {
 	const [isPending, setIsPending] = useState<boolean>(false);
 	const router = useRouter();
+	const showForgotPasswordOnMobile = false;
 
 	const form = useForm<LoginFormSchemaT>({
 		resolver: zodResolver(LoginFormSchema),
@@ -98,7 +99,9 @@ const EntryPage = () => {
 						<div className="text-right">
 							<Link
 								href="/auth/forgot-password"
-								className="text-sm text-muted-foreground hover:text-foreground"
+								className={`text-sm text-muted-foreground hover:text-foreground ${
+									showForgotPasswordOnMobile ? "" : "hidden md:inline"
+								}`}
 							>
 								Forgot password?
 							</Link>
