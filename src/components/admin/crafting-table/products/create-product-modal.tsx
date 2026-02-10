@@ -133,9 +133,6 @@ export function CreateProductModal({
 								<Label htmlFor="unitCost">Unit Cost *</Label>
 								<Input
 									id="unitCost"
-									type="number"
-									step="0.01"
-									min="0"
 									value={unitCost}
 									onChange={(e) => setUnitCost(e.target.value)}
 									placeholder="5.99"

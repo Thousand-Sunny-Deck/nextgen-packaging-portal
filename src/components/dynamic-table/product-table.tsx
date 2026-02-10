@@ -157,7 +157,6 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 								<Minus className="h-4 w-4 mx-auto" />
 							</button>
 							<Input
-								type="number"
 								value={qty || ""}
 								placeholder="0"
 								onChange={(e) =>
@@ -167,7 +166,6 @@ const ProductTable = ({ products }: { products: ProductData[] }) => {
 									})
 								}
 								className="h-8 w-16 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-								min="0"
 							/>
 							<button
 								onClick={() => {
