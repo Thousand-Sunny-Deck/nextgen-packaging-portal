@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Trash2, ArrowRight } from "lucide-react";
 import { useEntitlementChangesStore } from "@/lib/store/entitlement-changes-store";
 import { UserEntitledProduct } from "@/actions/admin/entitlements-actions";
+import confetti from "canvas-confetti";
 
 interface ReviewChangesModalProps {
 	open: boolean;
@@ -27,7 +29,7 @@ export function ReviewChangesModal({
 	entitledProducts,
 }: ReviewChangesModalProps) {
 	const { pendingEdits, pendingRevocations } = useEntitlementChangesStore();
-	const isSubmitting = false;
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Build lookup for quick access
 	const productsById = new Map(entitledProducts.map((p) => [p.id, p]));
@@ -35,9 +37,38 @@ export function ReviewChangesModal({
 	const editEntries = Array.from(pendingEdits.entries());
 	const revokeEntries = Array.from(pendingRevocations);
 
+	const handleConfirm = async () => {
+		setIsSubmitting(true);
+		try {
+			await onConfirm();
+			// Fire confetti from both sides
+			confetti({
+				particleCount: 200,
+				spread: 70,
+				origin: { x: 0, y: 0.6 },
+			});
+			confetti({
+				particleCount: 200,
+				spread: 70,
+				origin: { x: 1, y: 0.6 },
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+		<Dialog
+			open={open}
+			onOpenChange={(v) => {
+				if (isSubmitting) return;
+				onOpenChange(v);
+			}}
+		>
+			<DialogContent
+				className="sm:max-w-lg max-h-[80vh] overflow-y-auto"
+				showCloseButton={!isSubmitting}
+			>
 				<DialogHeader>
 					<DialogTitle>Review Pending Changes</DialogTitle>
 					<DialogDescription>
@@ -46,7 +77,9 @@ export function ReviewChangesModal({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="space-y-6 py-4">
+				<div
+					className={`space-y-6 py-4 ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}
+				>
 					{/* ── Edits Section ── */}
 					{editEntries.length > 0 && (
 						<div className="space-y-3">
@@ -138,7 +171,7 @@ export function ReviewChangesModal({
 					>
 						Cancel
 					</Button>
-					<Button onClick={onConfirm} disabled={isSubmitting}>
+					<Button onClick={handleConfirm} disabled={isSubmitting}>
 						{isSubmitting ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />

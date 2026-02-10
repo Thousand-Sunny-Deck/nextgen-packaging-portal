@@ -29,6 +29,7 @@ import {
 	searchUserByEmail,
 	updateUserDetails,
 	getUserEntitledProducts,
+	applyEntitlementChanges,
 	type EntitlementUser,
 	type UserEntitledProduct,
 } from "@/actions/admin/entitlements-actions";
@@ -56,7 +57,13 @@ export function EntitlementsTab() {
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
 	// Zustand store for pending changes
-	const { hasChanges, getChangeCount, clearAll } = useEntitlementChangesStore();
+	const {
+		pendingEdits,
+		pendingRevocations,
+		hasChanges,
+		getChangeCount,
+		clearAll,
+	} = useEntitlementChangesStore();
 
 	const fetchEntitledProducts = async (userId: string) => {
 		setProductsLoading(true);
@@ -140,7 +147,24 @@ export function EntitlementsTab() {
 
 	const handleConfirmEntitlementChanges = async () => {
 		if (!user) return;
-		// TODO: Step 4 — call batchUpdateEntitlements + batchRevokeEntitlements
+
+		const edits = Array.from(pendingEdits.entries()).map(
+			([entitlementId, edit]) => ({
+				entitlementId,
+				customSku: edit.customSku,
+				customDescription: edit.customDescription,
+				customUnitCost: edit.customUnitCost,
+			}),
+		);
+		const revocations = Array.from(pendingRevocations);
+
+		const result = await applyEntitlementChanges({ edits, revocations });
+
+		if (!result.success) {
+			toast.error(result.error || "Failed to apply changes");
+			return;
+		}
+
 		toast.success("Changes applied successfully");
 		clearAll();
 		setReviewModalOpen(false);
@@ -276,9 +300,19 @@ export function EntitlementsTab() {
 						</h3>
 						<div className="flex items-center gap-2">
 							{hasChanges() && (
-								<Button size="sm" onClick={() => setReviewModalOpen(true)}>
-									Review Changes ({getChangeCount()})
-								</Button>
+								<>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="text-muted-foreground"
+										onClick={clearAll}
+									>
+										Clear All
+									</Button>
+									<Button size="sm" onClick={() => setReviewModalOpen(true)}>
+										Review Changes ({getChangeCount()})
+									</Button>
+								</>
 							)}
 							<Button
 								variant="outline"

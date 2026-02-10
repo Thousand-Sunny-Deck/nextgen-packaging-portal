@@ -157,3 +157,55 @@ export async function getUserEntitledProducts(userId: string): Promise<{
 		total: entitlements.length,
 	};
 }
+
+// ─── Batch Apply Changes (all-or-nothing transaction) ────────────────────────
+
+export type EntitlementEdit = {
+	entitlementId: string;
+	customSku: string | null;
+	customDescription: string | null;
+	customUnitCost: number | null;
+};
+
+export async function applyEntitlementChanges(input: {
+	edits: EntitlementEdit[];
+	revocations: string[];
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const { edits, revocations } = input;
+
+	if (edits.length === 0 && revocations.length === 0) {
+		return { success: false, error: "No changes to apply" };
+	}
+
+	try {
+		await prisma.$transaction([
+			// Update custom fields for each edited entitlement
+			...edits.map((edit) =>
+				prisma.userProductEntitlement.update({
+					where: { id: edit.entitlementId },
+					data: {
+						customSku: edit.customSku,
+						customDescription: edit.customDescription,
+						customUnitCost: edit.customUnitCost,
+					},
+				}),
+			),
+			// Delete revoked entitlements
+			...revocations.map((id) =>
+				prisma.userProductEntitlement.delete({
+					where: { id },
+				}),
+			),
+		]);
+
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to apply entitlement changes:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to apply changes" };
+	}
+}
