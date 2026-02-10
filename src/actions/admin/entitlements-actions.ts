@@ -209,3 +209,94 @@ export async function applyEntitlementChanges(input: {
 		return { success: false, error: "Failed to apply changes" };
 	}
 }
+
+// ─── Get Available Products (for granting) ───────────────────────────────────
+
+export type AvailableProduct = {
+	id: string;
+	sku: string;
+	description: string;
+	unitCost: number;
+	alreadyEntitled: boolean;
+};
+
+export async function getAvailableProducts(userId: string): Promise<{
+	products: AvailableProduct[];
+	total: number;
+}> {
+	await requireAdmin();
+
+	const [products, entitlements] = await Promise.all([
+		prisma.product.findMany({
+			orderBy: { sku: "asc" },
+			select: { id: true, sku: true, description: true, unitCost: true },
+		}),
+		prisma.userProductEntitlement.findMany({
+			where: { userId },
+			select: { productId: true },
+		}),
+	]);
+
+	const entitledProductIds = new Set(entitlements.map((e) => e.productId));
+
+	return {
+		products: products.map((p) => ({
+			...p,
+			alreadyEntitled: entitledProductIds.has(p.id),
+		})),
+		total: products.length,
+	};
+}
+
+// ─── Batch Grant Entitlements (all-or-nothing transaction) ───────────────────
+
+export type GrantEntitlementEntry = {
+	productId: string;
+	customSku: string | null;
+	customDescription: string | null;
+	customUnitCost: number | null;
+};
+
+export async function batchGrantEntitlements(input: {
+	userId: string;
+	entries: GrantEntitlementEntry[];
+}): Promise<{ success: boolean; error?: string }> {
+	const admin = await requireAdmin();
+
+	const { userId, entries } = input;
+
+	if (entries.length === 0) {
+		return { success: false, error: "No products selected" };
+	}
+
+	try {
+		await prisma.$transaction(
+			entries.map((entry) =>
+				prisma.userProductEntitlement.create({
+					data: {
+						userId,
+						productId: entry.productId,
+						grantedBy: admin.userId,
+						customSku: entry.customSku,
+						customDescription: entry.customDescription,
+						customUnitCost: entry.customUnitCost,
+					},
+				}),
+			),
+		);
+
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to grant entitlements:", error);
+		if (error instanceof Error) {
+			if (error.message.includes("Unique constraint")) {
+				return {
+					success: false,
+					error: "One or more products are already entitled to this user",
+				};
+			}
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to grant entitlements" };
+	}
+}
