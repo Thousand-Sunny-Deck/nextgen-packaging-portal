@@ -21,6 +21,7 @@ import { toast } from "sonner";
 const EntryPage = () => {
 	const [isPending, setIsPending] = useState<boolean>(false);
 	const router = useRouter();
+	const showForgotPasswordOnMobile = false;
 
 	const form = useForm<LoginFormSchemaT>({
 		resolver: zodResolver(LoginFormSchema),
@@ -46,8 +47,9 @@ const EntryPage = () => {
 	};
 
 	return (
-		<div className="w-full h-screen flex  bg-orange-50">
-			<div className="w-7/12 h-full flex flex-col ">
+		<div className="w-full h-screen flex bg-orange-50">
+			{/* Image section - hidden on mobile (md:flex means show on medium screens and up) */}
+			<div className="hidden md:flex md:w-7/12 h-full flex-col">
 				<div className="w-7/12 absolute inset-0 bg-gradient-to-t to-black/90 from-black/50">
 					<h1 className="p-8 pt-12 text-8xl font-semibold text-white bg-transparent">
 						NEXTGEN PACKAGING
@@ -61,7 +63,9 @@ const EntryPage = () => {
 					height={10000}
 				/>
 			</div>
-			<div className="w-1/4 h-full p-8 flex flex-col ml-auto mr-32 mt-48">
+
+			{/* Form section - responsive width and positioning */}
+			<div className="w-full md:w-1/4 h-full p-8 flex flex-col mx-auto md:ml-auto md:mr-32 mt-24 md:mt-48 justify-center md:justify-start">
 				<h1 className="text-3xl font-bold pb-9 text-center w-full">LOG IN</h1>
 				<Form {...form}>
 					<form
@@ -95,14 +99,16 @@ const EntryPage = () => {
 						<div className="text-right">
 							<Link
 								href="/auth/forgot-password"
-								className="text-sm text-muted-foreground hover:text-foreground"
+								className={`text-sm text-muted-foreground hover:text-foreground ${
+									showForgotPasswordOnMobile ? "" : "hidden md:inline"
+								}`}
 							>
 								Forgot password?
 							</Link>
 						</div>
 						<Button
 							type="submit"
-							className="ml-14 mr-14 mt-2"
+							className="md:ml-14 md:mr-14 mt-2"
 							disabled={isPending}
 						>
 							Log in

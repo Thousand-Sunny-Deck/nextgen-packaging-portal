@@ -40,7 +40,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 	const isOrderState = currentStep === "order" || currentStep === "shipped";
 
 	return (
-		<div className="w-full md:w-[42%] lg:w-[40%] border flex flex-col items-start">
+		<div className="w-full lg:w-[40%] border rounded-lg flex flex-col items-start lg:sticky lg:top-16">
 			<ProgressBar steps={progressSteps} currentStep={currentStepIndex} />
 			<OrderSummary info={orderSummary} billingInfo={billingInfo} />
 

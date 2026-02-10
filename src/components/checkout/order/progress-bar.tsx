@@ -12,7 +12,7 @@ interface ProgressBarProps {
 
 export const ProgressBar = ({ steps, currentStep }: ProgressBarProps) => {
 	return (
-		<div className="w-full px-2 sm:px-8 py-2">
+		<div className="w-full px-2 sm:px-8 py-3">
 			{/* Progress line and dots container */}
 			<div className="relative flex items-center justify-between">
 				{/* Background line */}
@@ -40,7 +40,7 @@ export const ProgressBar = ({ steps, currentStep }: ProgressBarProps) => {
 
 						{/* Label */}
 						<span
-							className={`mt-2 sm:mt-3 text-[10px] sm:text-xs font-medium whitespace-nowrap transition-colors duration-300 text-center max-w-[60px] sm:max-w-none ${
+							className={`mt-3 sm:mt-4 text-[10px] sm:text-xs font-medium transition-colors duration-300 text-center max-w-[80px] sm:max-w-none break-words leading-tight min-h-[2.6em] ${
 								index <= currentStep ? "text-black" : "text-gray-400"
 							}`}
 						>

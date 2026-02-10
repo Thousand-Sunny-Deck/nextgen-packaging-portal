@@ -33,7 +33,7 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 
 	return (
 		<>
-			<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
+			<div className="flex justify-center mt-16 h-full pb-28 md:pb-20 px-4 md:px-6">
 				<div className="w-full md:w-11/12 lg:w-9/12 xl:w-8/12 max-w-7xl">
 					<DynamicBreadcrumb />
 					<p className="mt-5 text-2xl md:text-3xl font-bold">Checkout</p>
