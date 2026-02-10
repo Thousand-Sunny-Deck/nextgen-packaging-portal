@@ -163,7 +163,7 @@ export const entitlementsColumns: ColumnDef<UserEntitledProduct>[] = [
 					className={`font-medium ${revoked ? "line-through opacity-50" : ""}`}
 				>
 					${displayCost.toFixed(2)}
-					{customCost !== null && customCost !== displayCost && (
+					{customCost !== null && customCost !== baseCost && (
 						<span className="ml-1 text-xs text-muted-foreground">
 							(base: ${baseCost.toFixed(2)})
 						</span>
