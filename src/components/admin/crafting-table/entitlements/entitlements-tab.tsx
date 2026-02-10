@@ -19,10 +19,12 @@ import {
 	Package,
 	MapPin,
 	RefreshCw,
+	Plus,
 } from "lucide-react";
 import { EntitlementsDataTable } from "./entitlements-data-table";
 import { entitlementsColumns } from "./entitlements-columns";
 import { ReviewChangesModal } from "./review-changes-modal";
+import { AddEntitlementSheet } from "./add-entitlement-sheet";
 import { useEntitlementChangesStore } from "@/lib/store/entitlement-changes-store";
 import { toast } from "sonner";
 import {
@@ -55,6 +57,7 @@ export function EntitlementsTab() {
 	const [productsLoading, setProductsLoading] = useState(false);
 	const [productsLoaded, setProductsLoaded] = useState(false);
 	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+	const [addSheetOpen, setAddSheetOpen] = useState(false);
 
 	// Zustand store for pending changes
 	const {
@@ -327,6 +330,10 @@ export function EntitlementsTab() {
 								)}
 								{productsLoaded ? "Refresh" : "Load Products"}
 							</Button>
+							<Button size="sm" onClick={() => setAddSheetOpen(true)}>
+								<Plus className="h-4 w-4 mr-2" />
+								Add Entitlement
+							</Button>
 						</div>
 					</div>
 
@@ -353,6 +360,16 @@ export function EntitlementsTab() {
 				onConfirm={handleConfirmEntitlementChanges}
 				entitledProducts={entitledProducts}
 			/>
+
+			{/* ── Add Entitlement Sheet ── */}
+			{user && (
+				<AddEntitlementSheet
+					open={addSheetOpen}
+					onOpenChange={setAddSheetOpen}
+					userId={user.id}
+					onEntitlementsGranted={() => fetchEntitledProducts(user.id)}
+				/>
+			)}
 		</div>
 	);
 }

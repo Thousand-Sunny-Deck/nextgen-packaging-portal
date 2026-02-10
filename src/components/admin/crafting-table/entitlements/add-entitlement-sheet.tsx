@@ -207,7 +207,7 @@ export function AddEntitlementSheet({
 		>
 			<SheetContent
 				side="right"
-				className="!w-full !max-w-full sm:!max-w-3xl flex flex-col"
+				className="!w-full !max-w-full sm:!max-w-full flex flex-col"
 				showCloseButton={!isSubmitting}
 			>
 				{/* ── Header ── */}
