@@ -80,8 +80,8 @@ const BillingAddressSelector = ({
 
 	if (isLoading) {
 		return (
-			<div className="w-[60%] h-[400px]">
-				<div className="w-2/3 space-y-4">
+			<div className="w-full lg:w-[60%] min-h-[300px] lg:h-[400px]">
+				<div className="w-full md:w-2/3 space-y-4">
 					<div className="h-10 bg-slate-200 rounded animate-pulse" />
 					<div className="h-24 bg-slate-200 rounded animate-pulse" />
 				</div>
@@ -90,8 +90,8 @@ const BillingAddressSelector = ({
 	}
 
 	return (
-		<div className="w-[60%] h-[400px]">
-			<div className="w-2/3 space-y-6">
+		<div className="w-full lg:w-[60%] min-h-[300px] lg:h-[400px]">
+			<div className="w-full md:w-2/3 space-y-6">
 				<div className="space-y-2">
 					<label className="text-sm font-medium text-slate-700">
 						Select Billing Address

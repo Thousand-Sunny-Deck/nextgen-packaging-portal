@@ -18,9 +18,9 @@ const OrderSummary = ({ info, billingInfo }: OrderSummaryProps) => {
 	const { subTotal, cartSize, totalCost, extraCost } = info;
 	const isBillingState = billingInfo !== null;
 
-	return (
-		<div className="mt-4 px-4 py-2 flex flex-col w-full">
-			<p className="font-bold text-xl">Order Summary</p>
+	const SummaryContent = ({ showTitle }: { showTitle: boolean }) => (
+		<div className="flex flex-col w-full">
+			{showTitle && <p className="font-bold text-xl">Order Summary</p>}
 			{/* subtotal + service fee, etc */}
 			<div className="flex flex-col mt-2">
 				<div className="pt-2 flex flex-col">
@@ -78,6 +78,24 @@ const OrderSummary = ({ info, billingInfo }: OrderSummaryProps) => {
 					<p className="font-bold text-md">${totalCost.toFixed(2)}</p>
 				</div>
 				<hr className="mt-2" />
+			</div>
+		</div>
+	);
+
+	return (
+		<div className="mt-4 w-full">
+			<details className="lg:hidden border border-slate-200 rounded-lg bg-white">
+				<summary className="flex items-center justify-between px-4 py-3 cursor-pointer">
+					<span className="font-semibold text-sm">Order Summary</span>
+					<span className="font-bold text-sm">${totalCost.toFixed(2)}</span>
+				</summary>
+				<div className="px-4 pb-4">
+					<SummaryContent showTitle={false} />
+				</div>
+			</details>
+
+			<div className="hidden lg:block px-4 py-2">
+				<SummaryContent showTitle />
 			</div>
 		</div>
 	);
