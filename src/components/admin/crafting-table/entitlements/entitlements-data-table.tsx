@@ -20,20 +20,32 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { UserEntitledProduct } from "@/actions/admin/entitlements-actions";
+import {
+	useEntitlementChangesStore,
+	PendingEdit,
+} from "@/lib/store/entitlement-changes-store";
+import { EntitlementsTableMeta } from "./entitlements-columns";
 
-interface EntitlementsDataTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
+const emptyDraft: PendingEdit = {
+	customSku: null,
+	customDescription: null,
+	customUnitCost: null,
+};
+
+interface EntitlementsDataTableProps {
+	columns: ColumnDef<UserEntitledProduct, unknown>[];
+	data: UserEntitledProduct[];
 }
 
-export function EntitlementsDataTable<TData, TValue>({
+export function EntitlementsDataTable({
 	columns,
 	data,
-}: EntitlementsDataTableProps<TData, TValue>) {
+}: EntitlementsDataTableProps) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [globalFilter, setGlobalFilter] = useState("");
@@ -42,9 +54,68 @@ export function EntitlementsDataTable<TData, TValue>({
 		pageSize: 10,
 	});
 
+	// Inline editing state (local — not in Zustand)
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editDraft, setEditDraftState] = useState<PendingEdit>(emptyDraft);
+
+	// Zustand store
+	const { addEdit, isEdited, isRevoked, addRevocation, removeRevocation } =
+		useEntitlementChangesStore();
+
+	const startEditing = useCallback((row: UserEntitledProduct) => {
+		setEditingRowId(row.id);
+		setEditDraftState({
+			customSku: row.customSku,
+			customDescription: row.customDescription,
+			customUnitCost: row.customUnitCost,
+		});
+	}, []);
+
+	const cancelEditing = useCallback(() => {
+		setEditingRowId(null);
+		setEditDraftState(emptyDraft);
+	}, []);
+
+	const saveEditing = useCallback(() => {
+		if (!editingRowId) return;
+		addEdit(editingRowId, editDraft);
+		setEditingRowId(null);
+		setEditDraftState(emptyDraft);
+	}, [editingRowId, editDraft, addEdit]);
+
+	const setEditDraft = useCallback((partial: Partial<PendingEdit>) => {
+		setEditDraftState((prev) => ({ ...prev, ...partial }));
+	}, []);
+
+	const hasDraftChanged = useCallback(() => {
+		if (!editingRowId) return false;
+		const row = data.find((r) => r.id === editingRowId);
+		if (!row) return false;
+		return (
+			editDraft.customSku !== row.customSku ||
+			editDraft.customDescription !== row.customDescription ||
+			editDraft.customUnitCost !== row.customUnitCost
+		);
+	}, [editingRowId, editDraft, data]);
+
+	const meta: EntitlementsTableMeta = {
+		editingRowId,
+		editDraft,
+		startEditing,
+		cancelEditing,
+		saveEditing,
+		setEditDraft,
+		hasDraftChanged,
+		isEdited,
+		isRevoked,
+		addRevocation,
+		removeRevocation,
+	};
+
 	const table = useReactTable({
 		data,
 		columns,
+		meta,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),

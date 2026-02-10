@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { EntitlementsDataTable } from "./entitlements-data-table";
 import { entitlementsColumns } from "./entitlements-columns";
+import { ReviewChangesModal } from "./review-changes-modal";
+import { useEntitlementChangesStore } from "@/lib/store/entitlement-changes-store";
 import { toast } from "sonner";
 import {
 	searchUserByEmail,
@@ -51,6 +53,10 @@ export function EntitlementsTab() {
 	const [productsTotal, setProductsTotal] = useState(0);
 	const [productsLoading, setProductsLoading] = useState(false);
 	const [productsLoaded, setProductsLoaded] = useState(false);
+	const [reviewModalOpen, setReviewModalOpen] = useState(false);
+
+	// Zustand store for pending changes
+	const { hasChanges, getChangeCount, clearAll } = useEntitlementChangesStore();
 
 	const fetchEntitledProducts = async (userId: string) => {
 		setProductsLoading(true);
@@ -129,7 +135,17 @@ export function EntitlementsTab() {
 		}
 	};
 
-	const hasChanges = user && (editName !== user.name || editRole !== user.role);
+	const hasUserChanges =
+		user && (editName !== user.name || editRole !== user.role);
+
+	const handleConfirmEntitlementChanges = async () => {
+		if (!user) return;
+		// TODO: Step 4 — call batchUpdateEntitlements + batchRevokeEntitlements
+		toast.success("Changes applied successfully");
+		clearAll();
+		setReviewModalOpen(false);
+		await fetchEntitledProducts(user.id);
+	};
 
 	return (
 		<div className="space-y-6">
@@ -176,7 +192,7 @@ export function EntitlementsTab() {
 						<Button
 							size="sm"
 							onClick={handleSaveUser}
-							disabled={saving || !hasChanges}
+							disabled={saving || !hasUserChanges}
 						>
 							{saving ? (
 								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -258,19 +274,26 @@ export function EntitlementsTab() {
 							<Package className="h-5 w-5" />
 							Entitled Products ({productsTotal})
 						</h3>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => fetchEntitledProducts(user.id)}
-							disabled={productsLoading}
-						>
-							{productsLoading ? (
-								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-							) : (
-								<RefreshCw className="h-4 w-4 mr-2" />
+						<div className="flex items-center gap-2">
+							{hasChanges() && (
+								<Button size="sm" onClick={() => setReviewModalOpen(true)}>
+									Review Changes ({getChangeCount()})
+								</Button>
 							)}
-							{productsLoaded ? "Refresh" : "Load Products"}
-						</Button>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => fetchEntitledProducts(user.id)}
+								disabled={productsLoading}
+							>
+								{productsLoading ? (
+									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+								) : (
+									<RefreshCw className="h-4 w-4 mr-2" />
+								)}
+								{productsLoaded ? "Refresh" : "Load Products"}
+							</Button>
+						</div>
 					</div>
 
 					{entitledProducts.length === 0 ? (
@@ -288,6 +311,14 @@ export function EntitlementsTab() {
 					)}
 				</div>
 			)}
+
+			{/* ── Review Changes Modal ── */}
+			<ReviewChangesModal
+				open={reviewModalOpen}
+				onOpenChange={setReviewModalOpen}
+				onConfirm={handleConfirmEntitlementChanges}
+				entitledProducts={entitledProducts}
+			/>
 		</div>
 	);
 }
