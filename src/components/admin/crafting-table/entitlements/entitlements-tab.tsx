@@ -11,7 +11,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Search, Loader2, Save, KeyRound, Package, MapPin } from "lucide-react";
+import {
+	Search,
+	Loader2,
+	Save,
+	KeyRound,
+	Package,
+	MapPin,
+	RefreshCw,
+} from "lucide-react";
+import { EntitlementsDataTable } from "./entitlements-data-table";
+import { entitlementsColumns } from "./entitlements-columns";
 import { toast } from "sonner";
 import {
 	searchUserByEmail,
@@ -39,6 +49,23 @@ export function EntitlementsTab() {
 		UserEntitledProduct[]
 	>([]);
 	const [productsTotal, setProductsTotal] = useState(0);
+	const [productsLoading, setProductsLoading] = useState(false);
+	const [productsLoaded, setProductsLoaded] = useState(false);
+
+	const fetchEntitledProducts = async (userId: string) => {
+		setProductsLoading(true);
+		try {
+			const result = await getUserEntitledProducts(userId);
+			setEntitledProducts(result.products);
+			setProductsTotal(result.total);
+			setProductsLoaded(true);
+		} catch (error) {
+			console.error("Failed to fetch entitled products:", error);
+			toast.error("Failed to load entitled products");
+		} finally {
+			setProductsLoading(false);
+		}
+	};
 
 	const handleSearch = async () => {
 		if (!emailQuery.trim()) {
@@ -50,6 +77,7 @@ export function EntitlementsTab() {
 		setUser(null);
 		setEntitledProducts([]);
 		setProductsTotal(0);
+		setProductsLoaded(false);
 
 		try {
 			const result = await searchUserByEmail(emailQuery);
@@ -63,10 +91,8 @@ export function EntitlementsTab() {
 			setEditName(result.user.name);
 			setEditRole(result.user.role);
 
-			// Fetch entitled products
-			const productsResult = await getUserEntitledProducts(result.user.id);
-			setEntitledProducts(productsResult.products);
-			setProductsTotal(productsResult.total);
+			// Fetch entitled products on initial search
+			await fetchEntitledProducts(result.user.id);
 
 			toast.success(`Found user: ${result.user.name}`);
 		} catch (error) {
@@ -232,6 +258,19 @@ export function EntitlementsTab() {
 							<Package className="h-5 w-5" />
 							Entitled Products ({productsTotal})
 						</h3>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => fetchEntitledProducts(user.id)}
+							disabled={productsLoading}
+						>
+							{productsLoading ? (
+								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+							) : (
+								<RefreshCw className="h-4 w-4 mr-2" />
+							)}
+							{productsLoaded ? "Refresh" : "Load Products"}
+						</Button>
 					</div>
 
 					{entitledProducts.length === 0 ? (
@@ -242,9 +281,10 @@ export function EntitlementsTab() {
 							</p>
 						</div>
 					) : (
-						<p className="text-sm text-muted-foreground">
-							Product table will be rendered here (Step 5).
-						</p>
+						<EntitlementsDataTable
+							columns={entitlementsColumns}
+							data={entitledProducts}
+						/>
 					)}
 				</div>
 			)}
