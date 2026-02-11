@@ -9,7 +9,7 @@ interface CartSummaryProps {
 
 const CartSummary = ({ cart }: CartSummaryProps) => {
 	return (
-		<div className="w-[60%] max-h-[600px] overflow-y-auto">
+		<div className="w-full border rounded-lg bg-white overflow-hidden md:w-[60%] md:max-h-[600px] md:overflow-y-auto md:border-0 md:rounded-none md:bg-transparent">
 			{cart.map((item) => (
 				<CartRow
 					key={item.sku}
