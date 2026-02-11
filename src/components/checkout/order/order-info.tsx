@@ -40,11 +40,15 @@ const OrderInfo = (props: OrderInfoProps) => {
 	const isOrderState = currentStep === "order" || currentStep === "shipped";
 
 	return (
-		<div className="w-full md:w-[42%] lg:w-[40%] border flex flex-col items-start">
+		<div className="w-full md:w-[42%] lg:w-[40%] border rounded-lg bg-white md:rounded-none md:bg-transparent flex flex-col items-start">
 			<ProgressBar steps={progressSteps} currentStep={currentStepIndex} />
-			<OrderSummary info={orderSummary} billingInfo={billingInfo} />
+			<OrderSummary
+				info={orderSummary}
+				billingInfo={billingInfo}
+				isOrderState={isOrderState}
+			/>
 
-			<div className="flex flex-col items-center justify-center w-full p-6 gap-2">
+			<div className="hidden md:flex flex-col items-center justify-center w-full p-6 gap-2">
 				{isCartState && (
 					<Button
 						size="default"

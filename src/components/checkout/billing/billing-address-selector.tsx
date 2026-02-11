@@ -53,6 +53,20 @@ const BillingAddressSelector = ({
 		fetchAddresses();
 	}, []);
 
+	useEffect(() => {
+		const selectedAddress = addresses.find((addr) => addr.id === selectedId);
+		if (!selectedAddress) {
+			return;
+		}
+
+		setBillingInfo({
+			email: selectedAddress.email,
+			organization: selectedAddress.organization,
+			address: selectedAddress.address,
+			ABN: selectedAddress.ABN,
+		});
+	}, [addresses, selectedId, setBillingInfo]);
+
 	const handleAddressCreated = (newAddress: BillingInfoItemWithId) => {
 		setAddresses((prev) => [newAddress, ...prev]);
 		setSelectedId(newAddress.id);
@@ -80,8 +94,8 @@ const BillingAddressSelector = ({
 
 	if (isLoading) {
 		return (
-			<div className="w-[60%] h-[400px]">
-				<div className="w-2/3 space-y-4">
+			<div className="w-full border rounded-lg bg-white p-4 sm:p-6 md:w-[60%] md:h-[400px] md:border-0 md:rounded-none md:bg-transparent md:p-0">
+				<div className="w-full space-y-4 md:w-2/3">
 					<div className="h-10 bg-slate-200 rounded animate-pulse" />
 					<div className="h-24 bg-slate-200 rounded animate-pulse" />
 				</div>
@@ -90,8 +104,8 @@ const BillingAddressSelector = ({
 	}
 
 	return (
-		<div className="w-[60%] h-[400px]">
-			<div className="w-2/3 space-y-6">
+		<div className="w-full border rounded-lg bg-white p-4 sm:p-6 md:w-[60%] md:h-[400px] md:border-0 md:rounded-none md:bg-transparent md:p-0">
+			<div className="w-full space-y-6 md:w-2/3">
 				<div className="space-y-2">
 					<label className="text-sm font-medium text-slate-700">
 						Select Billing Address
@@ -157,7 +171,7 @@ const BillingAddressSelector = ({
 				<Button
 					onClick={handleContinue}
 					disabled={!selectedId}
-					className="w-full"
+					className="hidden w-full md:flex"
 				>
 					Continue to Order
 				</Button>
