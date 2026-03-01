@@ -1,5 +1,6 @@
 "use server";
 
+import { featureFlags } from "@/lib/feature-flags";
 import { prisma } from "@/lib/config/prisma";
 
 export interface ProductData {
@@ -19,6 +20,11 @@ export interface ProductData {
 export async function fetchProductsForUser(
 	userId: string,
 ): Promise<ProductData[]> {
+	if (featureFlags.catalogV2) {
+		// Phase B: paginated server action will replace this branch
+		throw new Error("catalogV2 not yet implemented");
+	}
+
 	const entitlements = await prisma.userProductEntitlement.findMany({
 		where: {
 			userId,

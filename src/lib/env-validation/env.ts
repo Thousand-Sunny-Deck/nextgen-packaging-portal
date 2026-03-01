@@ -14,6 +14,7 @@ export const env = createEnv({
 		RESEND_API_KEY: z.string(),
 		UPSTASH_REDIS_REST_URL: z.string(),
 		UPSTASH_REDIS_REST_TOKEN: z.string(),
+		CATALOG_V2_ENABLED: z.coerce.boolean().default(false),
 	},
 	client: {
 		NEXT_PUBLIC_API_URL: z.url(),
@@ -33,5 +34,6 @@ export const env = createEnv({
 		RESEND_API_KEY: process.env.RESEND_API_KEY as string,
 		UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL as string,
 		UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+		CATALOG_V2_ENABLED: process.env.CATALOG_V2_ENABLED,
 	},
 });
