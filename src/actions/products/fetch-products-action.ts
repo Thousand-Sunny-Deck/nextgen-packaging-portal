@@ -20,33 +20,33 @@ export interface ProductData {
 export async function fetchProductsForUser(
 	userId: string,
 ): Promise<ProductData[]> {
-	if (featureFlags.catalogV2) {
-		// Phase B: paginated server action will replace this branch
-		throw new Error("catalogV2 not yet implemented");
+	if (!featureFlags.catalogV2) {
+		const entitlements = await prisma.userProductEntitlement.findMany({
+			where: {
+				userId,
+			},
+			include: {
+				product: true,
+			},
+		});
+
+		const products: ProductData[] = entitlements.map((entitlement) => {
+			const { product, customSku, customDescription, customUnitCost } =
+				entitlement;
+
+			const sku = customSku ?? product.sku;
+
+			return {
+				sku,
+				itemCode: sku,
+				description: customDescription ?? product.description,
+				unitCost: customUnitCost ?? product.unitCost,
+			};
+		});
+
+		return products;
 	}
 
-	const entitlements = await prisma.userProductEntitlement.findMany({
-		where: {
-			userId,
-		},
-		include: {
-			product: true,
-		},
-	});
-
-	const products: ProductData[] = entitlements.map((entitlement) => {
-		const { product, customSku, customDescription, customUnitCost } =
-			entitlement;
-
-		const sku = customSku ?? product.sku;
-
-		return {
-			sku,
-			itemCode: sku,
-			description: customDescription ?? product.description,
-			unitCost: customUnitCost ?? product.unitCost,
-		};
-	});
-
-	return products;
+	// Phase B: paginated server action will replace this branch
+	throw new Error("catalogV2 not yet implemented");
 }
