@@ -6,7 +6,7 @@ import {
 	fetchProductsForUser,
 	ProductData,
 } from "@/actions/products/fetch-products-action";
-import { featureFlags } from "@/lib/feature-flags";
+import { getFeatureFlags } from "@/lib/feature-flags";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
@@ -39,9 +39,10 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 		notFound();
 	}
 
+	const flags = getFeatureFlags(slug.uuid);
 	let products: ProductData[];
 
-	if (featureFlags.catalogV2) {
+	if (flags.catalogV2) {
 		const result = await fetchCatalog({
 			search: q,
 			page: page ? Number(page) : undefined,

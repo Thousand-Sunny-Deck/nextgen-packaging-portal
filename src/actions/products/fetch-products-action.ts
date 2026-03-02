@@ -1,7 +1,6 @@
 "use server";
 
 import { env } from "@/lib/env-validation/env";
-import { featureFlags } from "@/lib/feature-flags";
 import { prisma } from "@/lib/config/prisma";
 
 export interface ProductData {
@@ -30,35 +29,30 @@ export type FetchProductsResult = {
 export async function fetchProductsForUser(
 	userId: string,
 ): Promise<ProductData[]> {
-	if (!featureFlags.catalogV2) {
-		const entitlements = await prisma.userProductEntitlement.findMany({
-			where: {
-				userId,
-			},
-			include: {
-				product: true,
-			},
-		});
+	const entitlements = await prisma.userProductEntitlement.findMany({
+		where: {
+			userId,
+		},
+		include: {
+			product: true,
+		},
+	});
 
-		const products: ProductData[] = entitlements.map((entitlement) => {
-			const { product, customSku, customDescription, customUnitCost } =
-				entitlement;
+	const products: ProductData[] = entitlements.map((entitlement) => {
+		const { product, customSku, customDescription, customUnitCost } =
+			entitlement;
 
-			const sku = customSku ?? product.sku;
+		const sku = customSku ?? product.sku;
 
-			return {
-				sku,
-				itemCode: sku,
-				description: customDescription ?? product.description,
-				unitCost: customUnitCost ?? product.unitCost,
-			};
-		});
+		return {
+			sku,
+			itemCode: sku,
+			description: customDescription ?? product.description,
+			unitCost: customUnitCost ?? product.unitCost,
+		};
+	});
 
-		return products;
-	}
-
-	const result = await fetchCatalog();
-	return result.items;
+	return products;
 }
 
 const MAX_PAGE_SIZE = 100;
