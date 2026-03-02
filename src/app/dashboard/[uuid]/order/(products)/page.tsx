@@ -13,6 +13,7 @@ import { CheckoutButton } from "@/components/CheckoutButton";
 import { Suspense } from "react";
 import Loading from "./loading";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
+import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -43,6 +44,10 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 	const flags = getFeatureFlags(slug.uuid);
 	const isCatalogV2Enabled = flags.catalogV2;
 	let products: ProductData[];
+	let catalogPage = 1;
+	let catalogTotalPages = 1;
+	let catalogTotal = 0;
+	let catalogPageSize = 24;
 
 	if (isCatalogV2Enabled) {
 		const result = await fetchCatalog({
@@ -51,6 +56,10 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 			pageSize: pageSize ? Number(pageSize) : undefined,
 		});
 		products = result.items;
+		catalogPage = result.page;
+		catalogTotalPages = result.totalPages;
+		catalogTotal = result.total;
+		catalogPageSize = result.pageSize;
 	} else {
 		products = await fetchProductsForUser(session.user.id);
 	}
@@ -65,7 +74,15 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 				</h1>
 				<Suspense fallback={<Loading />}>
 					{isCatalogV2Enabled ? (
-						<CatalogGrid products={products} />
+						<>
+							<CatalogGrid products={products} />
+							<CatalogPagination
+								page={catalogPage}
+								totalPages={catalogTotalPages}
+								total={catalogTotal}
+								pageSize={catalogPageSize}
+							/>
+						</>
 					) : (
 						<ProductTable products={products} />
 					)}

@@ -67,7 +67,7 @@ export const CatalogGrid = ({
 	return (
 		<div className="w-full">
 			{hasRows ? (
-				<div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+				<div className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-3 md:gap-x-4 md:gap-y-6 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-8">
 					{visibleRows.map((row) => {
 						const product = row.original;
 						const item = getCardViewModel(product);
