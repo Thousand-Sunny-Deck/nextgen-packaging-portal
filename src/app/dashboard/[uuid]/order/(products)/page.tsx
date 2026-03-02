@@ -1,7 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
-import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
+import {
+	fetchCatalog,
+	fetchProductsForUser,
+	ProductData,
+} from "@/actions/products/fetch-products-action";
+import { featureFlags } from "@/lib/feature-flags";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
@@ -10,9 +15,10 @@ import Loading from "./loading";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
+	searchParams: Promise<{ q?: string; page?: string; pageSize?: string }>;
 }
 
-const OrdersPage = async ({ params }: OrdersPageProps) => {
+const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 	const { error, session } = await getUserSession();
 
 	if (error) {
@@ -23,14 +29,28 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 		redirect("/auth/login");
 	}
 
-	const slug = await params;
+	const [slug, { q, page, pageSize }] = await Promise.all([
+		params,
+		searchParams,
+	]);
 	const { error: orgIdError } = await verifyOrgId(session, slug);
 
 	if (orgIdError) {
 		notFound();
 	}
 
-	const products = await fetchProductsForUser(session.user.id);
+	let products: ProductData[];
+
+	if (featureFlags.catalogV2) {
+		const result = await fetchCatalog({
+			search: q,
+			page: page ? Number(page) : undefined,
+			pageSize: pageSize ? Number(pageSize) : undefined,
+		});
+		products = result.items;
+	} else {
+		products = await fetchProductsForUser(session.user.id);
+	}
 
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
