@@ -1,0 +1,92 @@
+"use client";
+
+import { ProductData } from "@/actions/products/fetch-products-action";
+import { CartItem, useCartStore } from "@/lib/store/product-store";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
+import { CatalogCard } from "./CatalogCard";
+import { catalogColumns, getCardViewModel } from "./catalog-columns";
+import { CatalogRow } from "./types";
+
+interface CatalogGridProps {
+	products: ProductData[];
+	emptyMessage?: string;
+}
+
+const MAX_QUANTITY = 999;
+
+const toCartItem = (product: ProductData, quantity: number): CartItem => ({
+	sku: product.sku,
+	description: product.description,
+	quantity,
+	total: quantity * Number(product.unitCost),
+	unitCost: Number(product.unitCost),
+});
+
+export const CatalogGrid = ({
+	products,
+	emptyMessage = "No products found.",
+}: CatalogGridProps) => {
+	const {
+		maybeSelectedProducts,
+		setQuantity,
+		getIsProductSelected,
+		toggleProduct,
+	} = useCartStore();
+
+	const rows = useMemo<CatalogRow[]>(() => {
+		return products.map((product) => {
+			const quantity = maybeSelectedProducts.get(product.sku)?.quantity ?? 0;
+			return {
+				...product,
+				quantity,
+				total: Number(product.unitCost) * quantity,
+				isSelected: getIsProductSelected(product.sku),
+			};
+		});
+	}, [products, maybeSelectedProducts, getIsProductSelected]);
+
+	const table = useReactTable({
+		data: rows,
+		columns: catalogColumns,
+		getCoreRowModel: getCoreRowModel(),
+		getRowId: (row) => row.sku,
+	});
+
+	const visibleRows = table.getCoreRowModel().rows;
+	const hasRows = visibleRows.length > 0;
+
+	const handleQuantityChange = (product: ProductData, quantity: number) => {
+		const safeQuantity = Math.max(
+			0,
+			Math.min(MAX_QUANTITY, Math.floor(quantity)),
+		);
+		setQuantity(toCartItem(product, safeQuantity));
+	};
+
+	return (
+		<div className="w-full">
+			{hasRows ? (
+				<div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+					{visibleRows.map((row) => {
+						const product = row.original;
+						const item = getCardViewModel(product);
+
+						return (
+							<CatalogCard
+								key={product.sku}
+								item={item}
+								onQuantityChange={(next) => handleQuantityChange(product, next)}
+								onToggleSelect={() => toggleProduct(product.sku)}
+							/>
+						);
+					})}
+				</div>
+			) : (
+				<div className="border border-dashed p-6 text-center text-sm text-muted-foreground">
+					{emptyMessage}
+				</div>
+			)}
+		</div>
+	);
+};

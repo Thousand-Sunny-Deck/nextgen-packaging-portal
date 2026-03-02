@@ -12,6 +12,7 @@ import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { Suspense } from "react";
 import Loading from "./loading";
+import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -40,9 +41,10 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 	}
 
 	const flags = getFeatureFlags(slug.uuid);
+	const isCatalogV2Enabled = flags.catalogV2;
 	let products: ProductData[];
 
-	if (flags.catalogV2) {
+	if (isCatalogV2Enabled) {
 		const result = await fetchCatalog({
 			search: q,
 			page: page ? Number(page) : undefined,
@@ -62,7 +64,11 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
 				<Suspense fallback={<Loading />}>
-					<ProductTable products={products} />
+					{isCatalogV2Enabled ? (
+						<CatalogGrid products={products} />
+					) : (
+						<ProductTable products={products} />
+					)}
 				</Suspense>
 				<CheckoutButton />
 			</div>
