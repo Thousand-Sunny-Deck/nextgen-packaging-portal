@@ -22,11 +22,11 @@ export const CatalogSelectButton = ({
 			disabled={disabled}
 			aria-pressed={isSelected}
 			className={cn(
-				"w-full rounded-none",
+				"h-8 w-full rounded-none px-2 text-xs sm:h-9 sm:text-sm",
 				isSelected ? "font-semibold" : undefined,
 			)}
 		>
-			{isSelected ? "Selected" : "Select"}
+			{isSelected ? "Added to cart" : "Add to cart"}
 		</Button>
 	);
 };

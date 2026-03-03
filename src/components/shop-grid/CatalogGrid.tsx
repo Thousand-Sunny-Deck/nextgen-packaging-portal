@@ -61,7 +61,13 @@ export const CatalogGrid = ({
 			0,
 			Math.min(MAX_QUANTITY, Math.floor(quantity)),
 		);
+		const wasSelected = getIsProductSelected(product.sku);
 		setQuantity(toCartItem(product, safeQuantity));
+
+		// Keep quantity updates as a middle state; explicit button click adds to cart.
+		if (safeQuantity > 0 && !wasSelected) {
+			toggleProduct(product.sku);
+		}
 	};
 
 	return (

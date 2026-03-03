@@ -57,6 +57,15 @@ export async function fetchProductsForUser(
 
 const MAX_PAGE_SIZE = 100;
 
+// TODO: Optimised prefetch loading
+// Instead of fetching only the requested page, fetch current + next page in a single DB call
+// (take: pageSize * 2). Return the current page's items in the response as normal, but also
+// return the nextPageItems separately. On the client, CatalogPagination detects the prefetched
+// data and stores it (e.g. in a ref or zustand slice keyed by page number). When the user
+// clicks Next, the client renders the cached nextPageItems instantly while a background fetch
+// loads page+2 — making navigation feel seamless unless the user spams through pages faster
+// than a single round-trip. Only prefetch when page < totalPages to avoid wasted work on the
+// last page.
 export const fetchCatalog = async ({
 	search,
 	page = 1,

@@ -35,15 +35,15 @@ export const CatalogQuantityControl = ({
 	};
 
 	return (
-		<div className="flex items-center gap-2">
+		<div className="grid w-full grid-cols-3 gap-1 sm:gap-2">
 			<Button
 				type="button"
 				variant="outline"
-				size="icon-sm"
+				size="sm"
 				onClick={onDecrement}
 				disabled={disabled || safeQuantity <= 0}
 				aria-label="Decrease quantity"
-				className="rounded-none"
+				className="w-full rounded-none"
 			>
 				<Minus className="h-4 w-4" />
 			</Button>
@@ -56,16 +56,16 @@ export const CatalogQuantityControl = ({
 				onChange={(event) => handleInputChange(event.target.value)}
 				disabled={disabled}
 				aria-label="Quantity"
-				className="h-8 w-16 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+				className="h-8 w-full rounded-none px-1 text-center text-xs sm:text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 			/>
 			<Button
 				type="button"
 				variant="outline"
-				size="icon-sm"
+				size="sm"
 				onClick={onIncrement}
 				disabled={disabled || safeQuantity >= max}
 				aria-label="Increase quantity"
-				className="rounded-none"
+				className="w-full rounded-none"
 			>
 				<Plus className="h-4 w-4" />
 			</Button>

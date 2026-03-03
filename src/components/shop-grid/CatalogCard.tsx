@@ -3,7 +3,6 @@
 import { CatalogCardViewModel } from "./types";
 import { CatalogQuantityControl } from "./CatalogQuantityControl";
 import { CatalogSelectButton } from "./CatalogSelectButton";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface CatalogCardProps {
@@ -13,7 +12,7 @@ interface CatalogCardProps {
 }
 
 const MAX_QUANTITY = 999;
-
+// TODO: Figure out what to do for "adding to cart"
 export const CatalogCard = ({
 	item,
 	onQuantityChange,
@@ -28,19 +27,15 @@ export const CatalogCard = ({
 	};
 
 	return (
-		<article
-			className={cn(
-				"border bg-white p-3 shadow-xs transition-colors",
-				item.isSelected
-					? "border-primary ring-1 ring-primary/30"
-					: "border-border",
-			)}
-		>
-			<div className="mb-3 aspect-square w-full overflow-hidden border bg-muted">
+		<article className="min-w-0 border border-border bg-white p-2 md:p-3 shadow-xs transition-colors">
+			<div className="mb-2 aspect-[4/3] w-full overflow-hidden border bg-muted sm:mb-3 sm:aspect-square">
 				{item.imageUrl ? (
 					<Image
 						src={item.imageUrl}
 						alt={item.name}
+						width={320}
+						height={320}
+						sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
 						className="h-full w-full object-cover"
 						loading="lazy"
 					/>
@@ -51,11 +46,11 @@ export const CatalogCard = ({
 				)}
 			</div>
 
-			<h3 className="mb-3 line-clamp-2 min-h-10 text-sm font-medium">
+			<h3 className="mb-2 line-clamp-2 min-h-9 text-xs font-medium sm:text-sm md:mb-3 md:min-h-10">
 				{item.name}
 			</h3>
 
-			<div className="mb-3">
+			<div className="mb-2 md:mb-3">
 				<CatalogQuantityControl
 					quantity={item.quantity}
 					max={MAX_QUANTITY}
