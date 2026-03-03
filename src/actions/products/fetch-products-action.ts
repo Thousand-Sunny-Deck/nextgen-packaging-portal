@@ -1,7 +1,6 @@
 "use server";
 
 import { env } from "@/lib/env-validation/env";
-import { featureFlags } from "@/lib/feature-flags";
 import { prisma } from "@/lib/config/prisma";
 
 export interface ProductData {
@@ -30,39 +29,43 @@ export type FetchProductsResult = {
 export async function fetchProductsForUser(
 	userId: string,
 ): Promise<ProductData[]> {
-	if (!featureFlags.catalogV2) {
-		const entitlements = await prisma.userProductEntitlement.findMany({
-			where: {
-				userId,
-			},
-			include: {
-				product: true,
-			},
-		});
+	const entitlements = await prisma.userProductEntitlement.findMany({
+		where: {
+			userId,
+		},
+		include: {
+			product: true,
+		},
+	});
 
-		const products: ProductData[] = entitlements.map((entitlement) => {
-			const { product, customSku, customDescription, customUnitCost } =
-				entitlement;
+	const products: ProductData[] = entitlements.map((entitlement) => {
+		const { product, customSku, customDescription, customUnitCost } =
+			entitlement;
 
-			const sku = customSku ?? product.sku;
+		const sku = customSku ?? product.sku;
 
-			return {
-				sku,
-				itemCode: sku,
-				description: customDescription ?? product.description,
-				unitCost: customUnitCost ?? product.unitCost,
-			};
-		});
+		return {
+			sku,
+			itemCode: sku,
+			description: customDescription ?? product.description,
+			unitCost: customUnitCost ?? product.unitCost,
+		};
+	});
 
-		return products;
-	}
-
-	const result = await fetchCatalog();
-	return result.items;
+	return products;
 }
 
 const MAX_PAGE_SIZE = 100;
 
+// TODO: Optimised prefetch loading
+// Instead of fetching only the requested page, fetch current + next page in a single DB call
+// (take: pageSize * 2). Return the current page's items in the response as normal, but also
+// return the nextPageItems separately. On the client, CatalogPagination detects the prefetched
+// data and stores it (e.g. in a ref or zustand slice keyed by page number). When the user
+// clicks Next, the client renders the cached nextPageItems instantly while a background fetch
+// loads page+2 — making navigation feel seamless unless the user spams through pages faster
+// than a single round-trip. Only prefetch when page < totalPages to avoid wasted work on the
+// last page.
 export const fetchCatalog = async ({
 	search,
 	page = 1,

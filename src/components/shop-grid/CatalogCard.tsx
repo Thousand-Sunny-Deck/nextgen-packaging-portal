@@ -1,0 +1,70 @@
+"use client";
+
+import { CatalogCardViewModel } from "./types";
+import { CatalogQuantityControl } from "./CatalogQuantityControl";
+import { CatalogSelectButton } from "./CatalogSelectButton";
+import Image from "next/image";
+
+interface CatalogCardProps {
+	item: CatalogCardViewModel;
+	onQuantityChange: (next: number) => void;
+	onToggleSelect: () => void;
+}
+
+const MAX_QUANTITY = 999;
+// TODO: Figure out what to do for "adding to cart"
+export const CatalogCard = ({
+	item,
+	onQuantityChange,
+	onToggleSelect,
+}: CatalogCardProps) => {
+	const handleDecrement = () => {
+		onQuantityChange(Math.max(0, item.quantity - 1));
+	};
+
+	const handleIncrement = () => {
+		onQuantityChange(Math.min(MAX_QUANTITY, item.quantity + 1));
+	};
+
+	return (
+		<article className="min-w-0 border border-border bg-white p-2 md:p-3 shadow-xs transition-colors">
+			<div className="mb-2 aspect-[4/3] w-full overflow-hidden border bg-muted sm:mb-3 sm:aspect-square">
+				{item.imageUrl ? (
+					<Image
+						src={item.imageUrl}
+						alt={item.name}
+						width={320}
+						height={320}
+						sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+						className="h-full w-full object-cover"
+						loading="lazy"
+					/>
+				) : (
+					<div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+						No image
+					</div>
+				)}
+			</div>
+
+			<h3 className="mb-2 line-clamp-2 min-h-9 text-xs font-medium sm:text-sm md:mb-3 md:min-h-10">
+				{item.name}
+			</h3>
+
+			<div className="mb-2 md:mb-3">
+				<CatalogQuantityControl
+					quantity={item.quantity}
+					max={MAX_QUANTITY}
+					onDecrement={handleDecrement}
+					onIncrement={handleIncrement}
+					onChange={onQuantityChange}
+				/>
+			</div>
+
+			<CatalogSelectButton
+				isSelected={item.isSelected}
+				onToggle={onToggleSelect}
+				disabled={item.quantity <= 0}
+			/>
+		</article>
+	);
+};
