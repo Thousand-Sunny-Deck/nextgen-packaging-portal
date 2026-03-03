@@ -1,26 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
-import {
-	fetchCatalog,
-	fetchProductsForUser,
-	ProductData,
-} from "@/actions/products/fetch-products-action";
-import { getFeatureFlags } from "@/lib/feature-flags";
+import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
-import { Suspense } from "react";
-import Loading from "./loading";
-import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
-import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
-	searchParams: Promise<{ q?: string; page?: string; pageSize?: string }>;
+	searchParams: Promise<{ q?: string }>;
 }
 
-const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
+const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const { error, session } = await getUserSession();
 
 	if (error) {
@@ -31,38 +22,14 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 		redirect("/auth/login");
 	}
 
-	const [slug, { q, page, pageSize }] = await Promise.all([
-		params,
-		searchParams,
-	]);
+	const slug = await params;
 	const { error: orgIdError } = await verifyOrgId(session, slug);
 
 	if (orgIdError) {
 		notFound();
 	}
 
-	const flags = getFeatureFlags(slug.uuid);
-	const isCatalogV2Enabled = flags.catalogV2;
-	let products: ProductData[];
-	let catalogPage = 1;
-	let catalogTotalPages = 1;
-	let catalogTotal = 0;
-	let catalogPageSize = 24;
-
-	if (isCatalogV2Enabled) {
-		const result = await fetchCatalog({
-			search: q,
-			page: page ? Number(page) : undefined,
-			pageSize: pageSize ? Number(pageSize) : undefined,
-		});
-		products = result.items;
-		catalogPage = result.page;
-		catalogTotalPages = result.totalPages;
-		catalogTotal = result.total;
-		catalogPageSize = result.pageSize;
-	} else {
-		products = await fetchProductsForUser(session.user.id);
-	}
+	const products = await fetchProductsForUser(slug.uuid);
 
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
@@ -72,21 +39,7 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 				<h1 className="mt-1 text-xs md:text-sm text-gray-400">
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
-				<Suspense fallback={<Loading />}>
-					{isCatalogV2Enabled ? (
-						<>
-							<CatalogGrid products={products} />
-							<CatalogPagination
-								page={catalogPage}
-								totalPages={catalogTotalPages}
-								total={catalogTotal}
-								pageSize={catalogPageSize}
-							/>
-						</>
-					) : (
-						<ProductTable products={products} />
-					)}
-				</Suspense>
+				<ProductTable products={products} />
 				<CheckoutButton />
 			</div>
 		</div>
