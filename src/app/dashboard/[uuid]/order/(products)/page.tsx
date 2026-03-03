@@ -13,11 +13,6 @@ interface OrdersPageProps {
 	searchParams: Promise<{ q?: string }>;
 }
 
-const LegacyProductsSection = async ({ userId }: { userId: string }) => {
-	const products = await fetchProductsForUser(userId);
-	return <ProductTable products={products} />;
-};
-
 const OrdersPage = async ({ params }: OrdersPageProps) => {
 	const { error, session } = await getUserSession();
 
@@ -36,6 +31,8 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 		notFound();
 	}
 
+	const products = await fetchProductsForUser(slug.uuid);
+
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
 			<div className="w-full md:w-11/12 lg:w-9/12 xl:w-8/12 max-w-7xl">
@@ -45,7 +42,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
 				<Suspense fallback={<Loading />}>
-					<LegacyProductsSection userId={session.user.id} />
+					<ProductTable products={products} />;
 				</Suspense>
 				<CheckoutButton />
 			</div>
