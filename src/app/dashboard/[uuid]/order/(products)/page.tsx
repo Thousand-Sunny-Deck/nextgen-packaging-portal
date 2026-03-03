@@ -5,8 +5,6 @@ import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
-import { Suspense } from "react";
-import Loading from "./loading";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -41,9 +39,7 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 				<h1 className="mt-1 text-xs md:text-sm text-gray-400">
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
-				<Suspense fallback={<Loading />}>
-					<ProductTable products={products} />;
-				</Suspense>
+				<ProductTable products={products} />
 				<CheckoutButton />
 			</div>
 		</div>
