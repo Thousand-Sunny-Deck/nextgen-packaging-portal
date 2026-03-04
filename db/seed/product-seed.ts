@@ -5,7 +5,7 @@ dotenv.config();
 import { PrismaClient } from "../../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import * as path from "path";
-import { readProductCsvWarongFormat, ProductEntry } from "./utils/csv-reader";
+import { readProductCsvNewFormat, ProductEntry } from "./utils/csv-reader";
 
 // ============================================
 // TYPES
@@ -22,8 +22,8 @@ interface SeedResult {
 async function main() {
 	console.log("Starting product seed...\n");
 
-	// Get filename from command line args (optional, defaults to warong-products.csv)
-	const filename = process.argv[2] ?? "warong-products.csv";
+	// Get filename from command line args (optional, defaults to products.csv)
+	const filename = process.argv[2] ?? "products.csv";
 
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) {
@@ -37,7 +37,7 @@ async function main() {
 
 	try {
 		const filePath = path.join(__dirname, "data", filename);
-		const products = readProductCsvWarongFormat(filePath);
+		const products = readProductCsvNewFormat(filePath);
 		console.log(`Found ${products.length} products to process\n`);
 
 		const results = await seedProducts(prisma, products);
@@ -68,14 +68,16 @@ async function seedProducts(
 
 		try {
 			await prisma.product.upsert({
-				where: { sku: product.sku },
+				where: { handle: product.handle },
 				update: {
+					sku: product.sku,
 					description: product.description,
 					unitCost: product.unitCost,
 					imageUrl: product.imageUrl,
 				},
 				create: {
 					sku: product.sku,
+					handle: product.handle,
 					description: product.description,
 					unitCost: product.unitCost,
 					imageUrl: product.imageUrl,

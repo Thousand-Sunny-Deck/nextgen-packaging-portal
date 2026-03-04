@@ -152,9 +152,76 @@ export function readMultiSectionCsv(filePath: string): {
 
 export interface ProductEntry {
 	sku: string;
+	handle: string;
 	description: string;
 	unitCost: number;
 	imageUrl: string | null;
+}
+
+function slugify(str: string): string {
+	return str
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/, "");
+}
+
+/**
+ * Read product CSV in the new format (with headers):
+ * sku,description,unit-cost,sleeve-unit-cost
+ *
+ * If sleeve-unit-cost is "NA" or missing, no sleeve row is created.
+ * Otherwise a second row is created with sku+"-SLV" and description+" Sleeve".
+ */
+export function readProductCsvNewFormat(filePath: string): ProductEntry[] {
+	console.log(`Reading from: ${filePath}`);
+
+	const content = fs.readFileSync(filePath, "utf-8");
+	const lines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+
+	if (lines.length <= 1) return [];
+
+	// Skip header row
+	const dataLines = lines.slice(1);
+	const products: ProductEntry[] = [];
+
+	for (const line of dataLines) {
+		const values = parseCsvLine(line);
+
+		const sku = values[0]?.trim() ?? "";
+		if (!sku) continue;
+
+		const description = values[1]?.trim() ?? "";
+		if (!description) continue;
+
+		const basePrice = parsePrice(values[2] ?? "");
+		if (basePrice === null) continue;
+
+		products.push({
+			sku,
+			handle: slugify(description),
+			description,
+			unitCost: basePrice,
+			imageUrl: null,
+		});
+
+		const sleeveRaw = values[3]?.trim() ?? "";
+		if (sleeveRaw.toUpperCase() === "NA" || sleeveRaw === "") continue;
+
+		const sleevePrice = parsePrice(sleeveRaw);
+		if (sleevePrice === null) continue;
+
+		const sleeveDescription = `${description} Sleeve`;
+		products.push({
+			sku: `${sku}-SLV`,
+			handle: slugify(sleeveDescription),
+			description: sleeveDescription,
+			unitCost: sleevePrice,
+			imageUrl: null,
+		});
+	}
+
+	return products;
 }
 
 /**
@@ -201,6 +268,7 @@ export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
 		// Add main product
 		products.push({
 			sku: sku,
+			handle: slugify(description),
 			description: description,
 			unitCost: basePrice,
 			imageUrl: null,
@@ -209,9 +277,11 @@ export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
 		// Check for sleeve price (col 5, index 5)
 		const sleevePrice = parsePrice(values[3] ?? "");
 		if (sleevePrice !== null && sleevePrice !== basePrice) {
+			const sleeveDescription = `${description} Sleeve`;
 			products.push({
 				sku: `${sku}-SLV`,
-				description: `${description} SLEEVE`,
+				handle: slugify(sleeveDescription),
+				description: sleeveDescription,
 				unitCost: sleevePrice,
 				imageUrl: null,
 			});

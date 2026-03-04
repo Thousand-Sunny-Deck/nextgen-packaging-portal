@@ -43,6 +43,10 @@ next-env.d.ts
 # local planning docs
 /plan
 
+# product images for seeding (drop files here, not committed)
+/db/seed/images/*
+/db/seed/data/*
+
 /src/generated/prisma
 
 .vscode

@@ -78,7 +78,8 @@ model Product {
   updatedAt DateTime @updatedAt
 
   // Base product information
-  sku           String                   @unique
+  sku           String
+  handle        String                   @unique
   description   String
   unitCost      Float
   imageUrl      String?
@@ -86,6 +87,7 @@ model Product {
   entitledUsers UserProductEntitlement[]
 
   @@index([sku])
+  @@index([handle])
   @@map("products")
 }
 

@@ -12,7 +12,8 @@
 		"pre-commit": "lint-staged",
 		"seed:users": "npx tsx db/seed/user-seed.ts",
 		"seed:products": "npx tsx db/seed/product-seed.ts",
-		"seed:entitlements": "npx tsx db/seed/entitlement-seed.ts"
+		"seed:entitlements": "npx tsx db/seed/entitlement-seed.ts",
+		"seed:images": "npx tsx db/seed/image-seed.ts"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.975.0",
