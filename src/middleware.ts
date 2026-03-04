@@ -22,6 +22,23 @@ function getShopRouteUuid(pathname: string): string | null {
 
 export async function middleware(req: NextRequest) {
 	const { nextUrl } = req;
+
+	const isProduction = process.env.NODE_ENV === "production";
+	const isApiRoute = nextUrl.pathname.startsWith("/api");
+	const isDowntimeRoute = nextUrl.pathname === "/downtime";
+	const isPublicFileRequest = /\.[^/]+$/.test(nextUrl.pathname);
+
+	if (isProduction && !isDowntimeRoute && !isPublicFileRequest) {
+		if (isApiRoute) {
+			return NextResponse.json(
+				{ message: "Service temporarily unavailable due to maintenance." },
+				{ status: 503 },
+			);
+		}
+
+		return NextResponse.redirect(new URL("/downtime", req.url));
+	}
+
 	const sessionCookie = getSessionCookie(req);
 
 	const isLoggedIn = !!sessionCookie;
@@ -48,6 +65,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
 	matcher: [
-		"/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+		"/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
 	],
 };
