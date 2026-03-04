@@ -70,7 +70,7 @@ const calculateOrderSummary = (
 	cartSize: number,
 ): OrderSummaryInfo => {
 	const subTotal = totalCost;
-	const serviceCost = 10;
+	const serviceCost = subTotal * 0.1;
 	let finalCost = 0;
 	if (subTotal < 150) {
 		finalCost = subTotal + serviceCost;
