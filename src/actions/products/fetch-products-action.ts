@@ -4,6 +4,7 @@ import { env } from "@/lib/env-validation/env";
 import { prisma } from "@/lib/config/prisma";
 
 export interface ProductData {
+	handle: string;
 	sku: string;
 	itemCode: string; // same as sku
 	description: string;
@@ -38,17 +39,28 @@ export async function fetchProductsForUser(
 		},
 	});
 
+	const cloudfrontUrl = env.CLOUDFRONT_URL ?? "";
+
 	const products: ProductData[] = entitlements.map((entitlement) => {
-		const { product, customSku, customDescription, customUnitCost } =
-			entitlement;
+		const {
+			product,
+			customSku,
+			customDescription,
+			customUnitCost,
+			customImageUrl,
+		} = entitlement;
 
 		const sku = customSku ?? product.sku;
+		const rawImageUrl = customImageUrl ?? product.imageUrl;
 
 		return {
+			handle: product.handle,
 			sku,
 			itemCode: sku,
 			description: customDescription ?? product.description,
 			unitCost: customUnitCost ?? product.unitCost,
+			imageUrl:
+				rawImageUrl && cloudfrontUrl ? `${cloudfrontUrl}/${rawImageUrl}` : null,
 		};
 	});
 
@@ -111,7 +123,10 @@ export const fetchCatalog = async ({
 
 	const cloudfrontUrl = env.CLOUDFRONT_URL ?? "";
 
+	console.log("ROWS:", rows);
+
 	const items = rows.map((product) => ({
+		handle: product.handle,
 		sku: product.sku,
 		itemCode: product.sku,
 		description: product.description,
@@ -121,6 +136,8 @@ export const fetchCatalog = async ({
 				? `${cloudfrontUrl}/${product.imageUrl}`
 				: null,
 	}));
+
+	console.log(items);
 
 	return {
 		items,
