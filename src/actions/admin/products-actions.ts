@@ -48,9 +48,12 @@ export async function createProduct(
 ): Promise<CreateProductResult> {
 	await requireAdmin();
 
+	// TODO: we need to do this ASAP!
+	const handle = "NA";
 	try {
 		await prisma.product.create({
 			data: {
+				handle: handle,
 				sku: input.sku.trim(),
 				description: input.description.trim(),
 				unitCost: input.unitCost,
