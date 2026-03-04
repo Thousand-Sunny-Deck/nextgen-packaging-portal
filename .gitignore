@@ -44,8 +44,7 @@ next-env.d.ts
 /plan
 
 # product images for seeding (drop files here, not committed)
-/db/seed/images/*
-/db/seed/data/*
+/scripts/**/*
 
 /src/generated/prisma
 
