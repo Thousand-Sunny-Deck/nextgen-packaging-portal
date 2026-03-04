@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchCatalog } from "@/actions/products/fetch-products-action";
-import { getFeatureFlags } from "@/lib/feature-flags";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
@@ -32,12 +31,6 @@ const ShopPage = async ({ params, searchParams }: ShopPageProps) => {
 
 	if (orgIdError) {
 		notFound();
-	}
-
-	const flags = getFeatureFlags(slug.uuid);
-
-	if (!flags.catalogV2) {
-		redirect(`/dashboard/${slug.uuid}/home`);
 	}
 
 	const result = await fetchCatalog({

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
-import { getFeatureFlags } from "@/lib/feature-flags";
 
 const protectedRoutes = ["/dashboard/**/**"];
 const authLoginRoute = "/auth/login";
@@ -13,11 +12,6 @@ function isProtectedRoute(pathname: string): boolean {
 
 function isAuthLoginRoute(pathname: string): boolean {
 	return pathname === authLoginRoute;
-}
-
-function getShopRouteUuid(pathname: string): string | null {
-	const match = pathname.match(/^\/dashboard\/([^/]+)\/shop(\/.*)?$/);
-	return match ? match[1] : null;
 }
 
 export async function middleware(req: NextRequest) {
@@ -51,13 +45,6 @@ export async function middleware(req: NextRequest) {
 
 	if (isLoggedIn && isLoginRoute) {
 		return NextResponse.redirect(new URL("/", req.url));
-	}
-
-	const shopUuid = getShopRouteUuid(nextUrl.pathname);
-	if (shopUuid && !getFeatureFlags(shopUuid).catalogV2) {
-		return NextResponse.redirect(
-			new URL(`/dashboard/${shopUuid}/home`, req.url),
-		);
 	}
 
 	return NextResponse.next();

@@ -3,11 +3,9 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
-import ProductTable from "@/components/dynamic-table/product-table";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
-import { getFeatureFlags } from "@/lib/feature-flags";
 
 interface OrdersPageProps {
 	params: Promise<{ uuid: string }>;
@@ -31,36 +29,26 @@ const OrdersPage = async ({ params }: OrdersPageProps) => {
 	if (orgIdError) {
 		notFound();
 	}
-	const flags = getFeatureFlags(slug.uuid);
 	const products = await fetchProductsForUser(slug.uuid);
 
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
 			<div className="w-full md:w-11/12 lg:w-9/12 xl:w-8/12 max-w-7xl">
 				<DynamicBreadcrumb />
-				<h1 className="mt-5 text-2xl md:text-3xl">
-					{flags.catalogV2 ? "Quick Order" : "Orders"}
-				</h1>
+				<h1 className="mt-5 text-2xl md:text-3xl">Quick Order</h1>
 				<h1 className="mt-1 text-xs md:text-sm text-gray-400">
 					Select desired quantity (max. 999) and proceed to checkout below.
 				</h1>
-				{flags.catalogV2 ? (
-					<>
-						<CatalogGrid products={products} />
-						<CatalogPagination
-							page={1}
-							totalPages={Math.ceil(products.length / 24)}
-							total={products.length}
-							pageSize={24}
-						/>
-						<CheckoutButton />
-					</>
-				) : (
-					<>
-						<ProductTable products={products} />
-						<CheckoutButton />
-					</>
-				)}
+				<>
+					<CatalogGrid products={products} />
+					<CatalogPagination
+						page={1}
+						totalPages={Math.ceil(products.length / 24)}
+						total={products.length}
+						pageSize={24}
+					/>
+					<CheckoutButton />
+				</>
 			</div>
 		</div>
 	);
