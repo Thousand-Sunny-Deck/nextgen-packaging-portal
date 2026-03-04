@@ -11,7 +11,8 @@ import { readProductCsvNewFormat, ProductEntry } from "./utils/csv-reader";
 // TYPES
 // ============================================
 interface SeedResult {
-	created: number;
+	inserted: number;
+	updated: number;
 	skipped: number;
 	failed: number;
 }
@@ -23,7 +24,7 @@ async function main() {
 	console.log("Starting product seed...\n");
 
 	// Get filename from command line args (optional, defaults to products.csv)
-	const filename = process.argv[2] ?? "products.csv";
+	const filename = process.argv[2] ?? "temp.csv";
 
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) {
@@ -41,6 +42,17 @@ async function main() {
 		console.log(`Found ${products.length} products to process\n`);
 
 		const results = await seedProducts(prisma, products);
+
+		const duplicates = findDuplicateHandles(products);
+		if (duplicates.length > 0) {
+			console.log(
+				`⚠️  Found ${duplicates.length} duplicate handle(s) in CSV — only the last row wins for each:\n`,
+			);
+			for (const { handle, skus } of duplicates) {
+				console.log(`  handle: "${handle}"  →  SKUs: ${skus.join(", ")}`);
+			}
+			console.log();
+		}
 		printSummary(results);
 	} catch (error) {
 		console.error("Fatal error:", error);
@@ -51,6 +63,24 @@ async function main() {
 }
 
 // ============================================
+// DUPLICATE DETECTION
+// ============================================
+function findDuplicateHandles(
+	products: ProductEntry[],
+): { handle: string; skus: string[] }[] {
+	const seen = new Map<string, string[]>();
+
+	for (const product of products) {
+		const existing = seen.get(product.handle) ?? [];
+		seen.set(product.handle, [...existing, product.sku]);
+	}
+
+	return Array.from(seen.entries())
+		.filter(([, skus]) => skus.length > 1)
+		.map(([handle, skus]) => ({ handle, skus }));
+}
+
+// ============================================
 // PRODUCT SEEDING
 // Responsibility: Insert products into database via Prisma
 // ============================================
@@ -58,52 +88,65 @@ async function seedProducts(
 	prisma: PrismaClient,
 	products: ProductEntry[],
 ): Promise<SeedResult> {
-	const results: SeedResult = { created: 0, skipped: 0, failed: 0 };
+	const results: SeedResult = {
+		inserted: 0,
+		updated: 0,
+		skipped: 0,
+		failed: 0,
+	};
 	const total = products.length;
 
 	console.log("Processing...");
 
 	for (let i = 0; i < products.length; i++) {
 		const product = products[i];
+		const tag = `  [${i + 1}/${total}] ${product.sku}`;
 
 		try {
-			await prisma.product.upsert({
+			const existing = await prisma.product.findUnique({
 				where: { handle: product.handle },
-				update: {
-					sku: product.sku,
-					description: product.description,
-					unitCost: product.unitCost,
-					imageUrl: product.imageUrl,
-				},
-				create: {
-					sku: product.sku,
-					handle: product.handle,
-					description: product.description,
-					unitCost: product.unitCost,
-					imageUrl: product.imageUrl,
-				},
 			});
 
-			console.log(`  [${i + 1}/${total}] ${product.sku} - Upserted`);
-			results.created++;
+			if (existing) {
+				const unchanged =
+					existing.sku === product.sku &&
+					existing.description === product.description &&
+					existing.unitCost === product.unitCost;
+
+				if (unchanged) {
+					console.log(`${tag} - Skipped (no changes)`);
+					results.skipped++;
+					continue;
+				}
+
+				await prisma.product.update({
+					where: { handle: product.handle },
+					data: {
+						sku: product.sku,
+						description: product.description,
+						unitCost: product.unitCost,
+					},
+				});
+				console.log(`${tag} - Updated`);
+				results.updated++;
+			} else {
+				await prisma.product.create({
+					data: {
+						sku: product.sku,
+						handle: product.handle,
+						description: product.description,
+						unitCost: product.unitCost,
+						imageUrl: product.imageUrl,
+					},
+				});
+				console.log(`${tag} - Inserted`);
+				results.inserted++;
+			}
 		} catch (error: unknown) {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
-
-			if (
-				errorMessage.includes("UNIQUE constraint") ||
-				errorMessage.includes("duplicate key")
-			) {
-				console.log(
-					`  [${i + 1}/${total}] ${product.sku} - Skipped (already exists)`,
-				);
-				results.skipped++;
-			} else {
-				console.error(
-					`  [${i + 1}/${total}] ${product.sku} - Failed: ${errorMessage}`,
-				);
-				results.failed++;
-			}
+			console.error(`${tag} - Failed: ${errorMessage}`);
+			results.failed++;
 		}
 	}
 
@@ -116,8 +159,9 @@ async function seedProducts(
 // ============================================
 function printSummary(results: SeedResult) {
 	console.log("\nResults:");
-	console.log(`  Upserted: ${results.created}`);
-	console.log(`  Skipped:  ${results.skipped}`);
+	console.log(`  Inserted: ${results.inserted}`);
+	console.log(`  Updated:  ${results.updated}`);
+	console.log(`  Skipped:  ${results.skipped} (no changes)`);
 	console.log(`  Failed:   ${results.failed}`);
 	console.log("\nProduct seed completed.");
 }

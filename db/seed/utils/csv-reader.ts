@@ -199,7 +199,7 @@ export function readProductCsvNewFormat(filePath: string): ProductEntry[] {
 
 		products.push({
 			sku,
-			handle: slugify(description),
+			handle: slugify(`${sku} ${description}`),
 			description,
 			unitCost: basePrice,
 			imageUrl: null,
@@ -214,7 +214,7 @@ export function readProductCsvNewFormat(filePath: string): ProductEntry[] {
 		const sleeveDescription = `${description} Sleeve`;
 		products.push({
 			sku: `${sku}-SLV`,
-			handle: slugify(sleeveDescription),
+			handle: slugify(`${sku}-SLV ${sleeveDescription}`),
 			description: sleeveDescription,
 			unitCost: sleevePrice,
 			imageUrl: null,
@@ -268,7 +268,7 @@ export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
 		// Add main product
 		products.push({
 			sku: sku,
-			handle: slugify(description),
+			handle: slugify(`${sku} ${description}`),
 			description: description,
 			unitCost: basePrice,
 			imageUrl: null,
@@ -280,7 +280,7 @@ export function readProductCsvWarongFormat(filePath: string): ProductEntry[] {
 			const sleeveDescription = `${description} Sleeve`;
 			products.push({
 				sku: `${sku}-SLV`,
-				handle: slugify(sleeveDescription),
+				handle: slugify(`${sku}-SLV ${sleeveDescription}`),
 				description: sleeveDescription,
 				unitCost: sleevePrice,
 				imageUrl: null,

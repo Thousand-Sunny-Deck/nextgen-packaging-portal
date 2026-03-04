@@ -105,7 +105,7 @@ export const fetchCatalog = async ({
 			where,
 			skip,
 			take: sanitizedPageSize,
-			orderBy: { sku: "asc" },
+			orderBy: { handle: "asc" },
 		}),
 	]);
 

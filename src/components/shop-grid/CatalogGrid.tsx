@@ -80,7 +80,7 @@ export const CatalogGrid = ({
 
 						return (
 							<CatalogCard
-								key={product.sku}
+								key={`${product.description}-${product.sku}`}
 								item={item}
 								onQuantityChange={(next) => handleQuantityChange(product, next)}
 								onToggleSelect={() => toggleProduct(product.sku)}
