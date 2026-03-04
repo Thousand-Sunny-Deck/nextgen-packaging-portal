@@ -36,12 +36,12 @@ export const CatalogGrid = ({
 
 	const rows = useMemo<CatalogRow[]>(() => {
 		return products.map((product) => {
-			const quantity = maybeSelectedProducts.get(product.sku)?.quantity ?? 0;
+			const quantity = maybeSelectedProducts.get(product.handle)?.quantity ?? 0;
 			return {
 				...product,
 				quantity,
 				total: Number(product.unitCost) * quantity,
-				isSelected: getIsProductSelected(product.sku),
+				isSelected: getIsProductSelected(product.handle),
 			};
 		});
 	}, [products, maybeSelectedProducts, getIsProductSelected]);
@@ -50,7 +50,7 @@ export const CatalogGrid = ({
 		data: rows,
 		columns: catalogColumns,
 		getCoreRowModel: getCoreRowModel(),
-		getRowId: (row) => row.sku,
+		getRowId: (row) => row.handle,
 	});
 
 	const visibleRows = table.getCoreRowModel().rows;
@@ -61,12 +61,12 @@ export const CatalogGrid = ({
 			0,
 			Math.min(MAX_QUANTITY, Math.floor(quantity)),
 		);
-		const wasSelected = getIsProductSelected(product.sku);
+		const wasSelected = getIsProductSelected(product.handle);
 		setQuantity(toCartItem(product, safeQuantity));
 
 		// Keep quantity updates as a middle state; explicit button click adds to cart.
 		if (safeQuantity > 0 && !wasSelected) {
-			toggleProduct(product.sku);
+			toggleProduct(product.handle);
 		}
 	};
 
@@ -80,10 +80,10 @@ export const CatalogGrid = ({
 
 						return (
 							<CatalogCard
-								key={`${product.description}-${product.sku}`}
+								key={product.handle}
 								item={item}
 								onQuantityChange={(next) => handleQuantityChange(product, next)}
-								onToggleSelect={() => toggleProduct(product.sku)}
+								onToggleSelect={() => toggleProduct(product.handle)}
 							/>
 						);
 					})}
