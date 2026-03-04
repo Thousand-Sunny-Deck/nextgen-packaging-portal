@@ -19,7 +19,6 @@ export type FetchProductsResult = {
 	total: number;
 	totalPages: number;
 };
-
 /**
  * Fetches all products that a user is entitled to.
  * Uses custom fields from entitlements when available, falls back to base product fields.
@@ -77,6 +76,103 @@ export async function fetchProductsForUser(
 }
 
 const MAX_PAGE_SIZE = 100;
+
+export const fetchEntitledCatalog = async ({
+	userId,
+	search,
+	page = 1,
+	pageSize = 24,
+}: {
+	userId: string;
+	search?: string;
+	page?: number;
+	pageSize?: number;
+}): Promise<FetchProductsResult> => {
+	const sanitizedPage = Number.isFinite(page)
+		? Math.max(1, Math.floor(page))
+		: 1;
+
+	const sanitizedPageSize = Number.isFinite(pageSize)
+		? Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(pageSize)))
+		: 24;
+
+	const skip = (sanitizedPage - 1) * sanitizedPageSize;
+
+	const where = {
+		userId,
+		...(search
+			? {
+					OR: [
+						{ customSku: { contains: search, mode: "insensitive" as const } },
+						{
+							customDescription: {
+								contains: search,
+								mode: "insensitive" as const,
+							},
+						},
+						{
+							product: {
+								sku: { contains: search, mode: "insensitive" as const },
+							},
+						},
+						{
+							product: {
+								description: {
+									contains: search,
+									mode: "insensitive" as const,
+								},
+							},
+						},
+					],
+				}
+			: {}),
+	};
+
+	const [total, rows] = await prisma.$transaction([
+		prisma.userProductEntitlement.count({ where }),
+		prisma.userProductEntitlement.findMany({
+			where,
+			skip,
+			take: sanitizedPageSize,
+			orderBy: [{ customSku: "asc" }, { product: { sku: "asc" } }],
+			select: {
+				customSku: true,
+				customDescription: true,
+				customUnitCost: true,
+				customImageUrl: true,
+				product: {
+					select: {
+						sku: true,
+						description: true,
+						unitCost: true,
+						imageUrl: true,
+					},
+				},
+			},
+		}),
+	]);
+
+	const cloudfrontUrl = env.CLOUDFRONT_URL ?? "";
+
+	const items = rows.map((row) => ({
+		sku: row.product.sku,
+		itemCode: row.product.sku,
+		description: row.product.description,
+		unitCost: row.product.unitCost,
+		imageUrl:
+			row.product.imageUrl && cloudfrontUrl
+				? `${cloudfrontUrl}/${row.product.imageUrl}`
+				: null,
+	}));
+
+	return {
+		items,
+		page: sanitizedPage,
+		pageSize: sanitizedPageSize,
+		total,
+		totalPages: Math.ceil(total / sanitizedPageSize),
+	};
+};
 
 // TODO: Optimised prefetch loading
 // Instead of fetching only the requested page, fetch current + next page in a single DB call

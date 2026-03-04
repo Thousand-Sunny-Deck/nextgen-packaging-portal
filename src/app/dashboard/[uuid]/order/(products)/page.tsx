@@ -1,7 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
-import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
+import {
+	fetchEntitledCatalog,
+	fetchProductsForUser,
+} from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
@@ -30,7 +33,7 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 		notFound();
 	}
 
-	const products = await fetchProductsForUser(slug.uuid, q);
+	const products = await fetchEntitledCatalog(slug.uuid, q);
 
 	return (
 		<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
@@ -45,12 +48,13 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 					</div>
 					<CatalogSearch defaultValue={q} />
 				</div>
-				<CatalogGrid products={products} />
+
+				<CatalogGrid products={products.items} />
 				<CatalogPagination
-					page={1}
-					totalPages={Math.ceil(products.length / 24)}
-					total={products.length}
-					pageSize={24}
+					page={products.page}
+					totalPages={products.totalPages}
+					total={products.total}
+					pageSize={products.pageSize}
 				/>
 			</div>
 		</div>

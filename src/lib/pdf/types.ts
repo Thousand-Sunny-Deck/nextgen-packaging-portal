@@ -32,6 +32,7 @@ export interface InvoiceData {
 	items: InvoiceItem[];
 	subtotal: number;
 	tax: number;
+	serviceFee: number;
 	total: number;
 	totalPaid: number;
 	balanceDue: number;
