@@ -12,7 +12,6 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { getFeatureFlags } from "@/lib/feature-flags";
 
 interface DashboardNavbarProps {
 	uuid: string;
@@ -21,13 +20,9 @@ interface DashboardNavbarProps {
 export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
 	const [open, setOpen] = useState(false);
 
-	const flags = getFeatureFlags(uuid);
-
 	const navLinks = [
 		{ href: `/dashboard/${uuid}/order`, label: "Quick Order" },
-		...(flags.catalogV2
-			? [{ href: `/dashboard/${uuid}/shop`, label: "Shop" }]
-			: []),
+		{ href: `/dashboard/${uuid}/shop`, label: "Shop" },
 		{ href: `/dashboard/${uuid}/home#all-invoices`, label: "Invoices" },
 		{ href: `/dashboard/${uuid}/account`, label: "Account" },
 	];
