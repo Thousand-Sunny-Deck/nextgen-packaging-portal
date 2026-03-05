@@ -12,6 +12,7 @@ interface CatalogCardProps {
 }
 
 const MAX_QUANTITY = 999;
+const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 // TODO: Figure out what to do for "adding to cart"
 export const CatalogCard = ({
 	item,
@@ -27,8 +28,8 @@ export const CatalogCard = ({
 	};
 
 	return (
-		<article className="min-w-0 border border-border bg-white p-2 md:p-3 shadow-xs transition-colors">
-			<div className="mb-2 aspect-[4/3] w-full overflow-hidden border bg-muted sm:mb-3 sm:aspect-square">
+		<article className="min-w-0 rounded-lg border border-border bg-white p-2.5 shadow-xs transition-colors md:p-3">
+			<div className="mb-2 aspect-[4/3] w-full overflow-hidden rounded-md border bg-muted sm:mb-3 sm:aspect-square">
 				{item.imageUrl ? (
 					<Image
 						src={item.imageUrl}
@@ -46,11 +47,15 @@ export const CatalogCard = ({
 				)}
 			</div>
 
-			<h3 className="mb-2 line-clamp-2 min-h-9 text-xs font-medium sm:text-sm md:mb-3 md:min-h-10">
+			<h3 className="mb-1 line-clamp-2 min-h-9 text-xs font-medium sm:text-sm md:min-h-10">
 				{item.name}
 			</h3>
 
-			<div className="mb-2 md:mb-3">
+			<p className="mb-2 text-xs font-semibold text-gray-700 sm:text-sm">
+				Unit: {formatCurrency(item.unitCost)}
+			</p>
+
+			<div className="mb-2.5 md:mb-3">
 				<CatalogQuantityControl
 					quantity={item.quantity}
 					max={MAX_QUANTITY}
@@ -63,7 +68,6 @@ export const CatalogCard = ({
 			<CatalogSelectButton
 				isSelected={item.isSelected}
 				onToggle={onToggleSelect}
-				disabled={item.quantity <= 0}
 			/>
 		</article>
 	);
