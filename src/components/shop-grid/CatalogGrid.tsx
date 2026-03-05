@@ -16,6 +16,7 @@ interface CatalogGridProps {
 const MAX_QUANTITY = 999;
 
 const toCartItem = (product: ProductData, quantity: number): CartItem => ({
+	handle: product.handle,
 	sku: product.sku,
 	description: product.description,
 	quantity,

@@ -186,6 +186,7 @@ model OrderItem {
 
   // Product snapshot (what user saw at time of order - IMMUTABLE)
   sku         String
+  handle      String
   quantity    Int
   description String
   total       Float

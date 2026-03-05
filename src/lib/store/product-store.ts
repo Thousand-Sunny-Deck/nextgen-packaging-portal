@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 import { ProductData } from "@/actions/products/fetch-products-action";
 
 export interface CartItem {
+	handle: string;
 	sku: string;
 	quantity: number;
 	description: string;
@@ -18,31 +19,21 @@ export type ProductTableStore = ProductData & {
 
 interface CartStore {
 	maybeSelectedProducts: Map<string, CartItem>;
-	selectedProductSkus: Set<string>;
+	selectedProductHandles: Set<string>;
 	cart: CartItem[];
 	cartSize: number;
 	totalCost: number;
 
 	setQuantity: (cartInfo: CartItem) => void;
-	getQuantity: (sku: string) => number;
+	getQuantity: (handle: string) => number;
 	clearCart: () => void;
 
-	// is Row checked?
-	getIsProductSelected: (sku: string) => boolean;
+	getIsProductSelected: (handle: string) => boolean;
+	toggleProduct: (handle: string) => void;
+	canSelectProduct: (handle: string) => boolean;
 
-	// Onchange -> toggle product
-	toggleProduct: (sku: string) => void;
-
-	// can select product
-	canSelectProduct: (sku: string) => boolean;
-
-	// Toggle all products (select/deselect all)
 	toggleAllProducts: (selectAll: boolean, products: ProductData[]) => void;
-
-	// Check if all products are selected
 	areAllProductsSelected: (products: ProductData[]) => boolean;
-
-	// Check if some but not all products are selected
 	areSomeProductsSelected: (products: ProductData[]) => boolean;
 
 	getCart: () => CartItem[];
@@ -56,7 +47,7 @@ export const useCartStore = create<CartStore>()(
 	persist(
 		(set, get) => ({
 			maybeSelectedProducts: new Map(),
-			selectedProductSkus: new Set(),
+			selectedProductHandles: new Set(),
 			cart: [],
 			cartSize: 0,
 			totalCost: 0,
@@ -64,87 +55,73 @@ export const useCartStore = create<CartStore>()(
 			setQuantity: (cartInfo) => {
 				set((state) => {
 					const newMap = new Map(state.maybeSelectedProducts);
-					const { quantity, sku, unitCost } = cartInfo;
+					const { quantity, handle, unitCost } = cartInfo;
 					const totalCost = Math.round(quantity * unitCost * 100) / 100;
-					const newSet = new Set(state.selectedProductSkus);
+					const newSet = new Set(state.selectedProductHandles);
 
 					if (quantity <= 0) {
-						newMap.delete(sku);
-						newSet.delete(sku);
+						newMap.delete(handle);
+						newSet.delete(handle);
 						return {
 							maybeSelectedProducts: newMap,
-							selectedProductSkus: newSet,
+							selectedProductHandles: newSet,
 						};
 					}
 
-					newMap.set(sku, {
-						...cartInfo,
-						total: totalCost,
-					});
-
-					newSet.add(sku);
+					newMap.set(handle, { ...cartInfo, total: totalCost });
+					newSet.add(handle);
 
 					return {
 						maybeSelectedProducts: newMap,
-						selectedProductSkus: newSet,
+						selectedProductHandles: newSet,
 					};
 				});
 			},
 
-			getQuantity: (sku) => {
-				return get().maybeSelectedProducts.get(sku)?.quantity || 0;
+			getQuantity: (handle) => {
+				return get().maybeSelectedProducts.get(handle)?.quantity || 0;
 			},
 
-			// TODO: when User checks out successfully, we need to call this
 			clearCart: () => {
 				set({
 					maybeSelectedProducts: new Map(),
-					selectedProductSkus: new Set(),
+					selectedProductHandles: new Set(),
 					cart: [],
 					cartSize: 0,
 					totalCost: 0,
 				});
 			},
 
-			getIsProductSelected: (sku) => {
-				const { selectedProductSkus } = get();
-				return selectedProductSkus.has(sku);
+			getIsProductSelected: (handle) => {
+				return get().selectedProductHandles.has(handle);
 			},
 
-			toggleProduct: (sku) => {
+			toggleProduct: (handle) => {
 				set((state) => {
-					const selectedProductSkus = state.selectedProductSkus;
-					const newSet = new Set(selectedProductSkus);
-
-					if (newSet.has(sku)) {
-						newSet.delete(sku);
+					const newSet = new Set(state.selectedProductHandles);
+					if (newSet.has(handle)) {
+						newSet.delete(handle);
 					} else {
-						newSet.add(sku);
+						newSet.add(handle);
 					}
-
-					return {
-						selectedProductSkus: newSet,
-					};
+					return { selectedProductHandles: newSet };
 				});
 			},
 
-			canSelectProduct: (sku) => {
-				const { maybeSelectedProducts } = get();
-				return maybeSelectedProducts.has(sku);
+			canSelectProduct: (handle) => {
+				return get().maybeSelectedProducts.has(handle);
 			},
 
 			toggleAllProducts: (selectAll, products) => {
 				set((state) => {
 					if (selectAll) {
-						// Select all products and set quantity to 1
 						const newMap = new Map(state.maybeSelectedProducts);
-						const newSet = new Set(state.selectedProductSkus);
+						const newSet = new Set(state.selectedProductHandles);
 
 						for (const product of products) {
-							const existing = newMap.get(product.sku);
-							if (!existing) {
-								// Product not in cart, add with quantity 1
-								newMap.set(product.sku, {
+							if (!newMap.has(product.handle)) {
+								newMap.set(product.handle, {
+									handle: product.handle,
 									sku: product.sku,
 									description: product.description,
 									unitCost: product.unitCost,
@@ -152,77 +129,55 @@ export const useCartStore = create<CartStore>()(
 									total: product.unitCost,
 								});
 							}
-							newSet.add(product.sku);
+							newSet.add(product.handle);
 						}
 
 						return {
 							maybeSelectedProducts: newMap,
-							selectedProductSkus: newSet,
+							selectedProductHandles: newSet,
 						};
 					} else {
-						// Deselect all products and clear quantities
 						return {
 							maybeSelectedProducts: new Map(),
-							selectedProductSkus: new Set(),
+							selectedProductHandles: new Set(),
 						};
 					}
 				});
 			},
 
 			areAllProductsSelected: (products) => {
-				const { selectedProductSkus } = get();
-
+				const { selectedProductHandles } = get();
 				if (products.length === 0) return false;
-
-				return products.every((product) =>
-					selectedProductSkus.has(product.sku),
-				);
+				return products.every((p) => selectedProductHandles.has(p.handle));
 			},
 
 			areSomeProductsSelected: (products) => {
-				const { selectedProductSkus } = get();
-
+				const { selectedProductHandles } = get();
 				if (products.length === 0) return false;
-
-				const selectedCount = products.filter((product) =>
-					selectedProductSkus.has(product.sku),
+				const count = products.filter((p) =>
+					selectedProductHandles.has(p.handle),
 				).length;
-
-				return selectedCount > 0 && selectedCount < products.length;
+				return count > 0 && count < products.length;
 			},
 
-			getCart: () => {
-				const { cart } = get();
-				return cart;
-			},
+			getCart: () => get().cart,
 
-			getTotalCartCost: () => {
-				const { totalCost } = get();
-				return totalCost;
-			},
+			getTotalCartCost: () => get().totalCost,
 
 			prepareCartForCheckout: () => {
 				set((state) => {
-					const { selectedProductSkus, maybeSelectedProducts } = state;
-					const arr = Array.from(maybeSelectedProducts.values());
-					const cart = arr
-						.map((item) => {
-							const sku = item.sku;
-							if (selectedProductSkus.has(sku)) {
-								return item;
-							} else return null;
-						})
+					const { selectedProductHandles, maybeSelectedProducts } = state;
+					const cart = Array.from(maybeSelectedProducts.values())
+						.map((item) =>
+							selectedProductHandles.has(item.handle) ? item : null,
+						)
 						.filter((x) => x !== null);
 
 					const totalCost =
 						Math.round(cart.reduce((sum, item) => sum + item.total, 0) * 100) /
 						100;
 
-					return {
-						cart: cart,
-						cartSize: cart.length,
-						totalCost: totalCost,
-					};
+					return { cart, cartSize: cart.length, totalCost };
 				});
 			},
 
@@ -231,8 +186,8 @@ export const useCartStore = create<CartStore>()(
 				const newSet = new Set<string>();
 
 				for (const item of items) {
-					newMap.set(item.sku, item);
-					newSet.add(item.sku);
+					newMap.set(item.handle, item);
+					newSet.add(item.handle);
 				}
 
 				const totalCost =
@@ -241,10 +196,10 @@ export const useCartStore = create<CartStore>()(
 
 				set({
 					maybeSelectedProducts: newMap,
-					selectedProductSkus: newSet,
+					selectedProductHandles: newSet,
 					cart: items,
 					cartSize: items.length,
-					totalCost: totalCost,
+					totalCost,
 				});
 			},
 		}),
@@ -255,16 +210,15 @@ export const useCartStore = create<CartStore>()(
 					const str = localStorage.getItem(name);
 					if (!str) return null;
 					const { state } = JSON.parse(str);
-					const newSet = new Set(
-						state.selectedProductSkus || [],
-					) as Set<string>;
 					return {
 						state: {
 							...state,
 							maybeSelectedProducts: new Map(
 								Object.entries(state.maybeSelectedProducts || {}),
 							),
-							selectedProductSkus: newSet,
+							selectedProductHandles: new Set(
+								state.selectedProductHandles || [],
+							) as Set<string>,
 						},
 					};
 				},
@@ -277,8 +231,8 @@ export const useCartStore = create<CartStore>()(
 								maybeSelectedProducts: Object.fromEntries(
 									value.state.maybeSelectedProducts,
 								),
-								selectedProductSkus: Array.from(
-									value.state.selectedProductSkus,
+								selectedProductHandles: Array.from(
+									value.state.selectedProductHandles,
 								),
 							},
 						}),

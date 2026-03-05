@@ -12,7 +12,7 @@ const CartSummary = ({ cart }: CartSummaryProps) => {
 		<div className="w-full border rounded-lg bg-white overflow-hidden md:w-[60%] md:max-h-[600px] md:overflow-y-auto md:border-0 md:rounded-none md:bg-transparent">
 			{cart.map((item) => (
 				<CartRow
-					key={item.sku}
+					key={item.handle}
 					sku={item.sku}
 					description={item.description}
 					quantity={item.quantity}
