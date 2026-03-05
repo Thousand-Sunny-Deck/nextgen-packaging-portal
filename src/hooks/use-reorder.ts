@@ -32,7 +32,7 @@ export function useReorder() {
 
 			populateCartFromOrder(items);
 
-			const orderRoute = pathname.replace("home", "order");
+			const orderRoute = pathname.replace("home", "quick-order");
 			router.push(orderRoute);
 
 			toast.success("Order loaded! Review and proceed to checkout.");
