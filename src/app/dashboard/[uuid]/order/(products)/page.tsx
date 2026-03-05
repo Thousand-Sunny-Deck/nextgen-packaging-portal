@@ -3,7 +3,6 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 import { fetchProductsForUser } from "@/actions/products/fetch-products-action";
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
-import { CheckoutButton } from "@/components/CheckoutButton";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
 import { CatalogSearch } from "@/components/shop-grid/CatalogSearch";
@@ -53,7 +52,6 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 					total={products.length}
 					pageSize={24}
 				/>
-				<CheckoutButton />
 			</div>
 		</div>
 	);
