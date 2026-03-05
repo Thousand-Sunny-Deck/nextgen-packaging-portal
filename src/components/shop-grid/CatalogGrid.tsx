@@ -92,6 +92,19 @@ export const CatalogGrid = ({
 		setQuantity(toCartItem(product, safeQuantity));
 	};
 
+	const handleToggleSelect = (product: ProductData) => {
+		const isSelected = getIsProductSelected(product.handle);
+		if (isSelected) {
+			return;
+		}
+
+		const existingQty =
+			maybeSelectedProducts.get(product.handle)?.quantity ?? 0;
+		const nextQty = existingQty > 0 ? existingQty : 1;
+		setQuantity(toCartItem(product, nextQty));
+		toggleProduct(product.handle);
+	};
+
 	const handleCartQuantityChange = (handle: string, quantity: number) => {
 		const existing = maybeSelectedProducts.get(handle);
 		if (!existing) return;
@@ -134,7 +147,7 @@ export const CatalogGrid = ({
 								onQuantityChange={(next) =>
 									handleCardQuantityChange(product, next)
 								}
-								onToggleSelect={() => toggleProduct(product.handle)}
+								onToggleSelect={() => handleToggleSelect(product)}
 							/>
 						);
 					})}

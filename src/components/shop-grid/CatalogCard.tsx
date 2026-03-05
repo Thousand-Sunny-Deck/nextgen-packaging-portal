@@ -68,7 +68,6 @@ export const CatalogCard = ({
 			<CatalogSelectButton
 				isSelected={item.isSelected}
 				onToggle={onToggleSelect}
-				disabled={item.quantity <= 0}
 			/>
 		</article>
 	);

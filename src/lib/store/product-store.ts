@@ -69,7 +69,6 @@ export const useCartStore = create<CartStore>()(
 					}
 
 					newMap.set(handle, { ...cartInfo, total: totalCost });
-					newSet.add(handle);
 
 					return {
 						maybeSelectedProducts: newMap,
