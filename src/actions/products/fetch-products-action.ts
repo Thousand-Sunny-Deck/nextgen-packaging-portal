@@ -29,7 +29,9 @@ export type FetchProductsResult = {
  */
 export async function fetchProductsForUser(
 	userId: string,
+	search?: string,
 ): Promise<ProductData[]> {
+	const sanitizedSearch = search?.trim().slice(0, 100);
 	const entitlements = await prisma.userProductEntitlement.findMany({
 		where: {
 			userId,
@@ -64,7 +66,14 @@ export async function fetchProductsForUser(
 		};
 	});
 
-	return products;
+	if (!sanitizedSearch) return products;
+
+	const q = sanitizedSearch.toLowerCase();
+	return products.filter(
+		(p) =>
+			p.sku.toLowerCase().includes(q) ||
+			p.description.toLowerCase().includes(q),
+	);
 }
 
 const MAX_PAGE_SIZE = 100;
@@ -97,13 +106,15 @@ export const fetchCatalog = async ({
 
 	const skip = (sanitizedPage - 1) * sanitizedPageSize;
 
-	const where = search
+	const sanitizedSearch = search?.trim().slice(0, 100);
+
+	const where = sanitizedSearch
 		? {
 				OR: [
-					{ sku: { contains: search, mode: "insensitive" as const } },
+					{ sku: { contains: sanitizedSearch, mode: "insensitive" as const } },
 					{
 						description: {
-							contains: search,
+							contains: sanitizedSearch,
 							mode: "insensitive" as const,
 						},
 					},
