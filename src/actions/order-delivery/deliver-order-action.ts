@@ -63,7 +63,12 @@ export const preparePayloadAndFire = async (
 			};
 		}
 
-		const order = await storePreparedOrderInDb(payload, session.user.id);
+		const validatedPayload: OrderPayload = validationResult.data;
+
+		const order = await storePreparedOrderInDb(
+			validatedPayload,
+			session.user.id,
+		);
 
 		try {
 			await inngest.send({
