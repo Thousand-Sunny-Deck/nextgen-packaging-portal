@@ -12,6 +12,8 @@ import { inngest } from "@/inngest/client";
 import { prepareAllOrdersData } from "./utils";
 import { ordersRatelimit } from "@/service/cache";
 
+// TODO: DELETE THIS API AND REFACTOR THE UITLS FOR PRESIGNED URL CACHE
+
 /*
  * @param request
  * @returns

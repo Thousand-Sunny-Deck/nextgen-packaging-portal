@@ -45,6 +45,7 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		success: true,
 		data: {
 			items: order.items.map((item) => ({
+				handle: item.handle,
 				sku: item.sku,
 				quantity: item.quantity,
 				description: item.description,

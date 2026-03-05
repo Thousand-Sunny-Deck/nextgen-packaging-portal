@@ -27,6 +27,7 @@ const cartItemSchema = z.object({
 	description: z.string().min(1, "Description is required"),
 	total: z.number().nonnegative("Total must be non-negative"),
 	unitCost: z.number().nonnegative("Unit cost must be non-negative"),
+	handle: z.string().min(1, "handle is required"),
 });
 
 const orderSummaryInfoSchema = z.object({

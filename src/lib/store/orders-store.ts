@@ -89,6 +89,7 @@ export async function storePreparedOrderInDb(
 			items: {
 				create: items.map((item) => ({
 					sku: item.sku,
+					handle: item.handle,
 					quantity: item.quantity,
 					description: item.description,
 					total: item.total,
