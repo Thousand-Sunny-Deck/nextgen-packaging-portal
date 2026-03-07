@@ -111,6 +111,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 		})),
 		subtotal: order.cartSubTotal,
 		tax: 0, // need to update this
+		serviceFee: order.serviceFee,
 		total: order.totalOrderCost,
 		totalPaid: 0,
 		balanceDue: order.totalOrderCost,
