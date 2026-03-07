@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw, Loader2, Package } from "lucide-react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, RefreshCw, Loader2, Package, Download } from "lucide-react";
+import { toast } from "sonner";
 import { ProductsDataTable } from "./products-data-table";
 import { productsColumns } from "./products-columns";
 import { CreateProductModal } from "./create-product-modal";
@@ -31,6 +38,34 @@ export function ProductsTab() {
 		fetchProducts();
 	};
 
+	const handleExportCSV = () => {
+		if (!loaded || products.length === 0) {
+			toast.error("Load products first before exporting.");
+			return;
+		}
+
+		const escape = (value: string) =>
+			value.includes(",") || value.includes('"') || value.includes("\n")
+				? `"${value.replace(/"/g, '""')}"`
+				: value;
+
+		const header = "sku,description,unitCost";
+		const rows = products.map(
+			(p) => `${escape(p.sku)},${escape(p.description)},${p.unitCost}`,
+		);
+		const csv = [header, ...rows].join("\n");
+
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `ngp-products-${new Date().toISOString().slice(0, 10)}.csv`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
+
 	return (
 		<div className="space-y-4">
 			{/* Header with buttons */}
@@ -43,6 +78,22 @@ export function ProductsTab() {
 					)}
 					{loaded ? "Refresh" : "Load Products"}
 				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline">
+							<Download className="h-4 w-4 mr-2" />
+							Export
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem onClick={handleExportCSV}>
+							CSV{" "}
+							<span className="ml-1 text-muted-foreground">
+								(Comma Separated Values)
+							</span>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 				<Button onClick={() => setCreateModalOpen(true)}>
 					<Plus className="h-4 w-4 mr-2" />
 					Create Product
