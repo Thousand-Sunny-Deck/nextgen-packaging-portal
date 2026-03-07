@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/new-admin/layout/page-header";
-import { BulkActionBar } from "@/components/new-admin/ui/bulk-action-bar";
 import { mockEntitlements } from "@/components/new-admin/mock-data";
 
 export default function NewAdminEntitlementsPage() {
@@ -33,11 +32,7 @@ export default function NewAdminEntitlementsPage() {
 
 	return (
 		<div className="p-4 md:p-8">
-			<PageHeader
-				title="Entitlements"
-				subtitle="Manage user product access"
-				cta={{ label: "Grant Access" }}
-			/>
+			<PageHeader title="Entitlements" subtitle="Manage user product access" />
 
 			<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
 				<div className="overflow-x-auto">
@@ -117,11 +112,6 @@ export default function NewAdminEntitlementsPage() {
 					</table>
 				</div>
 			</div>
-
-			<BulkActionBar
-				selectedCount={selectedIds.size}
-				onClearSelection={() => setSelectedIds(new Set())}
-			/>
 
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
 				<p className="text-sm text-slate-500">

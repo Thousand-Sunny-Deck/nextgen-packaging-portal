@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/new-admin/layout/page-header";
-import { BulkActionBar } from "@/components/new-admin/ui/bulk-action-bar";
 import { mockProducts } from "@/components/new-admin/mock-data";
 
 export default function NewAdminProductsPage() {
@@ -33,11 +32,7 @@ export default function NewAdminProductsPage() {
 
 	return (
 		<div className="p-4 md:p-8">
-			<PageHeader
-				title="Products"
-				subtitle="Manage available products"
-				cta={{ label: "Create Product" }}
-			/>
+			<PageHeader title="Products" subtitle="Manage available products" />
 
 			<div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
 				<div className="overflow-x-auto">
@@ -125,11 +120,6 @@ export default function NewAdminProductsPage() {
 					</table>
 				</div>
 			</div>
-
-			<BulkActionBar
-				selectedCount={selectedIds.size}
-				onClearSelection={() => setSelectedIds(new Set())}
-			/>
 
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
 				<p className="text-sm text-slate-500">

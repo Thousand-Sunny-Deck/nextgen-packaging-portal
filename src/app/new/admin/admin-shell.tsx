@@ -25,7 +25,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 						<Menu className="h-5 w-5" />
 					</button>
 					<span className="text-base font-bold text-slate-900 tracking-tight">
-						Admin<span className="text-orange-500">.</span>
+						NextGen Packaging<span className="text-orange-500">.</span>
 					</span>
 				</header>
 

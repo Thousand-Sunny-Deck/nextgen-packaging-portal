@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/new-admin/layout/page-header";
-import { BulkActionBar } from "@/components/new-admin/ui/bulk-action-bar";
 import { mockUsers } from "@/components/new-admin/mock-data";
 
+/**
+ * TODO: we need to change this entirely. No need to add the user inital icon
+ * Also, we need to leverage admin actions + manual pagination + search. Similar to shop
+ */
 export default function NewAdminUsersPage() {
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -33,11 +36,7 @@ export default function NewAdminUsersPage() {
 
 	return (
 		<div className="p-4 md:p-8">
-			<PageHeader
-				title="Users"
-				subtitle="Manage platform accounts"
-				cta={{ label: "Create User" }}
-			/>
+			<PageHeader title="Users" subtitle="Manage platform accounts" />
 
 			{/* Filters */}
 			<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4">
@@ -152,11 +151,6 @@ export default function NewAdminUsersPage() {
 					</table>
 				</div>
 			</div>
-
-			<BulkActionBar
-				selectedCount={selectedIds.size}
-				onClearSelection={() => setSelectedIds(new Set())}
-			/>
 
 			{/* Pagination */}
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">

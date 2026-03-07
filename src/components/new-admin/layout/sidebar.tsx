@@ -2,43 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-	LayoutDashboard,
-	Users,
-	Package,
-	ShieldCheck,
-	Zap,
-	ArrowLeft,
-	LogOut,
-	X,
-} from "lucide-react";
-
-const navGroups = [
-	{
-		label: "OVERVIEW",
-		items: [
-			{ label: "Dashboard", href: "/new/admin/home", icon: LayoutDashboard },
-		],
-	},
-	{
-		label: "MANAGE",
-		items: [
-			{ label: "Users", href: "/new/admin/users", icon: Users },
-			{ label: "Products", href: "/new/admin/products", icon: Package },
-			{
-				label: "Entitlements",
-				href: "/new/admin/entitlements",
-				icon: ShieldCheck,
-			},
-		],
-	},
-	{
-		label: "TOOLS",
-		items: [
-			{ label: "Quick Actions", href: "/new/admin/quick-actions", icon: Zap },
-		],
-	},
-];
+import { ArrowLeft, LogOut, X } from "lucide-react";
+import { navGroups } from "./nav-groups";
 
 interface NewAdminSidebarProps {
 	isOpen: boolean;
@@ -70,7 +35,7 @@ export function NewAdminSidebar({ isOpen, onClose }: NewAdminSidebarProps) {
 				{/* Logo + mobile close button */}
 				<div className="p-6 border-b border-slate-200 flex items-center justify-between">
 					<span className="text-lg font-bold text-slate-900 tracking-tight">
-						Admin<span className="text-orange-500">.</span>
+						NextGen Packaging<span className="text-orange-500">.</span>
 					</span>
 					<button
 						onClick={onClose}
@@ -120,6 +85,7 @@ export function NewAdminSidebar({ isOpen, onClose }: NewAdminSidebarProps) {
 							AD
 						</div>
 						<div className="min-w-0">
+							{/* TODO: get user details and truncate the email if too big*/}
 							<p className="text-sm font-medium text-slate-900 truncate">
 								Admin User
 							</p>
@@ -129,6 +95,7 @@ export function NewAdminSidebar({ isOpen, onClose }: NewAdminSidebarProps) {
 						</div>
 					</div>
 
+					{/* TODO: go back to dashbord using user information in session. */}
 					<Link
 						href="/dashboard"
 						onClick={onClose}
@@ -137,6 +104,7 @@ export function NewAdminSidebar({ isOpen, onClose }: NewAdminSidebarProps) {
 						<ArrowLeft className="h-4 w-4" />
 						Back to Dashboard
 					</Link>
+					{/* TODO: sign user out on onclick. */}
 					<Link
 						href="/auth/login"
 						onClick={onClose}
