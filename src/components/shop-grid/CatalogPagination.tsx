@@ -56,7 +56,7 @@ export const CatalogPagination = ({
 		return `${pathname}?${params.toString()}`;
 	};
 
-	const startRow = (page - 1) * pageSize + 1;
+	const startRow = total === 0 ? 0 : (page - 1) * pageSize + 1;
 	const endRow = Math.min(page * pageSize, total);
 
 	return (

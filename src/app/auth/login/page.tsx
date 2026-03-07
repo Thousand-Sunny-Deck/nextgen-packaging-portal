@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const EntryPage = () => {
+const LoginPage = () => {
 	const [isPending, setIsPending] = useState<boolean>(false);
 	const router = useRouter();
 
@@ -117,4 +117,4 @@ const EntryPage = () => {
 	);
 };
 
-export default EntryPage;
+export default LoginPage;
