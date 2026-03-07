@@ -58,8 +58,9 @@ export async function storePreparedOrderInDb(
 	const orderId = generateOrderId();
 	const invoiceId = await generateInvoiceId(billingInfo.organization);
 
-	// Calculate service fee (convert to Int as per schema)
-	const serviceFee = Math.round(extraCartInfo.extraCost.serviceFee || 0);
+	// Calculate service fee server-side from subtotal.
+	const serviceFee = Math.round(extraCartInfo.subTotal * 0.1);
+	const totalOrderCost = extraCartInfo.subTotal + serviceFee;
 
 	// Create order with all related data in a transaction
 	const order = await prisma.order.create({
@@ -74,7 +75,7 @@ export async function storePreparedOrderInDb(
 
 			// Order totals
 			serviceFee,
-			totalOrderCost: extraCartInfo.totalCost,
+			totalOrderCost,
 			cartSubTotal: extraCartInfo.subTotal,
 			cartSize: extraCartInfo.cartSize,
 

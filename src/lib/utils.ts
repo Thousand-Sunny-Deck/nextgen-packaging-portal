@@ -22,3 +22,27 @@ export function getDisplayOrderId(
 
 	return `${parts[0]}-${parts[parts.length - 1]}` || orderId;
 }
+
+export function getPaginationRange({
+	page,
+	pageSize,
+	total,
+}: {
+	page: number;
+	pageSize: number;
+	total: number;
+}) {
+	if (total <= 0) {
+		return { startRow: 0, endRow: 0 };
+	}
+
+	const safePage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+	const safePageSize = Number.isFinite(pageSize)
+		? Math.max(1, Math.floor(pageSize))
+		: 1;
+
+	return {
+		startRow: Math.min((safePage - 1) * safePageSize + 1, total),
+		endRow: Math.min(safePage * safePageSize, total),
+	};
+}
