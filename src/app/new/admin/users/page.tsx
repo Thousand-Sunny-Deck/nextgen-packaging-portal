@@ -1,4 +1,4 @@
-import { UsersClient } from "../../../../components/new-admin/users/users-client";
+import { UsersClient } from "@/components/new-admin/users/users-client";
 
 interface PageProps {
 	searchParams: Promise<{ q?: string; page?: string; pageSize?: string }>;

@@ -10,6 +10,7 @@ interface AdminPaginationProps {
 	totalPages: number;
 	total: number;
 	pageSize: number;
+	itemLabel?: string;
 }
 
 const generatePageNumbers = (
@@ -46,6 +47,7 @@ export function AdminPagination({
 	totalPages,
 	total,
 	pageSize,
+	itemLabel = "items",
 }: AdminPaginationProps) {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -64,7 +66,7 @@ export function AdminPagination({
 	return (
 		<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
 			<div className="text-sm text-gray-600">
-				Showing {startRow}–{endRow} of {total} users
+				Showing {startRow}–{endRow} of {total} {itemLabel}
 			</div>
 
 			{totalPages > 1 && (

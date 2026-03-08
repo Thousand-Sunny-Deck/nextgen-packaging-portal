@@ -22,7 +22,7 @@ const roleLozengeProps: Record<
 };
 
 function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleDateString("en-US", {
+	return new Date(isoString).toLocaleDateString("en-AU", {
 		year: "numeric",
 		month: "short",
 		day: "numeric",
@@ -150,6 +150,7 @@ export function UsersTable({
 				totalPages={totalPages}
 				total={total}
 				pageSize={pageSize}
+				itemLabel="users"
 			/>
 		</>
 	);
