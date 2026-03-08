@@ -1,5 +1,7 @@
-import { Users, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { Users, RefreshCw, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CreateUsersSheet } from "@/components/new-admin/users/create-user-sheet/create-users";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
 import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
@@ -83,20 +85,38 @@ export function UsersTable({
 	pageSize,
 	onRefresh,
 }: UsersTableProps) {
+	const [sheetOpen, setSheetOpen] = useState(false);
+
 	return (
 		<>
+			<CreateUsersSheet
+				open={sheetOpen}
+				onOpenChange={setSheetOpen}
+				onUsersCreated={onRefresh}
+			/>
+
 			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
 				<AdminSearch defaultValue={search} placeholder="Search users..." />
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onRefresh}
-					disabled={loading}
-					className="shrink-0"
-				>
-					<RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-					<span className="ml-1.5">Refresh</span>
-				</Button>
+				<div className="flex items-center gap-2">
+					<Button
+						size="sm"
+						onClick={() => setSheetOpen(true)}
+						className="shrink-0"
+					>
+						<UserPlus size={14} className="mr-1.5" />
+						Create Users
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onRefresh}
+						disabled={loading}
+						className="shrink-0"
+					>
+						<RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+						<span className="ml-1.5">Refresh</span>
+					</Button>
+				</div>
 			</div>
 
 			{error && (
