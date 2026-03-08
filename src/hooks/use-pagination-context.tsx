@@ -1,5 +1,6 @@
 "use client";
 import { Table } from "@tanstack/react-table";
+import { getPaginationRange } from "@/lib/utils";
 
 type PaginationContextInfo<TData> = {
 	table: Table<TData>;
@@ -18,8 +19,11 @@ export const usePaginationContext = <TData,>(
 	const currentPage = pagination.pageIndex + 1;
 	const pageSize = pagination.pageSize;
 
-	const startRow = pagination.pageIndex * pageSize + 1;
-	const endRow = Math.min(currentPage * pageSize, totalRows);
+	const { startRow, endRow } = getPaginationRange({
+		page: currentPage,
+		pageSize,
+		total: totalRows,
+	});
 
 	const generatePageNumbers = () => {
 		const pages: (number | string)[] = [];

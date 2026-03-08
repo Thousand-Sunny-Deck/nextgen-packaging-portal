@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPaginationRange } from "@/lib/utils";
 
 interface CatalogPaginationProps {
 	page: number;
@@ -56,8 +57,11 @@ export const CatalogPagination = ({
 		return `${pathname}?${params.toString()}`;
 	};
 
-	const startRow = (page - 1) * pageSize + 1;
-	const endRow = Math.min(page * pageSize, total);
+	const { startRow, endRow } = getPaginationRange({
+		page,
+		pageSize,
+		total,
+	});
 
 	return (
 		<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4">
