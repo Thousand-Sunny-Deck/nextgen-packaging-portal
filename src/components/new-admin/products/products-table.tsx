@@ -1,4 +1,4 @@
-import { Users, RefreshCw } from "lucide-react";
+import { Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
@@ -7,17 +7,14 @@ import {
 	AdminDataTable,
 	type AdminTableColumn,
 } from "@/components/new-admin/ui/admin-data-table";
-import { Lozenge } from "@/components/Lozenge";
-import type { SpikeAdminUser } from "@/actions/spike/users-actions";
+import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
 
-const roleLozengeProps: Record<
-	SpikeAdminUser["role"],
-	React.ComponentProps<typeof Lozenge>
-> = {
-	SUPER_ADMIN: { appearance: "new", children: "Super Admin" },
-	ADMIN: { className: "bg-orange-100 text-orange-800", children: "Admin" },
-	USER: { appearance: "default", children: "User" },
-};
+function formatCurrency(value: number) {
+	return value.toLocaleString("en-US", {
+		style: "currency",
+		currency: "USD",
+	});
+}
 
 function formatDate(isoString: string) {
 	return new Date(isoString).toLocaleDateString("en-US", {
@@ -27,41 +24,42 @@ function formatDate(isoString: string) {
 	});
 }
 
-const userColumns: AdminTableColumn<SpikeAdminUser>[] = [
+const productColumns: AdminTableColumn<SpikeAdminProduct>[] = [
 	{
-		key: "name",
-		header: "Name",
-		render: (u) => <span className="font-medium text-slate-900">{u.name}</span>,
+		key: "sku",
+		header: "SKU",
+		render: (p) => (
+			<span className="font-mono text-xs text-slate-700">{p.sku}</span>
+		),
 	},
 	{
-		key: "email",
-		header: "Email",
-		render: (u) => <span className="text-slate-500">{u.email}</span>,
+		key: "description",
+		header: "Description",
+		render: (p) => (
+			<span className="font-medium text-slate-900">{p.description}</span>
+		),
 	},
 	{
-		key: "role",
-		header: "Role",
-		render: (u) => <Lozenge {...roleLozengeProps[u.role]} />,
+		key: "handle",
+		header: "Handle",
+		render: (p) => <span className="text-slate-500">{p.handle}</span>,
 	},
 	{
-		key: "orders",
-		header: "Orders",
-		render: (u) => u.ordersCount,
+		key: "unitCost",
+		header: "Unit Cost",
+		render: (p) => (
+			<span className="text-slate-700">{formatCurrency(p.unitCost)}</span>
+		),
 	},
 	{
-		key: "entitlements",
-		header: "Entitlements",
-		render: (u) => u.entitlementsCount,
-	},
-	{
-		key: "joined",
-		header: "Joined",
-		render: (u) => formatDate(u.createdAt),
+		key: "created",
+		header: "Created",
+		render: (p) => formatDate(p.createdAt),
 	},
 ];
 
-interface UsersTableProps {
-	users: SpikeAdminUser[];
+interface ProductsTableProps {
+	products: SpikeAdminProduct[];
 	total: number;
 	totalPages: number;
 	loading: boolean;
@@ -72,8 +70,8 @@ interface UsersTableProps {
 	onRefresh: () => void;
 }
 
-export function UsersTable({
-	users,
+export function ProductsTable({
+	products,
 	total,
 	totalPages,
 	loading,
@@ -82,11 +80,11 @@ export function UsersTable({
 	page,
 	pageSize,
 	onRefresh,
-}: UsersTableProps) {
+}: ProductsTableProps) {
 	return (
 		<>
 			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-				<AdminSearch defaultValue={search} placeholder="Search users..." />
+				<AdminSearch defaultValue={search} placeholder="Search products..." />
 				<Button
 					variant="outline"
 					size="sm"
@@ -105,23 +103,23 @@ export function UsersTable({
 				</div>
 			)}
 
-			{users.length === 0 && !loading ? (
+			{products.length === 0 && !loading ? (
 				<EmptyState
-					icon={Users}
-					heading="No users found"
+					icon={Package}
+					heading="No products found"
 					description={
 						search
-							? `No users match "${search}". Try a different search.`
-							: "No users in the database yet."
+							? `No products match "${search}". Try a different search.`
+							: "No products in the database yet."
 					}
 				/>
 			) : (
 				<AdminDataTable
-					columns={userColumns}
-					data={users}
-					getRowId={(u) => u.id}
+					columns={productColumns}
+					data={products}
+					getRowId={(p) => p.id}
 					loading={loading}
-					minWidth="min-w-[700px]"
+					minWidth="min-w-[760px]"
 				/>
 			)}
 
@@ -130,7 +128,7 @@ export function UsersTable({
 				totalPages={totalPages}
 				total={total}
 				pageSize={pageSize}
-				itemLabel="users"
+				itemLabel="products"
 			/>
 		</>
 	);
