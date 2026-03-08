@@ -21,10 +21,13 @@ export function AdminSearch({
 	const searchParams = useSearchParams();
 
 	const navigate = (q: string) => {
-		const params = new URLSearchParams();
-		if (q) params.set("q", q);
-		const pageSize = searchParams.get("pageSize");
-		if (pageSize) params.set("pageSize", pageSize);
+		const params = new URLSearchParams(searchParams.toString());
+		if (q) {
+			params.set("q", q);
+		} else {
+			params.delete("q");
+		}
+		params.delete("page");
 		router.push(`${pathname}?${params.toString()}`);
 	};
 
