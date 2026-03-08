@@ -37,7 +37,6 @@ const userColumns: AdminTableColumn<SpikeAdminUser>[] = [
 		key: "email",
 		header: "Email",
 		render: (u) => <span className="text-slate-500">{u.email}</span>,
-		hideBelow: "sm",
 	},
 	{
 		key: "role",
@@ -48,19 +47,16 @@ const userColumns: AdminTableColumn<SpikeAdminUser>[] = [
 		key: "orders",
 		header: "Orders",
 		render: (u) => u.ordersCount,
-		hideBelow: "md",
 	},
 	{
 		key: "entitlements",
 		header: "Entitlements",
 		render: (u) => u.entitlementsCount,
-		hideBelow: "md",
 	},
 	{
 		key: "joined",
 		header: "Joined",
 		render: (u) => formatDate(u.createdAt),
-		hideBelow: "lg",
 	},
 ];
 
