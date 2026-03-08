@@ -1,5 +1,5 @@
 import { CatalogGridLoading } from "@/components/shop-grid/CatalogGridLoading";
 
 export default function Loading() {
-	return <CatalogGridLoading title="Quick Order" />;
+	return <CatalogGridLoading title="Shop" />;
 }
