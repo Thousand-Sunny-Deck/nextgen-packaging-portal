@@ -10,14 +10,15 @@ import {
 import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
 
 function formatCurrency(value: number) {
-	return value.toLocaleString("en-US", {
+	return value.toLocaleString("en-AU", {
 		style: "currency",
-		currency: "USD",
+		currency: "AUD",
+		currencyDisplay: "code",
 	});
 }
 
 function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleDateString("en-US", {
+	return new Date(isoString).toLocaleDateString("en-AU", {
 		year: "numeric",
 		month: "short",
 		day: "numeric",
