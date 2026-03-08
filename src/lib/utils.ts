@@ -23,6 +23,14 @@ export function getDisplayOrderId(
 	return `${parts[0]}-${parts[parts.length - 1]}` || orderId;
 }
 
+export function slugify(str: string): string {
+	return str
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+
 export function getPaginationRange({
 	page,
 	pageSize,

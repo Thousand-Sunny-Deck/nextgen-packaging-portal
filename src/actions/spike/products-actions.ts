@@ -1,7 +1,13 @@
 "use server";
 
+<<<<<<< HEAD
 import { requireAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/config/prisma";
+=======
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth/admin-guard";
+import { prisma } from "@/lib/config/prisma";
+import { slugify } from "@/lib/utils";
+>>>>>>> d0b4d54 (create products feture)
 
 export type SpikeAdminProduct = {
 	id: string;
@@ -95,3 +101,81 @@ export async function getSpikeProducts(
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
 }
+<<<<<<< HEAD
+=======
+
+// ─── Bulk Create ─────────────────────────────────────────────────────────────
+
+export type BulkCreateProductEntry = {
+	sku: string;
+	description: string;
+	unitCost: number;
+};
+
+export type BulkCreateProductsResult =
+	| { success: true }
+	| { success: false; error: string };
+
+export async function bulkCreateProducts(
+	entries: BulkCreateProductEntry[],
+): Promise<BulkCreateProductsResult> {
+	await requireSuperAdmin();
+
+	if (entries.length === 0 || entries.length > 10) {
+		return { success: false, error: "Must provide between 1 and 10 products." };
+	}
+
+	const skus = entries.map((e) => e.sku.trim());
+	const handles = entries.map((e) =>
+		slugify(`${e.sku.trim()} ${e.description.trim()}`),
+	);
+
+	const [existingBySku, existingByHandle] = await prisma.$transaction([
+		prisma.product.findMany({
+			where: { sku: { in: skus } },
+			select: { sku: true },
+		}),
+		prisma.product.findMany({
+			where: { handle: { in: handles } },
+			select: { handle: true },
+		}),
+	]);
+
+	if (existingBySku.length > 0) {
+		const conflicts = existingBySku.map((p) => p.sku).join(", ");
+		return {
+			success: false,
+			error: `SKU${existingBySku.length > 1 ? "s" : ""} already exist: ${conflicts}`,
+		};
+	}
+
+	if (existingByHandle.length > 0) {
+		const conflicts = existingByHandle.map((p) => p.handle).join(", ");
+		return {
+			success: false,
+			error: `Handle collision${existingByHandle.length > 1 ? "s" : ""} detected: ${conflicts}. Adjust SKU or description to resolve.`,
+		};
+	}
+
+	try {
+		await prisma.$transaction(
+			entries.map((entry) =>
+				prisma.product.create({
+					data: {
+						sku: entry.sku.trim(),
+						description: entry.description.trim(),
+						unitCost: entry.unitCost,
+						handle: slugify(`${entry.sku.trim()} ${entry.description.trim()}`),
+					},
+				}),
+			),
+		);
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Unknown error";
+		console.error("[bulkCreateProducts] Transaction failed:", err);
+		return { success: false, error: `Failed to create products: ${message}` };
+	}
+
+	return { success: true };
+}
+>>>>>>> d0b4d54 (create products feture)
