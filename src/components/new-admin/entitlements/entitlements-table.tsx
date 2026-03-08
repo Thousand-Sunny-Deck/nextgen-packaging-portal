@@ -81,6 +81,28 @@ const entitlementColumns: AdminTableColumn<SpikeUserEntitlementRow>[] = [
 		),
 	},
 	{
+		key: "customSku",
+		header: "Custom SKU",
+		render: (row) =>
+			row.customSku ? (
+				<span className="font-mono text-xs text-slate-700">
+					{row.customSku}
+				</span>
+			) : (
+				<span className="text-slate-400">Not set</span>
+			),
+	},
+	{
+		key: "customDescription",
+		header: "Custom Description",
+		render: (row) =>
+			row.customDescription ? (
+				<span className="text-slate-700">{row.customDescription}</span>
+			) : (
+				<span className="text-slate-400">Not set</span>
+			),
+	},
+	{
 		key: "unitCost",
 		header: "Unit Cost",
 		render: (row) => {
@@ -96,6 +118,18 @@ const entitlementColumns: AdminTableColumn<SpikeUserEntitlementRow>[] = [
 				</div>
 			);
 		},
+	},
+	{
+		key: "customUnitCost",
+		header: "Custom Unit Cost",
+		render: (row) =>
+			row.customUnitCost !== null ? (
+				<span className="text-slate-700">
+					{formatCurrency(row.customUnitCost)}
+				</span>
+			) : (
+				<span className="text-slate-400">Not set</span>
+			),
 	},
 	{
 		key: "granted",
@@ -156,7 +190,7 @@ export function EntitlementsTable({
 					data={entitlements}
 					getRowId={(entitlement) => entitlement.id}
 					loading={loading}
-					minWidth="min-w-[920px]"
+					minWidth="min-w-[1240px]"
 				/>
 			)}
 
