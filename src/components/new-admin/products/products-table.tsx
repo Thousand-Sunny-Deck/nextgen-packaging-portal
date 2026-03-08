@@ -1,14 +1,9 @@
-<<<<<<< HEAD
-import { Package, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-=======
 "use client";
 
 import { useState } from "react";
 import { Package, RefreshCw, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateProductsSheet } from "@/components/new-admin/products/create-product-sheet/create-products";
->>>>>>> d0b4d54 (create products feture)
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
 import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
@@ -91,22 +86,6 @@ export function ProductsTable({
 	pageSize,
 	onRefresh,
 }: ProductsTableProps) {
-<<<<<<< HEAD
-	return (
-		<>
-			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-				<AdminSearch defaultValue={search} placeholder="Search products..." />
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onRefresh}
-					disabled={loading}
-					className="shrink-0"
-				>
-					<RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-					<span className="ml-1.5">Refresh</span>
-				</Button>
-=======
 	const [sheetOpen, setSheetOpen] = useState(false);
 
 	return (
@@ -139,7 +118,6 @@ export function ProductsTable({
 						<span className="ml-1.5">Refresh</span>
 					</Button>
 				</div>
->>>>>>> d0b4d54 (create products feture)
 			</div>
 
 			{error && (

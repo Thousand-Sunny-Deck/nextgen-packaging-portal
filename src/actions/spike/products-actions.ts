@@ -1,13 +1,8 @@
 "use server";
 
-<<<<<<< HEAD
-import { requireAdmin } from "@/lib/auth/admin-guard";
-import { prisma } from "@/lib/config/prisma";
-=======
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/config/prisma";
 import { slugify } from "@/lib/utils";
->>>>>>> d0b4d54 (create products feture)
 
 export type SpikeAdminProduct = {
 	id: string;
@@ -101,8 +96,6 @@ export async function getSpikeProducts(
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
 }
-<<<<<<< HEAD
-=======
 
 // ─── Bulk Create ─────────────────────────────────────────────────────────────
 
@@ -178,4 +171,3 @@ export async function bulkCreateProducts(
 
 	return { success: true };
 }
->>>>>>> d0b4d54 (create products feture)
