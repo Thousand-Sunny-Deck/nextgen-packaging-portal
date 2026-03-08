@@ -13,7 +13,7 @@ export function ReviewStep({
 		<div className="space-y-4 py-4 max-w-lg mx-auto">
 			<p className="text-sm text-slate-500">
 				The following {draft.length} user{draft.length > 1 ? "s" : ""} will be
-				created. If any one fails, none will be created.
+				created sequentially. Pre-existing emails are checked upfront.
 			</p>
 			<div className="space-y-2">
 				{draft.map((user) => (

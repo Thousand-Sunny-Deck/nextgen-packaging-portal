@@ -112,8 +112,13 @@ export type BulkCreateUserEntry = {
 };
 
 export type BulkCreateUsersResult =
-	| { success: true }
-	| { success: false; error: string };
+	| { success: true; createdCount: number }
+	| {
+			success: false;
+			error: string;
+			createdCount: number;
+			skippedCount: number;
+	  };
 
 export async function bulkCreateUsers(
 	entries: BulkCreateUserEntry[],
@@ -121,7 +126,12 @@ export async function bulkCreateUsers(
 	await requireSuperAdmin();
 
 	if (entries.length === 0 || entries.length > 5) {
-		return { success: false, error: "Must provide between 1 and 5 users." };
+		return {
+			success: false,
+			error: "Must provide between 1 and 5 users.",
+			createdCount: 0,
+			skippedCount: 0,
+		};
 	}
 
 	// Pre-check: find any emails that already exist in one query
@@ -136,10 +146,13 @@ export async function bulkCreateUsers(
 		return {
 			success: false,
 			error: `Email${existing.length > 1 ? "s" : ""} already exist: ${conflicts}`,
+			createdCount: 0,
+			skippedCount: entries.length,
 		};
 	}
 
-	// Create sequentially — all-or-nothing intent; pre-check covers the common case
+	// Create sequentially, best-effort
+	let createdCount = 0;
 	for (const entry of entries) {
 		try {
 			await auth.api.signUpEmail({
@@ -149,16 +162,19 @@ export async function bulkCreateUsers(
 					password: entry.password,
 				},
 			});
+			createdCount++;
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : "Unknown error during signup";
 			console.error(`[bulkCreateUsers] Failed for ${entry.email}:`, err);
 			return {
 				success: false,
-				error: `Failed to create user "${entry.email}": ${message}`,
+				error: `Failed on "${entry.email}": ${message}`,
+				createdCount,
+				skippedCount: entries.length - createdCount - 1,
 			};
 		}
 	}
 
-	return { success: true };
+	return { success: true, createdCount };
 }

@@ -129,12 +129,17 @@ export function CreateUsersSheet({
 			);
 
 			if (!result.success) {
-				setSubmitError(result.error);
+				setSubmitError(
+					result.createdCount > 0
+						? `${result.error} — ${result.createdCount} user${result.createdCount > 1 ? "s" : ""} were created before the failure, ${result.skippedCount} skipped.`
+						: result.error,
+				);
+				if (result.createdCount > 0) onUsersCreated();
 				return;
 			}
 
 			toast.success(
-				`${draft.length} user${draft.length > 1 ? "s" : ""} created successfully`,
+				`${result.createdCount} user${result.createdCount > 1 ? "s" : ""} created successfully`,
 			);
 			onUsersCreated();
 			handleClose();
@@ -214,7 +219,10 @@ export function CreateUsersSheet({
 						<>
 							<Button
 								variant="outline"
-								onClick={() => setStep("draft")}
+								onClick={() => {
+									setStep("draft");
+									setSubmitError(null);
+								}}
 								disabled={submitting}
 							>
 								<ArrowLeft className="mr-2 h-4 w-4" />
