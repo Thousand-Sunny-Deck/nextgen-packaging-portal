@@ -1,9 +1,13 @@
+import { requireSuperAdmin } from "@/lib/auth/admin-guard";
 import { AdminShell } from "./admin-shell";
 
 interface NewAdminLayoutProps {
 	children: React.ReactNode;
 }
 
-export default function NewAdminLayout({ children }: NewAdminLayoutProps) {
+export default async function NewAdminLayout({
+	children,
+}: NewAdminLayoutProps) {
+	await requireSuperAdmin();
 	return <AdminShell>{children}</AdminShell>;
 }
