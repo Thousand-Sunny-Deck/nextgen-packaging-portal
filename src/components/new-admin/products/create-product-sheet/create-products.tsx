@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCreateProductStore } from "@/lib/store/create-product-store";
-import { bulkCreateProducts } from "@/actions/spike/products-actions";
+import { submitProductDraft } from "./submit-product-draft";
 import { ProductDraftStep } from "./draft-step";
 import { ProductReviewStep } from "./review-step";
 
@@ -57,29 +57,22 @@ export function CreateProductsSheet({
 	const handleConfirm = async () => {
 		setSubmitting(true);
 		setSubmitError(null);
-		const draftItems = [...draft.values()];
 		try {
-			const result = await bulkCreateProducts(
-				draftItems.map(({ sku, description, unitCost }) => ({
-					sku,
-					description,
-					unitCost,
-				})),
-			);
-
+			const result = await submitProductDraft([...draft.values()]);
 			if (!result.success) {
 				setSubmitError(result.error);
 				return;
 			}
-
 			toast.success(
 				`${draft.size} product${draft.size > 1 ? "s" : ""} created successfully`,
 			);
 			clearDraft();
 			onProductsCreated();
 			handleClose();
-		} catch {
-			setSubmitError("An unexpected error occurred. Please try again.");
+		} catch (err) {
+			setSubmitError(
+				err instanceof Error ? err.message : "An unexpected error occurred.",
+			);
 		} finally {
 			setSubmitting(false);
 		}

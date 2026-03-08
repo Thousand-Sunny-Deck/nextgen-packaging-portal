@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, PackagePlus } from "lucide-react";
+import { PackagePlus, ImagePlus, Upload, X } from "lucide-react";
 import z from "zod";
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,12 @@ import {
 	useCreateProductStore,
 	type ProductDraftItem,
 } from "@/lib/store/create-product-store";
+import { ProductDraftCard } from "./product-draft-card";
+import Image from "next/image";
 
 export const MAX_MANUAL = 10;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 const productSchema = z.object({
 	sku: z.string().min(1, "SKU is required"),
@@ -28,7 +32,10 @@ export function ManualForm() {
 	const [sku, setSku] = useState("");
 	const [description, setDescription] = useState("");
 	const [unitCost, setUnitCost] = useState("");
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
+	const [imageError, setImageError] = useState<string | null>(null);
 	const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
 
 	const atLimit = draft.size >= MAX_MANUAL;
@@ -38,8 +45,35 @@ export function ManualForm() {
 		setSku("");
 		setDescription("");
 		setUnitCost("");
+		setImageFile(null);
+		setImagePreview(null);
 		setFormError(null);
+		setImageError(null);
 		setEditingLocalId(null);
+	};
+
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		if (!ACCEPTED_TYPES.includes(file.type)) {
+			setImageError("Only PNG, JPG, or WebP images are accepted.");
+			return;
+		}
+		if (file.size > MAX_IMAGE_BYTES) {
+			setImageError("Image must be under 5 MB.");
+			return;
+		}
+		setImageError(null);
+		setImageFile(file);
+		setImagePreview(URL.createObjectURL(file));
+		// reset the input so the same file can be re-selected after clearing
+		e.target.value = "";
+	};
+
+	const clearImage = () => {
+		setImageFile(null);
+		setImagePreview(null);
+		setImageError(null);
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -59,7 +93,6 @@ export function ManualForm() {
 
 		const handle = slugify(`${parsed.data.sku} ${parsed.data.description}`);
 
-		// Duplicate handle check within draft (exclude item being edited)
 		const duplicate = draftItems.some(
 			(i) =>
 				slugify(`${i.sku} ${i.description}`) === handle &&
@@ -70,10 +103,16 @@ export function ManualForm() {
 			return;
 		}
 
+		const itemData = {
+			...parsed.data,
+			imageFile: imageFile ?? undefined,
+			imagePreview: imagePreview ?? undefined,
+		};
+
 		if (editingLocalId) {
-			updateItem(editingLocalId, parsed.data);
+			updateItem(editingLocalId, itemData);
 		} else {
-			addItem(parsed.data);
+			addItem(itemData);
 		}
 
 		resetForm();
@@ -83,11 +122,17 @@ export function ManualForm() {
 		setSku(item.sku);
 		setDescription(item.description);
 		setUnitCost(String(item.unitCost));
+		setImageFile(item.imageFile ?? null);
+		setImagePreview(item.imagePreview ?? null);
 		setFormError(null);
+		setImageError(null);
 		setEditingLocalId(item.localId);
 	};
 
-	const handleCancelEdit = () => resetForm();
+	const handleRemove = (localId: string) => {
+		if (editingLocalId === localId) resetForm();
+		removeItem(localId);
+	};
 
 	return (
 		<div className="space-y-6 py-4 max-w-lg mx-auto">
@@ -129,6 +174,60 @@ export function ManualForm() {
 					/>
 				</div>
 
+				{/* Image picker */}
+				<div className="space-y-1.5">
+					<Label>
+						Product Image{" "}
+						<span className="text-slate-400 font-normal">(optional)</span>
+					</Label>
+
+					{imagePreview ? (
+						<div className="relative w-full h-44 rounded-lg border border-slate-200 overflow-hidden">
+							<Image
+								src={imagePreview}
+								alt="preview"
+								className="w-full h-full object-cover"
+							/>
+							<button
+								type="button"
+								onClick={clearImage}
+								className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+							>
+								<X size={12} />
+							</button>
+						</div>
+					) : (
+						<label className="flex flex-col items-center justify-center w-full h-44 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors gap-2">
+							<ImagePlus className="h-8 w-8 text-slate-300" />
+							<div className="text-center">
+								<p className="text-sm font-medium text-slate-500">
+									Product Image
+								</p>
+								<p className="text-xs text-slate-400">
+									PNG, JPG, WebP · max 5 MB
+								</p>
+							</div>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="mt-1 pointer-events-none"
+							>
+								<Upload size={13} className="mr-1.5" />
+								Upload Image
+							</Button>
+							<input
+								type="file"
+								accept="image/png,image/jpeg,image/webp"
+								className="hidden"
+								onChange={handleImageChange}
+							/>
+						</label>
+					)}
+
+					{imageError && <p className="text-sm text-red-600">{imageError}</p>}
+				</div>
+
 				{formError && <p className="text-sm text-red-600">{formError}</p>}
 
 				{atLimit && !editingLocalId && (
@@ -147,58 +246,28 @@ export function ManualForm() {
 						{editingLocalId ? "Update Product" : "Add to Draft"}
 					</Button>
 					{editingLocalId && (
-						<Button type="button" variant="outline" onClick={handleCancelEdit}>
+						<Button type="button" variant="outline" onClick={resetForm}>
 							Cancel
 						</Button>
 					)}
 				</div>
 			</form>
 
-			{/* Draft list */}
+			{/* Draft card grid */}
 			{draft.size > 0 && (
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
 						Draft — {draft.size} of {MAX_MANUAL}
 					</p>
-					<div className="space-y-2">
+					<div className="grid grid-cols-2 gap-3">
 						{draftItems.map((item) => (
-							<div
+							<ProductDraftCard
 								key={item.localId}
-								className={`flex items-center justify-between rounded-md border px-3 py-2 ${
-									editingLocalId === item.localId
-										? "border-orange-300 bg-orange-50"
-										: "border-slate-200 bg-slate-50"
-								}`}
-							>
-								<div>
-									<p className="text-sm font-medium text-slate-900 font-mono">
-										{item.sku}
-									</p>
-									<p className="text-xs text-slate-500">{item.description}</p>
-									<p className="text-xs text-slate-400">
-										${item.unitCost.toFixed(2)}
-									</p>
-								</div>
-								<div className="flex items-center gap-2">
-									<button
-										type="button"
-										onClick={() => handleEdit(item)}
-										className="text-slate-400 hover:text-slate-700 transition-colors"
-									>
-										<Pencil size={14} />
-									</button>
-									<button
-										type="button"
-										onClick={() => {
-											if (editingLocalId === item.localId) resetForm();
-											removeItem(item.localId);
-										}}
-										className="text-slate-400 hover:text-red-500 transition-colors"
-									>
-										<Trash2 size={14} />
-									</button>
-								</div>
-							</div>
+								item={item}
+								isEditing={editingLocalId === item.localId}
+								onEdit={handleEdit}
+								onRemove={handleRemove}
+							/>
 						))}
 					</div>
 				</div>

@@ -5,6 +5,8 @@ export type ProductDraftItem = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	imageFile?: File; // raw File — uploaded at Confirm time, never sent to server
+	imagePreview?: string; // object URL for display only
 };
 
 export type ProductDraftMode = "manual" | "csv";

@@ -1,4 +1,5 @@
 import type { ProductDraftItem } from "@/lib/store/create-product-store";
+import { ProductDraftCard } from "./product-draft-card";
 
 interface ProductReviewStepProps {
 	draft: ProductDraftItem[];
@@ -13,22 +14,9 @@ export function ProductReviewStep({ draft, error }: ProductReviewStepProps) {
 				be created. All succeed or none are created.
 			</p>
 
-			<div className="space-y-2">
+			<div className="grid grid-cols-2 gap-3">
 				{draft.map((item) => (
-					<div
-						key={item.localId}
-						className="rounded-md border border-slate-200 px-4 py-3"
-					>
-						<div className="flex items-center justify-between">
-							<p className="text-sm font-medium text-slate-900 font-mono">
-								{item.sku}
-							</p>
-							<p className="text-sm font-medium text-slate-700">
-								${item.unitCost.toFixed(2)}
-							</p>
-						</div>
-						<p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
-					</div>
+					<ProductDraftCard key={item.localId} item={item} />
 				))}
 			</div>
 

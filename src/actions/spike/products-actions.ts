@@ -3,6 +3,7 @@
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/config/prisma";
 import { slugify } from "@/lib/utils";
+import { S3Service } from "@/service/s3";
 
 export type SpikeAdminProduct = {
 	id: string;
@@ -97,12 +98,25 @@ export async function getSpikeProducts(
 	};
 }
 
+// ─── Image Upload ─────────────────────────────────────────────────────────────
+
+export async function getProductImageUploadUrl(
+	handle: string,
+): Promise<{ uploadUrl: string; s3Key: string }> {
+	await requireSuperAdmin();
+	const s3Key = `images/${handle}.png`;
+	const s3 = new S3Service();
+	const uploadUrl = await s3.getPresignedUrl(s3Key, 300, "put");
+	return { uploadUrl, s3Key };
+}
+
 // ─── Bulk Create ─────────────────────────────────────────────────────────────
 
 export type BulkCreateProductEntry = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	imageUrl?: string;
 };
 
 export type BulkCreateProductsResult =
@@ -159,6 +173,7 @@ export async function bulkCreateProducts(
 						description: entry.description.trim(),
 						unitCost: entry.unitCost,
 						handle: slugify(`${entry.sku.trim()} ${entry.description.trim()}`),
+						imageUrl: entry.imageUrl ?? null,
 					},
 				}),
 			),
