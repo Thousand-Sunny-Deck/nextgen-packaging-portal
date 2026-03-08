@@ -1,5 +1,9 @@
-import { Package, RefreshCw } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Package, RefreshCw, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CreateProductsSheet } from "@/components/new-admin/products/create-product-sheet/create-products";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
 import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
@@ -82,20 +86,38 @@ export function ProductsTable({
 	pageSize,
 	onRefresh,
 }: ProductsTableProps) {
+	const [sheetOpen, setSheetOpen] = useState(false);
+
 	return (
 		<>
+			<CreateProductsSheet
+				open={sheetOpen}
+				onOpenChange={setSheetOpen}
+				onProductsCreated={onRefresh}
+			/>
+
 			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
 				<AdminSearch defaultValue={search} placeholder="Search products..." />
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={onRefresh}
-					disabled={loading}
-					className="shrink-0"
-				>
-					<RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-					<span className="ml-1.5">Refresh</span>
-				</Button>
+				<div className="flex items-center gap-2">
+					<Button
+						size="sm"
+						onClick={() => setSheetOpen(true)}
+						className="shrink-0"
+					>
+						<PackagePlus size={14} className="mr-1.5" />
+						Create Products
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onRefresh}
+						disabled={loading}
+						className="shrink-0"
+					>
+						<RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+						<span className="ml-1.5">Refresh</span>
+					</Button>
+				</div>
 			</div>
 
 			{error && (
