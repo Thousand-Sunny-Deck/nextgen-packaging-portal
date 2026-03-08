@@ -23,11 +23,14 @@ export function ProductDraftCard({
 		>
 			{/* Top: image or placeholder */}
 			{item.imagePreview ? (
-				<Image
-					src={item.imagePreview}
-					alt={item.sku}
-					className="w-full h-32 object-cover"
-				/>
+				<div className="relative w-full h-32">
+					<Image
+						src={item.imagePreview}
+						alt={item.sku}
+						fill
+						className="object-cover"
+					/>
+				</div>
 			) : (
 				<div className="w-full h-32 bg-slate-50 flex items-center justify-center">
 					<ImageOff className="h-8 w-8 text-slate-200" />

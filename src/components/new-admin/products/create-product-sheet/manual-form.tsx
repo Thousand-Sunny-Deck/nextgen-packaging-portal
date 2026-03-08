@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PackagePlus, ImagePlus, Upload, X } from "lucide-react";
 import z from "zod";
 import { slugify } from "@/lib/utils";
@@ -37,6 +37,7 @@ export function ManualForm() {
 	const [formError, setFormError] = useState<string | null>(null);
 	const [imageError, setImageError] = useState<string | null>(null);
 	const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const atLimit = draft.size >= MAX_MANUAL;
 	const draftItems = [...draft.values()];
@@ -186,7 +187,8 @@ export function ManualForm() {
 							<Image
 								src={imagePreview}
 								alt="preview"
-								className="w-full h-full object-cover"
+								fill
+								className="object-cover"
 							/>
 							<button
 								type="button"
@@ -197,7 +199,10 @@ export function ManualForm() {
 							</button>
 						</div>
 					) : (
-						<label className="flex flex-col items-center justify-center w-full h-44 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors gap-2">
+						<div
+							onClick={() => fileInputRef.current?.click()}
+							className="flex flex-col items-center justify-center w-full h-44 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors gap-2"
+						>
 							<ImagePlus className="h-8 w-8 text-slate-300" />
 							<div className="text-center">
 								<p className="text-sm font-medium text-slate-500">
@@ -217,12 +222,13 @@ export function ManualForm() {
 								Upload Image
 							</Button>
 							<input
+								ref={fileInputRef}
 								type="file"
 								accept="image/png,image/jpeg,image/webp"
 								className="hidden"
 								onChange={handleImageChange}
 							/>
-						</label>
+						</div>
 					)}
 
 					{imageError && <p className="text-sm text-red-600">{imageError}</p>}
