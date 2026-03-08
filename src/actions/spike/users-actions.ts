@@ -1,7 +1,8 @@
 "use server";
 
-import { requireAdmin } from "@/lib/auth/admin-guard";
+import { requireAdmin, requireSuperAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/config/prisma";
+import { auth } from "@/lib/config/auth";
 
 export type SpikeAdminUser = {
 	id: string;
@@ -102,4 +103,78 @@ export async function getSpikeUsers(
 		pageSize: sanitizedPageSize,
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
+}
+
+export type BulkCreateUserEntry = {
+	name: string;
+	email: string;
+	password: string;
+};
+
+export type BulkCreateUsersResult =
+	| { success: true; createdCount: number }
+	| {
+			success: false;
+			error: string;
+			createdCount: number;
+			skippedCount: number;
+	  };
+
+export async function bulkCreateUsers(
+	entries: BulkCreateUserEntry[],
+): Promise<BulkCreateUsersResult> {
+	await requireSuperAdmin();
+
+	if (entries.length === 0 || entries.length > 5) {
+		return {
+			success: false,
+			error: "Must provide between 1 and 5 users.",
+			createdCount: 0,
+			skippedCount: 0,
+		};
+	}
+
+	// Pre-check: find any emails that already exist in one query
+	const emails = entries.map((e) => e.email.trim().toLowerCase());
+	const existing = await prisma.user.findMany({
+		where: { email: { in: emails } },
+		select: { email: true },
+	});
+
+	if (existing.length > 0) {
+		const conflicts = existing.map((u) => u.email).join(", ");
+		return {
+			success: false,
+			error: `Email${existing.length > 1 ? "s" : ""} already exist: ${conflicts}`,
+			createdCount: 0,
+			skippedCount: entries.length,
+		};
+	}
+
+	// Create sequentially, best-effort
+	let createdCount = 0;
+	for (const entry of entries) {
+		try {
+			await auth.api.signUpEmail({
+				body: {
+					name: entry.name.trim(),
+					email: entry.email.trim(),
+					password: entry.password,
+				},
+			});
+			createdCount++;
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Unknown error during signup";
+			console.error(`[bulkCreateUsers] Failed for ${entry.email}:`, err);
+			return {
+				success: false,
+				error: `Failed on "${entry.email}": ${message}`,
+				createdCount,
+				skippedCount: entries.length - createdCount - 1,
+			};
+		}
+	}
+
+	return { success: true, createdCount };
 }
