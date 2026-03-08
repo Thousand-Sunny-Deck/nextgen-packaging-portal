@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Pencil, Trash2, PackagePlus } from "lucide-react";
 import z from "zod";
+import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-	useProductDraftStore,
+	useCreateProductStore,
 	type ProductDraftItem,
-} from "@/lib/store/product-draft-store";
+} from "@/lib/store/create-product-store";
 
 export const MAX_MANUAL = 10;
 
@@ -17,12 +18,12 @@ const productSchema = z.object({
 	sku: z.string().min(1, "SKU is required"),
 	description: z.string().min(1, "Description is required"),
 	unitCost: z
-		.number({ invalid_type_error: "Unit cost must be a number" })
+		.number("Unit cost must be a number")
 		.positive("Unit cost must be greater than 0"),
 });
 
 export function ManualForm() {
-	const { draft, addItem, removeItem, updateItem } = useProductDraftStore();
+	const { draft, addItem, removeItem, updateItem } = useCreateProductStore();
 
 	const [sku, setSku] = useState("");
 	const [description, setDescription] = useState("");
@@ -30,7 +31,8 @@ export function ManualForm() {
 	const [formError, setFormError] = useState<string | null>(null);
 	const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
 
-	const atLimit = draft.length >= MAX_MANUAL;
+	const atLimit = draft.size >= MAX_MANUAL;
+	const draftItems = [...draft.values()];
 
 	const resetForm = () => {
 		setSku("");
@@ -55,14 +57,16 @@ export function ManualForm() {
 			return;
 		}
 
-		const skuLower = parsed.data.sku.toLowerCase();
+		const handle = slugify(`${parsed.data.sku} ${parsed.data.description}`);
 
-		// Duplicate SKU check within draft (exclude item being edited)
-		const duplicate = draft.some(
-			(i) => i.sku.toLowerCase() === skuLower && i.localId !== editingLocalId,
+		// Duplicate handle check within draft (exclude item being edited)
+		const duplicate = draftItems.some(
+			(i) =>
+				slugify(`${i.sku} ${i.description}`) === handle &&
+				i.localId !== editingLocalId,
 		);
 		if (duplicate) {
-			setFormError("This SKU is already in the draft.");
+			setFormError("This product is already in the draft.");
 			return;
 		}
 
@@ -151,13 +155,13 @@ export function ManualForm() {
 			</form>
 
 			{/* Draft list */}
-			{draft.length > 0 && (
+			{draft.size > 0 && (
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-						Draft — {draft.length} of {MAX_MANUAL}
+						Draft — {draft.size} of {MAX_MANUAL}
 					</p>
 					<div className="space-y-2">
-						{draft.map((item) => (
+						{draftItems.map((item) => (
 							<div
 								key={item.localId}
 								className={`flex items-center justify-between rounded-md border px-3 py-2 ${

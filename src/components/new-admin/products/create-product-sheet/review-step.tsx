@@ -1,11 +1,11 @@
-import type { ProductDraftItem } from "@/lib/store/product-draft-store";
+import type { ProductDraftItem } from "@/lib/store/create-product-store";
 
-interface ReviewStepProps {
+interface ProductReviewStepProps {
 	draft: ProductDraftItem[];
 	error: string | null;
 }
 
-export function ReviewStep({ draft, error }: ReviewStepProps) {
+export function ProductReviewStep({ draft, error }: ProductReviewStepProps) {
 	return (
 		<div className="space-y-4 py-4 max-w-lg mx-auto">
 			<p className="text-sm text-slate-500">

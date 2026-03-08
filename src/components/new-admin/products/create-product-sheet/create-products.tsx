@@ -12,10 +12,10 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useProductDraftStore } from "@/lib/store/product-draft-store";
+import { useCreateProductStore } from "@/lib/store/create-product-store";
 import { bulkCreateProducts } from "@/actions/spike/products-actions";
-import { DraftStep } from "./draft-step";
-import { ReviewStep } from "./review-step";
+import { ProductDraftStep } from "./draft-step";
+import { ProductReviewStep } from "./review-step";
 
 type Step = "draft" | "review";
 
@@ -30,7 +30,7 @@ export function CreateProductsSheet({
 	onOpenChange,
 	onProductsCreated,
 }: CreateProductsSheetProps) {
-	const { draft, mode, clearDraft } = useProductDraftStore();
+	const { draft, mode, clearDraft } = useCreateProductStore();
 
 	const [step, setStep] = useState<Step>("draft");
 	const [submitting, setSubmitting] = useState(false);
@@ -51,15 +51,16 @@ export function CreateProductsSheet({
 		setStep("draft");
 		setSubmitError(null);
 		onOpenChange(false);
-		// Note: draft intentionally NOT cleared on close — Zustand persists it
+		// Note: draft intentionally NOT cleared on close — store persists it
 	};
 
 	const handleConfirm = async () => {
 		setSubmitting(true);
 		setSubmitError(null);
+		const draftItems = [...draft.values()];
 		try {
 			const result = await bulkCreateProducts(
-				draft.map(({ sku, description, unitCost }) => ({
+				draftItems.map(({ sku, description, unitCost }) => ({
 					sku,
 					description,
 					unitCost,
@@ -72,7 +73,7 @@ export function CreateProductsSheet({
 			}
 
 			toast.success(
-				`${draft.length} product${draft.length > 1 ? "s" : ""} created successfully`,
+				`${draft.size} product${draft.size > 1 ? "s" : ""} created successfully`,
 			);
 			clearDraft();
 			onProductsCreated();
@@ -84,7 +85,7 @@ export function CreateProductsSheet({
 		}
 	};
 
-	const canProceed = mode === "manual" && draft.length > 0;
+	const canProceed = mode === "manual" && draft.size > 0;
 
 	return (
 		<Sheet
@@ -103,7 +104,7 @@ export function CreateProductsSheet({
 					<SheetTitle>
 						{step === "draft"
 							? "Create Products"
-							: `Review ${draft.length} product${draft.length > 1 ? "s" : ""}`}
+							: `Review ${draft.size} product${draft.size > 1 ? "s" : ""}`}
 					</SheetTitle>
 					<SheetDescription>
 						{step === "draft"
@@ -117,9 +118,12 @@ export function CreateProductsSheet({
 						submitting ? "opacity-60 pointer-events-none" : ""
 					}`}
 				>
-					{step === "draft" && <DraftStep />}
+					{step === "draft" && <ProductDraftStep />}
 					{step === "review" && (
-						<ReviewStep draft={draft} error={submitError} />
+						<ProductReviewStep
+							draft={[...draft.values()]}
+							error={submitError}
+						/>
 					)}
 				</div>
 
@@ -134,7 +138,7 @@ export function CreateProductsSheet({
 								Cancel
 							</Button>
 							<Button onClick={() => setStep("review")} disabled={!canProceed}>
-								Next ({draft.length})
+								Next ({draft.size})
 								<ArrowRight className="ml-2 h-4 w-4" />
 							</Button>
 						</>
@@ -160,8 +164,8 @@ export function CreateProductsSheet({
 								) : (
 									<>
 										<CheckCircle2 className="mr-2 h-4 w-4" />
-										Confirm {draft.length} product
-										{draft.length > 1 ? "s" : ""}
+										Confirm {draft.size} product
+										{draft.size > 1 ? "s" : ""}
 									</>
 								)}
 							</Button>

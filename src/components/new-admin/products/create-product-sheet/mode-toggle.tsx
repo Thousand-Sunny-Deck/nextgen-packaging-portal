@@ -1,5 +1,5 @@
+import type { ProductDraftMode } from "@/lib/store/create-product-store";
 import { FileText, Upload } from "lucide-react";
-import type { ProductDraftMode } from "@/lib/store/product-draft-store";
 
 interface ModeToggleProps {
 	mode: ProductDraftMode;
@@ -17,7 +17,7 @@ const options: {
 
 export function ModeToggle({ mode, onRequestSwitch }: ModeToggleProps) {
 	return (
-		<div className="flex rounded-md border border-slate-200 bg-slate-50 p-0.5 w-fit">
+		<div className="flex rounded-md border border-slate-200 bg-slate-50 p-0.5 w-full">
 			{options.map(({ value, label, icon: Icon }) => (
 				<button
 					key={value}
@@ -25,7 +25,7 @@ export function ModeToggle({ mode, onRequestSwitch }: ModeToggleProps) {
 					onClick={() => {
 						if (value !== mode) onRequestSwitch(value);
 					}}
-					className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+					className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors w-full ${
 						mode === value
 							? "bg-white text-slate-900 shadow-sm"
 							: "text-slate-500 hover:text-slate-700"

@@ -4,22 +4,22 @@ import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-	useProductDraftStore,
+	useCreateProductStore,
 	type ProductDraftMode,
-} from "@/lib/store/product-draft-store";
+} from "@/lib/store/create-product-store";
 import { ModeToggle } from "./mode-toggle";
 import { ManualForm } from "./manual-form";
 import { CsvUpload } from "./csv-upload";
 
-export function DraftStep() {
-	const { mode, draft, setMode, clearDraft } = useProductDraftStore();
+export function ProductDraftStep() {
+	const { mode, draft, setMode, clearDraft } = useCreateProductStore();
 	const [pendingSwitch, setPendingSwitch] = useState<ProductDraftMode | null>(
 		null,
 	);
 
 	const handleRequestSwitch = (to: ProductDraftMode) => {
 		if (to === mode) return;
-		if (mode === "manual" && draft.length > 0) {
+		if (mode === "manual" && draft.size > 0) {
 			setPendingSwitch(to);
 		} else {
 			setMode(to);
@@ -43,8 +43,8 @@ export function DraftStep() {
 						<AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
 						<div className="flex-1">
 							<p className="text-sm text-orange-800">
-								Your {draft.length} queued product
-								{draft.length > 1 ? "s" : ""} will be lost. Switch anyway?
+								Your {draft.size} queued product
+								{draft.size > 1 ? "s" : ""} will be lost. Switch anyway?
 							</p>
 							<div className="flex gap-2 mt-2">
 								<Button
