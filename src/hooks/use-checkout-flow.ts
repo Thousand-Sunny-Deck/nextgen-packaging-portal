@@ -70,14 +70,17 @@ const calculateOrderSummary = (
 	cartSize: number,
 ): OrderSummaryInfo => {
 	const subTotal = totalCost;
-	const serviceCost = Math.round(subTotal * 0.1);
-	const finalCost = subTotal + serviceCost;
+	const serviceFee = subTotal < 150 ? 10 : 0;
+	const adjustedSubTotal = subTotal + serviceFee;
+	const tax = Math.round(adjustedSubTotal * 0.1 * 100) / 100;
+	const finalCost = adjustedSubTotal + tax;
 
 	return {
 		subTotal,
 		totalCost: finalCost,
 		extraCost: {
-			serviceFee: serviceCost,
+			serviceFee,
+			tax,
 		},
 		cartSize: cartSize,
 	};

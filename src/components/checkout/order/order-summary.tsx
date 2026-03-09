@@ -44,6 +44,10 @@ const OrderSummary = ({
 					<p className="text-muted-foreground">Service fee</p>
 					<p className="font-medium">${extraCost["serviceFee"].toFixed(2)}</p>
 				</div>
+				<div className="mt-2 flex items-center justify-between text-sm">
+					<p className="text-muted-foreground">Tax</p>
+					<p className="font-medium">${extraCost["tax"].toFixed(2)}</p>
+				</div>
 			</div>
 
 			{/* Desktop detailed summary */}
@@ -59,13 +63,15 @@ const OrderSummary = ({
 						<p className="font-semibold text-sm">${subTotal.toFixed(2)}</p>
 					</div>
 					<div className="pl-3 flex flex-row justify-between mt-2">
-						<p className="font-extralight text-sm italic">Shipping</p>
-						<p className="font-semibold text-sm">${(0).toFixed(2)}</p>
-					</div>
-					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Service Fee</p>
 						<p className="font-semibold text-sm">
 							${extraCost["serviceFee"].toFixed(2)}
+						</p>
+					</div>
+					<div className="pl-3 flex flex-row justify-between mt-2">
+						<p className="font-extralight text-sm italic">Tax</p>
+						<p className="font-semibold text-sm">
+							${extraCost["tax"].toFixed(2)}
 						</p>
 					</div>
 					<hr className="mt-2" />

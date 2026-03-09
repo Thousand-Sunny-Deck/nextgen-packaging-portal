@@ -136,7 +136,8 @@ model Order {
   customerEmail        String
   customerOrganization String
 
-  serviceFee     Int
+  serviceFee     Float
+  tax            Float @default(0)
   totalOrderCost Float
   cartSubTotal   Float
   cartSize       Int
