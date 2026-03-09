@@ -30,7 +30,7 @@ export function CreateProductsSheet({
 	onOpenChange,
 	onProductsCreated,
 }: CreateProductsSheetProps) {
-	const { draft, mode, clearDraft } = useCreateProductStore();
+	const { draft, clearDraft } = useCreateProductStore();
 
 	const [step, setStep] = useState<Step>("draft");
 	const [submitting, setSubmitting] = useState(false);
@@ -78,7 +78,7 @@ export function CreateProductsSheet({
 		}
 	};
 
-	const canProceed = mode === "manual" && draft.size > 0;
+	const canProceed = draft.size > 0;
 
 	return (
 		<Sheet

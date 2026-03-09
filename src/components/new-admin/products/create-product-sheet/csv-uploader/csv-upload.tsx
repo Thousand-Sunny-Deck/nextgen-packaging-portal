@@ -3,13 +3,14 @@
 import { useRef, useState } from "react";
 import { Upload, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCreateProductStore } from "@/lib/store/create-product-store";
+import {
+	useCreateProductStore,
+	MAX_PRODUCT_DRAFT,
+} from "@/lib/store/create-product-store";
 import { parseCsv } from "./parser";
 
-export const MAX_CSV = 30;
-
 const TEMPLATE_CONTENT =
-	"BOX-001,Premium cardboard box,9.99\nBOX-002,Heavy duty shipping box,14.50\nENV-001,Standard envelope,2.99\n";
+	"BOX-001,Premium cardboard box,9.99,4.50\nBOX-002,Heavy duty shipping box,14.50,NA\nENV-001,Standard envelope,2.99,1.25\n";
 
 type Status =
 	| { type: "idle" }
@@ -90,7 +91,8 @@ export function CsvUpload() {
 			{/* Header row */}
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-slate-500">
-					Max {MAX_CSV} products per upload.
+					Max {MAX_PRODUCT_DRAFT} products per upload (sleeves count
+					separately).
 				</p>
 				<button
 					type="button"
@@ -104,7 +106,9 @@ export function CsvUpload() {
 			{/* Constraint hint */}
 			<p className="text-xs text-slate-400">
 				Fields must not contain commas or quotes. Format:{" "}
-				<span className="font-mono">sku,description,unit-cost</span>
+				<span className="font-mono">sku,description,unit-cost,sleeve-cost</span>{" "}
+				— use <span className="font-mono">NA</span> for sleeve cost if not
+				applicable.
 			</p>
 
 			{/* Idle — drop zone */}
