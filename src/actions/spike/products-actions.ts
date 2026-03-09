@@ -12,6 +12,7 @@ export type SpikeAdminProduct = {
 	handle: string;
 	description: string;
 	unitCost: number;
+	imageUrl: string | null;
 	createdAt: string;
 };
 
@@ -76,6 +77,7 @@ export async function getSpikeProducts(
 				handle: true,
 				description: true,
 				unitCost: true,
+				imageUrl: true,
 				createdAt: true,
 			},
 		}),
@@ -87,6 +89,7 @@ export async function getSpikeProducts(
 		handle: product.handle,
 		description: product.description,
 		unitCost: Number(product.unitCost),
+		imageUrl: product.imageUrl,
 		createdAt: product.createdAt.toISOString(),
 	}));
 
@@ -109,6 +112,38 @@ export async function getProductImageUploadUrl(
 	const s3 = new S3Service();
 	const uploadUrl = await s3.getPresignedUrl(s3Key, 300, "put");
 	return { uploadUrl, s3Key };
+}
+
+export async function getSpikeProductImageUploadUrl(input: {
+	productId: string;
+}): Promise<{
+	success: boolean;
+	uploadUrl?: string;
+	s3Key?: string;
+	error?: string;
+}> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { handle: true },
+	});
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	try {
+		const s3Key = `images/${product.handle}.png`;
+		const s3 = new S3Service();
+		const uploadUrl = await s3.getPresignedUrl(s3Key, 300, "put");
+		return { success: true, uploadUrl, s3Key };
+	} catch (error: unknown) {
+		console.error("Failed to generate spike product upload URL:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to prepare image upload." };
+	}
 }
 
 // ─── Bulk Create ─────────────────────────────────────────────────────────────
@@ -324,5 +359,31 @@ export async function getSpikeProductImageViewUrl(input: {
 			return { success: false, error: error.message };
 		}
 		return { success: false, error: "Failed to load product image." };
+	}
+}
+
+export async function updateSpikeProductImage(input: {
+	productId: string;
+	imageUrl: string;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const imageUrl = input.imageUrl.trim();
+	if (!imageUrl) {
+		return { success: false, error: "Image key is required." };
+	}
+
+	try {
+		await prisma.product.update({
+			where: { id: input.productId },
+			data: { imageUrl },
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update spike product image:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update product image." };
 	}
 }

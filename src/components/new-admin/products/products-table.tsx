@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
 	Check,
 	Eye,
@@ -33,12 +34,15 @@ import {
 } from "@/components/new-admin/ui/row-actions-menu";
 import {
 	deleteSpikeProduct,
+	getSpikeProductImageUploadUrl,
 	getSpikeProductImageViewUrl,
 	updateSpikeProduct,
+	updateSpikeProductImage,
 	type SpikeAdminProduct,
 } from "@/actions/spike/products-actions";
 import { getProductColumns, type ProductEditDraft } from "./products-columns";
 import { ProductImageViewerModal } from "./product-image-viewer-modal";
+import { ProductImageUploadModal } from "./product-image-upload-modal";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -86,6 +90,14 @@ export function ProductsTable({
 	const [imageLoading, setImageLoading] = useState(false);
 	const [imageUrl, setImageUrl] = useState<string | null>(null);
 	const [imageError, setImageError] = useState<string | null>(null);
+	const [uploadImageModalOpen, setUploadImageModalOpen] = useState(false);
+	const [uploadTargetProduct, setUploadTargetProduct] =
+		useState<SpikeAdminProduct | null>(null);
+	const [uploadImageFile, setUploadImageFile] = useState<File | null>(null);
+	const [uploadImagePreview, setUploadImagePreview] = useState<string | null>(
+		null,
+	);
+	const [uploadImageError, setUploadImageError] = useState<string | null>(null);
 
 	const productById = useMemo(
 		() => new Map(products.map((product) => [product.id, product])),
@@ -169,6 +181,121 @@ export function ProductsTable({
 		setImageLoading(false);
 	};
 
+	const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+	const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+	const resetUploadState = () => {
+		setUploadTargetProduct(null);
+		setUploadImageFile(null);
+		setUploadImagePreview(null);
+		setUploadImageError(null);
+	};
+
+	const openUploadImageModal = (row: SpikeAdminProduct) => {
+		setUploadTargetProduct(row);
+		setUploadImageFile(null);
+		setUploadImagePreview(null);
+		setUploadImageError(null);
+		setUploadImageModalOpen(true);
+	};
+
+	const handleUploadFileSelect = (file: File | null) => {
+		if (!file) {
+			setUploadImageFile(null);
+			setUploadImagePreview(null);
+			setUploadImageError(null);
+			return;
+		}
+		if (!ACCEPTED_TYPES.includes(file.type)) {
+			setUploadImageError("Only PNG, JPG, or WebP images are accepted.");
+			return;
+		}
+		if (file.size > MAX_IMAGE_BYTES) {
+			setUploadImageError("Image must be under 5 MB.");
+			return;
+		}
+		setUploadImageError(null);
+		setUploadImageFile(file);
+		setUploadImagePreview(URL.createObjectURL(file));
+	};
+
+	const handleConfirmUploadImage = async () => {
+		if (!uploadTargetProduct || !uploadImageFile) return;
+
+		setSubmitting(true);
+		setUploadImageError(null);
+		try {
+			const uploadMeta = await getSpikeProductImageUploadUrl({
+				productId: uploadTargetProduct.id,
+			});
+			if (!uploadMeta.success || !uploadMeta.uploadUrl || !uploadMeta.s3Key) {
+				setUploadImageError(
+					uploadMeta.error || "Failed to prepare image upload.",
+				);
+				setSubmitting(false);
+				return;
+			}
+
+			const uploadResponse = await fetch(uploadMeta.uploadUrl, {
+				method: "PUT",
+				body: uploadImageFile,
+				headers: { "Content-Type": uploadImageFile.type },
+			});
+			if (!uploadResponse.ok) {
+				setUploadImageError(
+					`Image upload failed (${uploadResponse.status}). Please try again.`,
+				);
+				setSubmitting(false);
+				return;
+			}
+
+			const updateResult = await updateSpikeProductImage({
+				productId: uploadTargetProduct.id,
+				imageUrl: uploadMeta.s3Key,
+			});
+			if (!updateResult.success) {
+				setUploadImageError(updateResult.error || "Failed to save image.");
+				setSubmitting(false);
+				return;
+			}
+
+			const uploadedPreview = uploadImagePreview;
+			const uploadedSku = uploadTargetProduct.sku;
+			if (uploadedPreview) {
+				toast.custom(() => (
+					<div className="w-56 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+						<div className="relative h-32 w-full">
+							<Image
+								src={uploadedPreview}
+								alt={`${uploadedSku} uploaded image`}
+								fill
+								unoptimized
+								className="object-cover"
+							/>
+						</div>
+						<div className="px-3 py-2">
+							<p className="text-sm font-semibold text-slate-900">
+								Image uploaded
+							</p>
+							<p className="text-xs text-slate-500">{uploadedSku}</p>
+						</div>
+					</div>
+				));
+			} else {
+				toast.success("Product image uploaded.");
+			}
+			setUploadImageModalOpen(false);
+			resetUploadState();
+			onRefresh();
+			setSubmitting(false);
+		} catch (error) {
+			setUploadImageError(
+				error instanceof Error ? error.message : "Failed to upload image.",
+			);
+			setSubmitting(false);
+		}
+	};
+
 	const handleConfirmAction = async () => {
 		if (!confirmAction) return;
 		setSubmitting(true);
@@ -244,6 +371,12 @@ export function ProductsTable({
 				label: "Edit",
 				icon: <Pencil className="h-4 w-4" />,
 				onSelect: startEditing,
+			},
+			{
+				key: "upload-image",
+				label: "Upload image",
+				icon: <PackagePlus className="h-4 w-4" />,
+				onSelect: openUploadImageModal,
 			},
 			{
 				key: "view-image",
@@ -435,6 +568,22 @@ export function ProductsTable({
 				imageUrl={imageUrl}
 				loading={imageLoading}
 				error={imageError}
+			/>
+
+			<ProductImageUploadModal
+				open={uploadImageModalOpen}
+				onOpenChange={(open) => {
+					setUploadImageModalOpen(open);
+					if (!open) {
+						resetUploadState();
+					}
+				}}
+				productSku={uploadTargetProduct?.sku ?? null}
+				imagePreview={uploadImagePreview}
+				imageError={uploadImageError}
+				submitting={submitting}
+				onFileSelect={handleUploadFileSelect}
+				onConfirm={handleConfirmUploadImage}
 			/>
 		</>
 	);

@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { Lozenge } from "@/components/Lozenge";
 import { Input } from "@/components/ui/input";
 import type { AdminTableColumn } from "@/components/new-admin/ui/admin-data-table";
 import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
@@ -110,6 +111,16 @@ export function getProductColumns({
 			key: "created",
 			header: "Created",
 			render: (product) => formatDate(product.createdAt),
+		},
+		{
+			key: "hasImage",
+			header: "Has Image",
+			render: (product) =>
+				product.imageUrl ? (
+					<Lozenge appearance="success">True</Lozenge>
+				) : (
+					<Lozenge appearance="default">False</Lozenge>
+				),
 		},
 	];
 }
