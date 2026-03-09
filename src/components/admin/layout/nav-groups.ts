@@ -1,34 +1,20 @@
-import {
-	LayoutDashboard,
-	Users,
-	Package,
-	ShieldCheck,
-	Zap,
-} from "lucide-react";
+import { LayoutDashboard, Users, Package, ShieldCheck } from "lucide-react";
 
 export const navGroups = [
 	{
 		label: "OVERVIEW",
-		items: [
-			{ label: "Dashboard", href: "/new/admin/home", icon: LayoutDashboard },
-		],
+		items: [{ label: "Dashboard", href: "/admin/home", icon: LayoutDashboard }],
 	},
 	{
 		label: "MANAGE",
 		items: [
-			{ label: "Users", href: "/new/admin/users", icon: Users },
-			{ label: "Products", href: "/new/admin/products", icon: Package },
+			{ label: "Users", href: "/admin/users", icon: Users },
+			{ label: "Products", href: "/admin/products", icon: Package },
 			{
 				label: "Entitlements",
-				href: "/new/admin/entitlements",
+				href: "/admin/entitlements",
 				icon: ShieldCheck,
 			},
-		],
-	},
-	{
-		label: "TOOLS",
-		items: [
-			{ label: "Quick Actions", href: "/new/admin/quick-actions", icon: Zap },
 		],
 	},
 ];

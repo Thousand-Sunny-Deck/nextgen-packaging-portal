@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { PageHeader } from "@/components/new-admin/layout/page-header";
+import { PageHeader } from "@/components/admin/layout/page-header";
 import {
 	getSpikeUsers,
 	type SpikeAdminUser,

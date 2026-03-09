@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft, LogOut, X } from "lucide-react";
 import { navGroups } from "./nav-groups";
 
-interface NewAdminSidebarProps {
+interface AdminSidebarProps {
 	isOpen: boolean;
 	onClose: () => void;
 }
 
-export function NewAdminSidebar({ isOpen, onClose }: NewAdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 	const pathname = usePathname();
 
 	return (

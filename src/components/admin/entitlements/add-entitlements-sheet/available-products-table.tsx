@@ -9,7 +9,7 @@ import {
 } from "@/lib/store/add-entitlements-store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/new-admin/ui/empty-state";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import { CsvImportButton } from "./csv-importer/csv-import-button";
 
 const PAGE_SIZE = 10;

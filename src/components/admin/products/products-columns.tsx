@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Lozenge } from "@/components/Lozenge";
 import { Input } from "@/components/ui/input";
-import type { AdminTableColumn } from "@/components/new-admin/ui/admin-data-table";
+import type { AdminTableColumn } from "@/components/admin/ui/admin-data-table";
 import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
 
 function formatCurrency(value: number) {

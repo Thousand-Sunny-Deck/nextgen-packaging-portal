@@ -9,8 +9,8 @@ import {
 	type SpikeEntitlementUser,
 	type SpikeUserEntitlementRow,
 } from "@/actions/spike/entitlements-actions";
-import { PageHeader } from "@/components/new-admin/layout/page-header";
-import { EmptyState } from "@/components/new-admin/ui/empty-state";
+import { PageHeader } from "@/components/admin/layout/page-header";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { EmailUserSearch } from "./email-user-search";
 import { UserInfoCard } from "./user-info-card";

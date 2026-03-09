@@ -20,14 +20,14 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { AdminDataTable } from "@/components/new-admin/ui/admin-data-table";
-import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
-import { AdminSearch } from "@/components/new-admin/ui/admin-search";
-import { EmptyState } from "@/components/new-admin/ui/empty-state";
+import { AdminDataTable } from "@/components/admin/ui/admin-data-table";
+import { AdminPagination } from "@/components/admin/ui/admin-pagination";
+import { AdminSearch } from "@/components/admin/ui/admin-search";
+import { EmptyState } from "@/components/admin/ui/empty-state";
 import {
 	RowActionsMenu,
 	type RowActionItem,
-} from "@/components/new-admin/ui/row-actions-menu";
+} from "@/components/admin/ui/row-actions-menu";
 import {
 	applySpikeEntitlementChanges,
 	type SpikeUserEntitlementRow,

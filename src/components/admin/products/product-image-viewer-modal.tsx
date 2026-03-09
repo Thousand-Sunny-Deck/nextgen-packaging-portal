@@ -52,6 +52,7 @@ export function ProductImageViewerModal({
 						<Image
 							src={imageUrl}
 							alt="Product"
+							fill
 							className="max-h-[80vh] max-w-[90vw] rounded-md border border-slate-700 object-contain"
 						/>
 					)}

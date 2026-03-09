@@ -21,15 +21,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { CreateUsersSheet } from "@/components/new-admin/users/create-user-sheet/create-users";
-import { EmptyState } from "@/components/new-admin/ui/empty-state";
-import { AdminSearch } from "@/components/new-admin/ui/admin-search";
-import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
-import { AdminDataTable } from "@/components/new-admin/ui/admin-data-table";
+import { CreateUsersSheet } from "@/components/admin/users/create-user-sheet/create-users";
+import { EmptyState } from "@/components/admin/ui/empty-state";
+import { AdminSearch } from "@/components/admin/ui/admin-search";
+import { AdminPagination } from "@/components/admin/ui/admin-pagination";
+import { AdminDataTable } from "@/components/admin/ui/admin-data-table";
 import {
 	RowActionsMenu,
 	type RowActionItem,
-} from "@/components/new-admin/ui/row-actions-menu";
+} from "@/components/admin/ui/row-actions-menu";
 import {
 	updateSpikeUserName,
 	type SpikeAdminUser,

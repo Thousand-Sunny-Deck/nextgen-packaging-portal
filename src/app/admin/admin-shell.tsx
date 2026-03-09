@@ -2,17 +2,14 @@
 
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import { NewAdminSidebar } from "@/components/admin/layout/sidebar";
+import { AdminSidebar } from "@/components/admin/layout/sidebar";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
 		<div className="flex min-h-screen">
-			<NewAdminSidebar
-				isOpen={mobileOpen}
-				onClose={() => setMobileOpen(false)}
-			/>
+			<AdminSidebar isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
 			<div className="flex-1 flex flex-col bg-slate-50 min-w-0">
 				{/* Mobile top bar */}

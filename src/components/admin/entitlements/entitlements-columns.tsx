@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
-import type { AdminTableColumn } from "@/components/new-admin/ui/admin-data-table";
+import type { AdminTableColumn } from "@/components/admin/ui/admin-data-table";
 import type { SpikeUserEntitlementRow } from "@/actions/spike/entitlements-actions";
 
 export type PendingEntitlementEdit = {
