@@ -94,12 +94,12 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 						<Text>${subtotal.toFixed(2)}</Text>
 					</View>
 					<View style={styles.totalRow}>
-						<Text>Tax</Text>
-						<Text>${tax.toFixed(2)}</Text>
-					</View>
-					<View style={styles.totalRow}>
 						<Text>Service Fee</Text>
 						<Text>${serviceFee.toFixed(2)}</Text>
+					</View>
+					<View style={styles.totalRow}>
+						<Text>Tax</Text>
+						<Text>${tax.toFixed(2)}</Text>
 					</View>
 					<View style={[styles.totalRow, styles.grandTotal]}>
 						<Text style={styles.totalLabel}>Total Amount (inc. tax)</Text>

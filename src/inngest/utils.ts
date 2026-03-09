@@ -110,7 +110,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 			amount: item.total,
 		})),
 		subtotal: order.cartSubTotal,
-		tax: 0, // need to update this
+		tax: order.tax,
 		serviceFee: order.serviceFee,
 		total: order.totalOrderCost,
 		totalPaid: 0,
