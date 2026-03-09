@@ -50,6 +50,18 @@ export type GetSpikeUserEntitledProductsResult = {
 	totalPages: number;
 };
 
+export type SpikeEntitlementEditInput = {
+	entitlementId: string;
+	customSku: string | null;
+	customDescription: string | null;
+	customUnitCost: number | null;
+};
+
+export type ApplySpikeEntitlementChangesInput = {
+	edits: SpikeEntitlementEditInput[];
+	revocations: string[];
+};
+
 const MAX_PAGE_SIZE = 100;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -259,4 +271,56 @@ export async function getSpikeUserEntitledProducts(
 		pageSize: sanitizedPageSize,
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
+}
+
+function normalizeNullableString(value: string | null): string | null {
+	if (value === null) return null;
+	const trimmed = value.trim();
+	return trimmed.length > 0 ? trimmed : null;
+}
+
+export async function applySpikeEntitlementChanges(
+	input: ApplySpikeEntitlementChangesInput,
+): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const edits = input.edits.map((entry) => ({
+		entitlementId: entry.entitlementId,
+		customSku: normalizeNullableString(entry.customSku),
+		customDescription: normalizeNullableString(entry.customDescription),
+		customUnitCost: entry.customUnitCost,
+	}));
+	const revocations = Array.from(new Set(input.revocations));
+
+	if (edits.length === 0 && revocations.length === 0) {
+		return { success: false, error: "No changes to apply." };
+	}
+
+	try {
+		await prisma.$transaction([
+			...edits.map((edit) =>
+				prisma.userProductEntitlement.update({
+					where: { id: edit.entitlementId },
+					data: {
+						customSku: edit.customSku,
+						customDescription: edit.customDescription,
+						customUnitCost: edit.customUnitCost,
+					},
+				}),
+			),
+			...revocations.map((id) =>
+				prisma.userProductEntitlement.delete({
+					where: { id },
+				}),
+			),
+		]);
+
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to apply spike entitlement changes:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to apply entitlement changes." };
+	}
 }

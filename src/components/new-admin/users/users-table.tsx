@@ -5,62 +5,13 @@ import { CreateUsersSheet } from "@/components/new-admin/users/create-user-sheet
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
 import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
+import { AdminDataTable } from "@/components/new-admin/ui/admin-data-table";
 import {
-	AdminDataTable,
-	type AdminTableColumn,
-} from "@/components/new-admin/ui/admin-data-table";
-import { Lozenge } from "@/components/Lozenge";
+	RowActionsMenu,
+	type RowActionItem,
+} from "@/components/new-admin/ui/row-actions-menu";
 import type { SpikeAdminUser } from "@/actions/spike/users-actions";
-
-const roleLozengeProps: Record<
-	SpikeAdminUser["role"],
-	React.ComponentProps<typeof Lozenge>
-> = {
-	SUPER_ADMIN: { appearance: "new", children: "Super Admin" },
-	ADMIN: { className: "bg-orange-100 text-orange-800", children: "Admin" },
-	USER: { appearance: "default", children: "User" },
-};
-
-function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleDateString("en-AU", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	});
-}
-
-const userColumns: AdminTableColumn<SpikeAdminUser>[] = [
-	{
-		key: "name",
-		header: "Name",
-		render: (u) => <span className="font-medium text-slate-900">{u.name}</span>,
-	},
-	{
-		key: "email",
-		header: "Email",
-		render: (u) => <span className="text-slate-500">{u.email}</span>,
-	},
-	{
-		key: "role",
-		header: "Role",
-		render: (u) => <Lozenge {...roleLozengeProps[u.role]} />,
-	},
-	{
-		key: "orders",
-		header: "Orders",
-		render: (u) => u.ordersCount,
-	},
-	{
-		key: "entitlements",
-		header: "Entitlements",
-		render: (u) => u.entitlementsCount,
-	},
-	{
-		key: "joined",
-		header: "Joined",
-		render: (u) => formatDate(u.createdAt),
-	},
-];
+import { userColumns } from "./users-columns";
 
 interface UsersTableProps {
 	users: SpikeAdminUser[];
@@ -86,6 +37,21 @@ export function UsersTable({
 	onRefresh,
 }: UsersTableProps) {
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const rowActions: RowActionItem<SpikeAdminUser>[] = [
+		{
+			key: "edit-user",
+			label: "Edit",
+			disabled: true,
+			onSelect: () => {},
+		},
+		{
+			key: "suspend-user",
+			label: "Suspend",
+			variant: "destructive",
+			disabled: true,
+			onSelect: () => {},
+		},
+	];
 
 	return (
 		<>
@@ -140,6 +106,14 @@ export function UsersTable({
 					columns={userColumns}
 					data={users}
 					getRowId={(u) => u.id}
+					renderRowActions={(row) => (
+						<RowActionsMenu
+							row={row}
+							items={rowActions}
+							disabled={loading}
+							triggerLabel="Open user actions"
+						/>
+					)}
 					loading={loading}
 					minWidth="min-w-[700px]"
 				/>
