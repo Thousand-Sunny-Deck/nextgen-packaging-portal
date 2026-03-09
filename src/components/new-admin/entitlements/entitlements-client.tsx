@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { KeyRound, UserX } from "lucide-react";
+import { KeyRound, Plus, UserX } from "lucide-react";
 import {
 	getSpikeUserEntitledProducts,
 	searchSpikeUserByEmail,
@@ -11,10 +11,12 @@ import {
 } from "@/actions/spike/entitlements-actions";
 import { PageHeader } from "@/components/new-admin/layout/page-header";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import { EmailUserSearch } from "./email-user-search";
 import { UserInfoCard } from "./user-info-card";
 import { LoadEntitlementsPlaceholder } from "./load-entitlements-placeholder";
 import { EntitlementsTable } from "./entitlements-table";
+import { AddEntitlementsSheet } from "./add-entitlements-sheet";
 
 export interface EntitlementsClientProps {
 	email: string;
@@ -34,6 +36,8 @@ export function EntitlementsClient({
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
+
+	const [addSheetOpen, setAddSheetOpen] = useState(false);
 
 	const [userLoading, setUserLoading] = useState(false);
 	const [userError, setUserError] = useState<string | null>(null);
@@ -149,6 +153,11 @@ export function EntitlementsClient({
 		fetchUser({ preserveEntitlements: true, preserveLoaded: true });
 	};
 
+	const handleEntitlementsAdded = () => {
+		fetchUser({ preserveEntitlements: true, preserveLoaded: true });
+		if (isLoaded) fetchEntitlements();
+	};
+
 	return (
 		<div className="p-4 md:p-8">
 			<PageHeader
@@ -198,13 +207,23 @@ export function EntitlementsClient({
 						/>
 
 						<div className="space-y-3">
-							<div>
-								<h3 className="text-base font-semibold text-slate-900">
-									Entitled Products
-								</h3>
-								<p className="text-sm text-slate-500">
-									Manage and inspect entitled products for {user.name}.
-								</p>
+							<div className="flex items-start justify-between gap-4">
+								<div>
+									<h3 className="text-base font-semibold text-slate-900">
+										Entitled Products
+									</h3>
+									<p className="text-sm text-slate-500">
+										Manage and inspect entitled products for {user.name}.
+									</p>
+								</div>
+								<Button
+									size="sm"
+									onClick={() => setAddSheetOpen(true)}
+									className="shrink-0"
+								>
+									<Plus className="mr-1.5 h-4 w-4" />
+									Add Entitlements
+								</Button>
 							</div>
 
 							{!isLoaded ? (
@@ -226,6 +245,14 @@ export function EntitlementsClient({
 								/>
 							)}
 						</div>
+
+						<AddEntitlementsSheet
+							open={addSheetOpen}
+							onOpenChange={setAddSheetOpen}
+							userId={user.id}
+							userName={user.name}
+							onEntitlementsAdded={handleEntitlementsAdded}
+						/>
 					</>
 				)}
 			</div>
