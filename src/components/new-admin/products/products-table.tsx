@@ -7,61 +7,13 @@ import { CreateProductsSheet } from "@/components/new-admin/products/create-prod
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
 import { AdminPagination } from "@/components/new-admin/ui/admin-pagination";
+import { AdminDataTable } from "@/components/new-admin/ui/admin-data-table";
 import {
-	AdminDataTable,
-	type AdminTableColumn,
-} from "@/components/new-admin/ui/admin-data-table";
+	RowActionsMenu,
+	type RowActionItem,
+} from "@/components/new-admin/ui/row-actions-menu";
 import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
-
-function formatCurrency(value: number) {
-	return value.toLocaleString("en-AU", {
-		style: "currency",
-		currency: "AUD",
-		currencyDisplay: "code",
-	});
-}
-
-function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleDateString("en-AU", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-	});
-}
-
-const productColumns: AdminTableColumn<SpikeAdminProduct>[] = [
-	{
-		key: "sku",
-		header: "SKU",
-		render: (p) => (
-			<span className="font-mono text-xs text-slate-700">{p.sku}</span>
-		),
-	},
-	{
-		key: "description",
-		header: "Description",
-		render: (p) => (
-			<span className="font-medium text-slate-900">{p.description}</span>
-		),
-	},
-	{
-		key: "handle",
-		header: "Handle",
-		render: (p) => <span className="text-slate-500">{p.handle}</span>,
-	},
-	{
-		key: "unitCost",
-		header: "Unit Cost",
-		render: (p) => (
-			<span className="text-slate-700">{formatCurrency(p.unitCost)}</span>
-		),
-	},
-	{
-		key: "created",
-		header: "Created",
-		render: (p) => formatDate(p.createdAt),
-	},
-];
+import { productColumns } from "./products-columns";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -87,6 +39,21 @@ export function ProductsTable({
 	onRefresh,
 }: ProductsTableProps) {
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const rowActions: RowActionItem<SpikeAdminProduct>[] = [
+		{
+			key: "edit-product",
+			label: "Edit",
+			disabled: true,
+			onSelect: () => {},
+		},
+		{
+			key: "delete-product",
+			label: "Delete",
+			variant: "destructive",
+			disabled: true,
+			onSelect: () => {},
+		},
+	];
 
 	return (
 		<>
@@ -141,6 +108,14 @@ export function ProductsTable({
 					columns={productColumns}
 					data={products}
 					getRowId={(p) => p.id}
+					renderRowActions={(row) => (
+						<RowActionsMenu
+							row={row}
+							items={rowActions}
+							disabled={loading}
+							triggerLabel="Open product actions"
+						/>
+					)}
 					loading={loading}
 					minWidth="min-w-[760px]"
 				/>
