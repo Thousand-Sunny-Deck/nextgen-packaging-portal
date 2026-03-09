@@ -178,3 +178,29 @@ export async function bulkCreateUsers(
 
 	return { success: true, createdCount };
 }
+
+export async function updateSpikeUserName(input: {
+	userId: string;
+	name: string;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const name = input.name.trim();
+	if (!name) {
+		return { success: false, error: "Name is required." };
+	}
+
+	try {
+		await prisma.user.update({
+			where: { id: input.userId },
+			data: { name },
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update spike user name:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update user." };
+	}
+}

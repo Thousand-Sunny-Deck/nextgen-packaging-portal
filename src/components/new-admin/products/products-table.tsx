@@ -1,8 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { Package, RefreshCw, PackagePlus } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+	Check,
+	Eye,
+	Loader2,
+	Package,
+	PackagePlus,
+	Pencil,
+	RefreshCw,
+	Trash2,
+	X,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { CreateProductsSheet } from "@/components/new-admin/products/create-product-sheet/create-products";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
 import { AdminSearch } from "@/components/new-admin/ui/admin-search";
@@ -12,8 +31,14 @@ import {
 	RowActionsMenu,
 	type RowActionItem,
 } from "@/components/new-admin/ui/row-actions-menu";
-import type { SpikeAdminProduct } from "@/actions/spike/products-actions";
-import { productColumns } from "./products-columns";
+import {
+	deleteSpikeProduct,
+	getSpikeProductImageViewUrl,
+	updateSpikeProduct,
+	type SpikeAdminProduct,
+} from "@/actions/spike/products-actions";
+import { getProductColumns, type ProductEditDraft } from "./products-columns";
+import { ProductImageViewerModal } from "./product-image-viewer-modal";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -27,6 +52,16 @@ interface ProductsTableProps {
 	onRefresh: () => void;
 }
 
+type ConfirmAction =
+	| { type: "edit"; rowId: string; draft: ProductEditDraft }
+	| { type: "delete"; rowId: string; sku: string };
+
+const emptyDraft: ProductEditDraft = {
+	sku: "",
+	description: "",
+	unitCost: 0,
+};
+
 export function ProductsTable({
 	products,
 	total,
@@ -39,21 +74,201 @@ export function ProductsTable({
 	onRefresh,
 }: ProductsTableProps) {
 	const [sheetOpen, setSheetOpen] = useState(false);
-	const rowActions: RowActionItem<SpikeAdminProduct>[] = [
-		{
-			key: "edit-product",
-			label: "Edit",
-			disabled: true,
-			onSelect: () => {},
-		},
-		{
-			key: "delete-product",
-			label: "Delete",
-			variant: "destructive",
-			disabled: true,
-			onSelect: () => {},
-		},
-	];
+	const [editingRowId, setEditingRowId] = useState<string | null>(null);
+	const [editDraft, setEditDraft] = useState<ProductEditDraft>(emptyDraft);
+	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
+		null,
+	);
+	const [submitting, setSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
+
+	const [imageModalOpen, setImageModalOpen] = useState(false);
+	const [imageLoading, setImageLoading] = useState(false);
+	const [imageUrl, setImageUrl] = useState<string | null>(null);
+	const [imageError, setImageError] = useState<string | null>(null);
+
+	const productById = useMemo(
+		() => new Map(products.map((product) => [product.id, product])),
+		[products],
+	);
+
+	const productColumns = useMemo(
+		() =>
+			getProductColumns({
+				editingRowId,
+				editDraft,
+				setEditDraft,
+			}),
+		[editingRowId, editDraft],
+	);
+
+	const startEditing = (row: SpikeAdminProduct) => {
+		if (submitting) return;
+		setEditingRowId(row.id);
+		setEditDraft({
+			sku: row.sku,
+			description: row.description,
+			unitCost: row.unitCost,
+		});
+		setSubmitError(null);
+	};
+
+	const cancelEditing = () => {
+		setEditingRowId(null);
+		setEditDraft(emptyDraft);
+	};
+
+	const hasDraftChanged = () => {
+		if (!editingRowId) return false;
+		const row = productById.get(editingRowId);
+		if (!row) return false;
+		return (
+			editDraft.sku.trim() !== row.sku ||
+			editDraft.description.trim() !== row.description ||
+			editDraft.unitCost !== row.unitCost
+		);
+	};
+
+	const openEditConfirmation = () => {
+		if (!editingRowId) return;
+		const sku = editDraft.sku.trim();
+		const description = editDraft.description.trim();
+		if (!sku || !description || !Number.isFinite(editDraft.unitCost)) return;
+		if (!hasDraftChanged()) return;
+		setSubmitError(null);
+		setConfirmAction({
+			type: "edit",
+			rowId: editingRowId,
+			draft: {
+				sku,
+				description,
+				unitCost: editDraft.unitCost,
+			},
+		});
+	};
+
+	const openDeleteConfirmation = (row: SpikeAdminProduct) => {
+		setSubmitError(null);
+		setConfirmAction({ type: "delete", rowId: row.id, sku: row.sku });
+	};
+
+	const openImageViewer = async (row: SpikeAdminProduct) => {
+		setImageModalOpen(true);
+		setImageLoading(true);
+		setImageError(null);
+		setImageUrl(null);
+
+		const result = await getSpikeProductImageViewUrl({ productId: row.id });
+		if (!result.success || !result.imageUrl) {
+			setImageError(result.error || "Failed to load product image.");
+			setImageLoading(false);
+			return;
+		}
+
+		setImageUrl(result.imageUrl);
+		setImageLoading(false);
+	};
+
+	const handleConfirmAction = async () => {
+		if (!confirmAction) return;
+		setSubmitting(true);
+		setSubmitError(null);
+
+		if (confirmAction.type === "edit") {
+			const result = await updateSpikeProduct({
+				productId: confirmAction.rowId,
+				sku: confirmAction.draft.sku,
+				description: confirmAction.draft.description,
+				unitCost: confirmAction.draft.unitCost,
+			});
+
+			if (!result.success) {
+				setSubmitting(false);
+				setSubmitError(result.error || "Failed to apply changes.");
+				return;
+			}
+			toast.success("Product updated.");
+		} else {
+			const result = await deleteSpikeProduct({
+				productId: confirmAction.rowId,
+			});
+			if (!result.success) {
+				setSubmitting(false);
+				setSubmitError(result.error || "Failed to apply changes.");
+				return;
+			}
+			toast.success("Product deleted and entitlements removed.");
+			if (result.warning) {
+				toast.warning(result.warning);
+			}
+		}
+
+		setConfirmAction(null);
+		cancelEditing();
+		onRefresh();
+		setSubmitting(false);
+	};
+
+	const renderRowActions = (row: SpikeAdminProduct) => {
+		const isEditing = editingRowId === row.id;
+		const editingAnotherRow = editingRowId !== null && editingRowId !== row.id;
+
+		if (isEditing) {
+			return (
+				<div className="flex items-center justify-end gap-1">
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+						onClick={openEditConfirmation}
+						disabled={!hasDraftChanged() || submitting}
+					>
+						<Check className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+						onClick={cancelEditing}
+						disabled={submitting}
+					>
+						<X className="h-4 w-4" />
+					</Button>
+				</div>
+			);
+		}
+
+		const rowActions: RowActionItem<SpikeAdminProduct>[] = [
+			{
+				key: "edit-product",
+				label: "Edit",
+				icon: <Pencil className="h-4 w-4" />,
+				onSelect: startEditing,
+			},
+			{
+				key: "view-image",
+				label: "View image",
+				icon: <Eye className="h-4 w-4" />,
+				onSelect: openImageViewer,
+			},
+			{
+				key: "delete-product",
+				label: "Delete",
+				icon: <Trash2 className="h-4 w-4" />,
+				variant: "destructive",
+				onSelect: openDeleteConfirmation,
+			},
+		];
+
+		return (
+			<RowActionsMenu
+				row={row}
+				items={rowActions}
+				disabled={editingAnotherRow || loading || submitting}
+				triggerLabel="Open product actions"
+			/>
+		);
+	};
 
 	return (
 		<>
@@ -63,7 +278,7 @@ export function ProductsTable({
 				onProductsCreated={onRefresh}
 			/>
 
-			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
+			<div className="mb-4 flex flex-col items-stretch justify-between gap-2 sm:flex-row sm:items-center">
 				<AdminSearch defaultValue={search} placeholder="Search products..." />
 				<div className="flex items-center gap-2">
 					<Button
@@ -88,8 +303,34 @@ export function ProductsTable({
 			</div>
 
 			{error && (
-				<div className="mb-3 rounded-md bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-600">
+				<div className="mb-3 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
 					{error}
+				</div>
+			)}
+
+			{editingRowId && (
+				<div className="mb-3 flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+					<p>
+						You are editing, hit &quot;save&quot; to continue or
+						&quot;cancel&quot;.
+					</p>
+					<div className="flex items-center gap-2">
+						<Button
+							size="sm"
+							onClick={openEditConfirmation}
+							disabled={!hasDraftChanged() || submitting}
+						>
+							Save
+						</Button>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={cancelEditing}
+							disabled={submitting}
+						>
+							Cancel
+						</Button>
+					</div>
 				</div>
 			)}
 
@@ -107,17 +348,10 @@ export function ProductsTable({
 				<AdminDataTable
 					columns={productColumns}
 					data={products}
-					getRowId={(p) => p.id}
-					renderRowActions={(row) => (
-						<RowActionsMenu
-							row={row}
-							items={rowActions}
-							disabled={loading}
-							triggerLabel="Open product actions"
-						/>
-					)}
+					getRowId={(product) => product.id}
+					renderRowActions={renderRowActions}
 					loading={loading}
-					minWidth="min-w-[760px]"
+					minWidth="min-w-[860px]"
 				/>
 			)}
 
@@ -127,6 +361,80 @@ export function ProductsTable({
 				total={total}
 				pageSize={pageSize}
 				itemLabel="products"
+			/>
+
+			<Dialog
+				open={confirmAction !== null}
+				onOpenChange={(open) => {
+					if (submitting) return;
+					if (!open) {
+						setConfirmAction(null);
+						setSubmitError(null);
+					}
+				}}
+			>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>
+							{confirmAction?.type === "edit"
+								? "Confirm Product Update"
+								: "Confirm Product Deletion"}
+						</DialogTitle>
+						<DialogDescription>
+							{confirmAction?.type === "edit"
+								? "This will update SKU, description and unit cost for this product."
+								: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
+						</DialogDescription>
+					</DialogHeader>
+					{submitError && (
+						<div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+							{submitError}
+						</div>
+					)}
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setConfirmAction(null);
+								setSubmitError(null);
+							}}
+							disabled={submitting}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant={
+								confirmAction?.type === "delete" ? "destructive" : "default"
+							}
+							onClick={handleConfirmAction}
+							disabled={submitting}
+						>
+							{submitting ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Applying...
+								</>
+							) : (
+								"Confirm"
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<ProductImageViewerModal
+				open={imageModalOpen}
+				onOpenChange={(open) => {
+					setImageModalOpen(open);
+					if (!open) {
+						setImageError(null);
+						setImageUrl(null);
+						setImageLoading(false);
+					}
+				}}
+				imageUrl={imageUrl}
+				loading={imageLoading}
+				error={imageError}
 			/>
 		</>
 	);
