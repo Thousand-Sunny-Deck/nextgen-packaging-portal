@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import { NewAdminSidebar } from "@/components/new-admin/layout/sidebar";
+import { NewAdminSidebar } from "@/components/admin/layout/sidebar";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
 	const [mobileOpen, setMobileOpen] = useState(false);

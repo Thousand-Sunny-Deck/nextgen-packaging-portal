@@ -1,4 +1,4 @@
-import { EntitlementsClient } from "@/components/new-admin/entitlements/entitlements-client";
+import { EntitlementsClient } from "@/components/admin/entitlements/entitlements-client";
 
 interface PageProps {
 	searchParams: Promise<{
@@ -10,7 +10,7 @@ interface PageProps {
 	}>;
 }
 
-export default async function NewAdminEntitlementsPage({
+export default async function AdminEntitlementsPage({
 	searchParams,
 }: PageProps) {
 	const params = await searchParams;

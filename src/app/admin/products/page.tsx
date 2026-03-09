@@ -1,12 +1,10 @@
-import { ProductsClient } from "@/components/new-admin/products/products-client";
+import { ProductsClient } from "@/components/admin/products/products-client";
 
 interface PageProps {
 	searchParams: Promise<{ q?: string; page?: string; pageSize?: string }>;
 }
 
-export default async function NewAdminProductsPage({
-	searchParams,
-}: PageProps) {
+export default async function AdminProductsPage({ searchParams }: PageProps) {
 	const params = await searchParams;
 
 	const search = params.q?.trim() ?? "";

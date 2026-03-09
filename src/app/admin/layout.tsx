@@ -1,17 +1,13 @@
-import { requireAdmin } from "@/lib/auth/admin-guard";
-import { AdminSidebar } from "@/components/admin/layout/admin-sidebar";
+import { requireSuperAdmin } from "@/lib/auth/admin-guard";
+import { AdminShell } from "./admin-shell";
 
-interface AdminLayoutProps {
+interface NewAdminLayoutProps {
 	children: React.ReactNode;
 }
 
-export default async function AdminLayout({ children }: AdminLayoutProps) {
-	const admin = await requireAdmin();
-
-	return (
-		<div className="flex min-h-screen">
-			<AdminSidebar adminName={admin.name} adminEmail={admin.email} />
-			<main className="flex-1 bg-gray-50">{children}</main>
-		</div>
-	);
+export default async function NewAdminLayout({
+	children,
+}: NewAdminLayoutProps) {
+	await requireSuperAdmin();
+	return <AdminShell>{children}</AdminShell>;
 }
