@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+export const MAX_PRODUCT_DRAFT = 50;
+
 export type ProductDraftItem = {
 	localId: string;
 	sku: string;

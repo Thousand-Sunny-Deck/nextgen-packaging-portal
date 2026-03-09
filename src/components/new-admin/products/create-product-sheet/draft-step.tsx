@@ -9,7 +9,7 @@ import {
 } from "@/lib/store/create-product-store";
 import { ModeToggle } from "./mode-toggle";
 import { ManualForm } from "./manual-form";
-import { CsvUpload } from "./csv-upload";
+import { CsvUpload } from "./csv-uploader/csv-upload";
 
 export function ProductDraftStep() {
 	const { mode, draft, setMode, clearDraft } = useCreateProductStore();

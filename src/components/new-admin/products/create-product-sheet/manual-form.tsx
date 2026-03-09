@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
 	useCreateProductStore,
+	MAX_PRODUCT_DRAFT,
 	type ProductDraftItem,
 } from "@/lib/store/create-product-store";
 import { ProductDraftCard } from "./product-draft-card";
 import Image from "next/image";
-
-export const MAX_MANUAL = 10;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
@@ -39,7 +38,7 @@ export function ManualForm() {
 	const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const atLimit = draft.size >= MAX_MANUAL;
+	const atLimit = draft.size >= MAX_PRODUCT_DRAFT;
 	const draftItems = [...draft.values()];
 
 	const resetForm = () => {
@@ -238,7 +237,7 @@ export function ManualForm() {
 
 				{atLimit && !editingLocalId && (
 					<p className="text-sm text-slate-500">
-						Maximum {MAX_MANUAL} products per batch.
+						Maximum {MAX_PRODUCT_DRAFT} products per batch.
 					</p>
 				)}
 
@@ -263,7 +262,7 @@ export function ManualForm() {
 			{draft.size > 0 && (
 				<div className="space-y-2">
 					<p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-						Draft — {draft.size} of {MAX_MANUAL}
+						Draft — {draft.size} of {MAX_PRODUCT_DRAFT}
 					</p>
 					<div className="grid grid-cols-2 gap-3">
 						{draftItems.map((item) => (
