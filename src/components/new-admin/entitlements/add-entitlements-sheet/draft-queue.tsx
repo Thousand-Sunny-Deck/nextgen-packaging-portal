@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useAddEntitlementsStore } from "@/lib/store/add-entitlements-store";
+import { Lozenge } from "@/components/Lozenge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -49,6 +50,11 @@ export function DraftQueue() {
 									<p className="text-xs text-slate-500 truncate max-w-[140px]">
 										{item.description}
 									</p>
+									{item.source === "csv" && (
+										<Lozenge appearance="inprogress" className="mt-0.5">
+											imported via CSV
+										</Lozenge>
+									)}
 								</td>
 								<td className="px-4 py-2">
 									<Input

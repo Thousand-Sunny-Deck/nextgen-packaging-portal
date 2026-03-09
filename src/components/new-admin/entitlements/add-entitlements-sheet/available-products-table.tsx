@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Search, X, Loader2, PackageSearch } from "lucide-react";
-import {
-	getSpikeAvailableProducts,
-	type SpikeAvailableProduct,
-} from "@/actions/spike/entitlements-actions";
+import { useState, useMemo } from "react";
+import { Search, X, Loader2, PackageSearch, XCircle } from "lucide-react";
+import type { SpikeAvailableProduct } from "@/actions/spike/entitlements-actions";
 import {
 	useAddEntitlementsStore,
 	MAX_ENTITLEMENTS_DRAFT,
@@ -13,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/new-admin/ui/empty-state";
+import { CsvImportButton } from "./csv-importer/csv-import-button";
 
 const PAGE_SIZE = 10;
 
@@ -25,45 +23,22 @@ function formatCurrency(value: number) {
 }
 
 interface AvailableProductsTableProps {
-	userId: string;
-	open: boolean;
+	products: SpikeAvailableProduct[];
+	loading: boolean;
+	error: string | null;
 }
 
 export function AvailableProductsTable({
-	userId,
-	open,
+	products,
+	loading,
+	error,
 }: AvailableProductsTableProps) {
 	const { draft, addItem, removeItem, isInDraft } = useAddEntitlementsStore();
 
-	const [products, setProducts] = useState<SpikeAvailableProduct[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [searchInput, setSearchInput] = useState("");
 	const [search, setSearch] = useState("");
 	const [page, setPage] = useState(1);
-
-	useEffect(() => {
-		if (!open) return;
-		let cancelled = false;
-		setLoading(true);
-		setError(null);
-		getSpikeAvailableProducts(userId)
-			.then((result) => {
-				if (!cancelled) {
-					setProducts(result.products);
-					setLoading(false);
-				}
-			})
-			.catch(() => {
-				if (!cancelled) {
-					setError("Failed to load available products.");
-					setLoading(false);
-				}
-			});
-		return () => {
-			cancelled = true;
-		};
-	}, [userId, open]);
+	const [csvErrors, setCsvErrors] = useState<string[]>([]);
 
 	const filtered = useMemo(() => {
 		const q = search.toLowerCase();
@@ -103,6 +78,7 @@ export function AvailableProductsTable({
 				customSku: "",
 				customDescription: "",
 				customUnitCost: "",
+				source: "manual",
 			});
 		}
 	};
@@ -128,40 +104,66 @@ export function AvailableProductsTable({
 
 	return (
 		<div className="space-y-3">
-			<div className="flex items-center justify-between gap-2 flex-wrap">
-				<form onSubmit={handleSearch} className="flex items-center gap-2">
-					<div className="relative">
-						<Input
-							type="text"
-							placeholder="Search SKU or description..."
-							value={searchInput}
-							onChange={(e) => setSearchInput(e.target.value)}
-							className="w-72 pr-8"
-						/>
-						{searchInput && (
-							<button
-								type="button"
-								onClick={handleClearSearch}
-								className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-							>
-								<X size={14} />
-							</button>
-						)}
+			<div className="space-y-2">
+				<div className="flex items-center gap-2 flex-wrap">
+					<form onSubmit={handleSearch} className="flex items-center gap-2">
+						<div className="relative">
+							<Input
+								type="text"
+								placeholder="Search SKU or description..."
+								value={searchInput}
+								onChange={(e) => setSearchInput(e.target.value)}
+								className="w-72 pr-8"
+							/>
+							{searchInput && (
+								<button
+									type="button"
+									onClick={handleClearSearch}
+									className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+								>
+									<X size={14} />
+								</button>
+							)}
+						</div>
+						<Button
+							type="submit"
+							variant="outline"
+							size="sm"
+							className="shrink-0"
+						>
+							<Search size={14} className="sm:hidden" />
+							<span className="hidden sm:inline">Search</span>
+						</Button>
+					</form>
+					<CsvImportButton
+						products={products}
+						loading={loading}
+						onErrors={setCsvErrors}
+					/>
+					{atLimit && (
+						<p className="text-xs font-medium text-amber-600">
+							Max {MAX_ENTITLEMENTS_DRAFT} products reached
+						</p>
+					)}
+				</div>
+				{csvErrors.length > 0 && (
+					<div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 space-y-1.5">
+						<div className="flex items-center gap-1.5 text-red-700">
+							<XCircle size={14} className="shrink-0" />
+							<p className="text-xs font-semibold">
+								{csvErrors.length} error{csvErrors.length > 1 ? "s" : ""} —
+								nothing was imported
+							</p>
+						</div>
+						<ul className="space-y-0.5">
+							{csvErrors.map((err, i) => (
+								<li key={i} className="text-xs text-red-700 flex gap-1.5">
+									<span className="shrink-0">•</span>
+									<span>{err}</span>
+								</li>
+							))}
+						</ul>
 					</div>
-					<Button
-						type="submit"
-						variant="outline"
-						size="sm"
-						className="shrink-0"
-					>
-						<Search size={14} className="sm:hidden" />
-						<span className="hidden sm:inline">Search</span>
-					</Button>
-				</form>
-				{atLimit && (
-					<p className="text-xs font-medium text-amber-600">
-						Max {MAX_ENTITLEMENTS_DRAFT} products reached
-					</p>
 				)}
 			</div>
 

@@ -9,9 +9,10 @@ export type EntitlementDraftItem = {
 	customSku: string;
 	customDescription: string;
 	customUnitCost: string;
+	source: "manual" | "csv";
 };
 
-export const MAX_ENTITLEMENTS_DRAFT = 30;
+export const MAX_ENTITLEMENTS_DRAFT = 50;
 
 type AddEntitlementsStore = {
 	draft: Map<string, EntitlementDraftItem>; // keyed by productId
