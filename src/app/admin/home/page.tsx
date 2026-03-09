@@ -1,34 +1,43 @@
-import { LayoutDashboard } from "lucide-react";
+import { Users, Package, ShoppingCart, Calendar } from "lucide-react";
+import { PageHeader } from "@/components/admin/layout/page-header";
+import { MetricCard } from "@/components/admin/ui/metric-card";
+import { getAdminDashboardMetrics } from "@/actions/spike/dashboard-actions";
 
-export default function AdminHomePage() {
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+export default async function AdminHomePage() {
+	const metricsData = await getAdminDashboardMetrics();
+	const metrics = [
+		{
+			icon: Users,
+			label: "Total Users",
+			value: numberFormatter.format(metricsData.totalUsers),
+		},
+		{
+			icon: Package,
+			label: "Total Products",
+			value: numberFormatter.format(metricsData.totalProducts),
+		},
+		{
+			icon: ShoppingCart,
+			label: "Total Orders",
+			value: numberFormatter.format(metricsData.totalOrders),
+		},
+		{
+			icon: Calendar,
+			label: "Total Orders This Month",
+			value: numberFormatter.format(metricsData.totalOrdersThisMonth),
+		},
+	];
+
 	return (
-		<div className="p-8">
-			<div className="mb-8">
-				<h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-				<p className="text-gray-500 mt-1">Overview of your platform metrics</p>
-			</div>
+		<div className="p-4 md:p-8">
+			<PageHeader title="Dashboard" subtitle="Overview of your platform" />
 
-			{/* Placeholder for metrics */}
-			<div className="rounded-lg border border-dashed border-gray-300 p-8">
-				<div className="text-center">
-					<LayoutDashboard className="mx-auto h-12 w-12 text-gray-400" />
-					<h3 className="mt-4 text-lg font-medium text-gray-900">
-						Metrics Dashboard
-					</h3>
-					<p className="mt-2 text-sm text-gray-500">
-						View total users, orders, revenue, and success rates.
-					</p>
-					<div className="mt-4 text-xs text-gray-400">
-						{/* TODO: Implement metrics dashboard with:
-						    - MetricCard components (Total Users, Total Orders, Revenue, Success Rate)
-						    - Recent activity feed
-						    - Orders by status chart
-						    - Top users table
-						    - Server actions: getAdminMetrics, getRecentActivity, getTopUsers
-						*/}
-						Coming soon - focusing on Crafting Table first
-					</div>
-				</div>
+			<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+				{metrics.map((m) => (
+					<MetricCard key={m.label} {...m} />
+				))}
 			</div>
 		</div>
 	);
