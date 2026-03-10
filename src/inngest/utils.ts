@@ -137,7 +137,7 @@ export const createAdminDetailsForEmail = (
 		style: "currency",
 		currency: "AUD",
 	}).format(total);
-	const subject = `Order confirmed from ${COMPANY_NAME} — ${invoiceId} (${formattedTotal})`;
+	const subject = `Order confirmed from ${COMPANY_NAME} - ${invoiceId} (${formattedTotal})`;
 
 	return {
 		from,
@@ -169,7 +169,7 @@ export const createAdminDetailsForAdminEmail = (
 		style: "currency",
 		currency: "AUD",
 	}).format(total);
-	const subject = `Client ${customerName} placed an order — ${invoiceId} (${formattedTotal})`;
+	const subject = `Client ${customerName} placed an order - ${invoiceId} (${formattedTotal})`;
 
 	return { from, subject };
 };
