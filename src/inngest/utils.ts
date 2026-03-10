@@ -3,6 +3,7 @@ import { InvoiceData } from "@/lib/pdf/types";
 import { OrderDetailsForOrderId as OrderDetails } from "@/lib/store/orders-store";
 import { AdminDetails } from "@/service/post-office";
 import { EmailDetails } from "@/lib/resend/template";
+import type { AdminEmailDetails } from "@/lib/resend/admin-template";
 
 // Company details - can be moved to env variables if needed
 const COMPANY_NAME = "NextGen Packaging";
@@ -127,9 +128,16 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 	return invoiceData;
 };
 
-export const createAdminDetailsForEmail = (): AdminDetails => {
+export const createAdminDetailsForEmail = (
+	invoiceId: string,
+	total: number,
+): AdminDetails => {
 	const from = "Invoice <invoices@nextgenpackaging-portal.site>";
-	const subject = `${COMPANY_NAME} – Your order is ready`;
+	const formattedTotal = new Intl.NumberFormat("en-AU", {
+		style: "currency",
+		currency: "AUD",
+	}).format(total);
+	const subject = `Order confirmed from ${COMPANY_NAME} — ${invoiceId} (${formattedTotal})`;
 
 	return {
 		from,
@@ -148,5 +156,39 @@ export const createEmailDetails = (
 		companyAddress: COMPANY_ADDRESS,
 		companyWebsite: COMPANY_WEBSITE,
 		portalUrl,
+	};
+};
+
+export const createAdminDetailsForAdminEmail = (
+	customerName: string,
+	invoiceId: string,
+	total: number,
+): AdminDetails => {
+	const from = "Invoice <invoices@nextgenpackaging-portal.site>";
+	const formattedTotal = new Intl.NumberFormat("en-AU", {
+		style: "currency",
+		currency: "AUD",
+	}).format(total);
+	const subject = `Client ${customerName} placed an order — ${invoiceId} (${formattedTotal})`;
+
+	return { from, subject };
+};
+
+export const createAdminEmailDetails = (
+	order: OrderDetails,
+): AdminEmailDetails => {
+	const formattedTotal = new Intl.NumberFormat("en-AU", {
+		style: "currency",
+		currency: "AUD",
+	}).format(order.totalOrderCost);
+
+	return {
+		customerName: order.billingOrganization || order.customerEmail,
+		customerEmail: order.customerEmail,
+		orderId: order.orderId,
+		invoiceId: order.invoiceId,
+		totalFormatted: formattedTotal,
+		itemCount: order.cartSize,
+		billingAddress: order.billingAddress || "N/A",
 	};
 };
