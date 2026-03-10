@@ -45,9 +45,6 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 						<Text style={styles.addressText}>{billTo.name}</Text>
 						<Text style={styles.addressText}>{billTo.company}</Text>
 						<Text style={styles.addressText}>{billTo.streetAddress}</Text>
-						<Text style={styles.addressText}>
-							{[billTo.suburb, billTo.postcode].join(", ")}
-						</Text>
 						<Text style={styles.addressText}>{billTo.country}</Text>
 					</View>
 					<View style={styles.addressBox}>
@@ -140,10 +137,6 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 						<Text>
 							<Text style={styles.boldLabel}>AC#: </Text>
 							{bankDetails.account}
-						</Text>
-						<Text>
-							<Text style={styles.boldLabel}>Ref#: </Text>
-							{bankDetails.reference}
 						</Text>
 					</View>
 				</View>
