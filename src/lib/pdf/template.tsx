@@ -141,10 +141,6 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 							<Text style={styles.boldLabel}>AC#: </Text>
 							{bankDetails.account}
 						</Text>
-						<Text>
-							<Text style={styles.boldLabel}>Ref#: </Text>
-							{bankDetails.reference}
-						</Text>
 					</View>
 				</View>
 
