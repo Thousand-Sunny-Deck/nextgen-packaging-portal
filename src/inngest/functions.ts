@@ -7,6 +7,8 @@ import {
 import { inngest } from "./client";
 import {
 	createAdminDetailsForEmail,
+	createAdminDetailsForAdminEmail,
+	createAdminEmailDetails,
 	createEmailDetails,
 	enrichInvoiceData,
 	validateEventData,
@@ -18,6 +20,7 @@ import { OrderStatus } from "@/generated/prisma/enums";
 import { S3Service } from "@/service/s3";
 import { PostOffice } from "@/service/post-office";
 import { EmailTemplate } from "@/lib/resend/template";
+import { AdminEmailTemplate } from "@/lib/resend/admin-template";
 
 export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 	{ id: "generate-pdf-and-send-email" },
@@ -92,7 +95,9 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 			const portalUrl = `${env.NEXT_PUBLIC_API_URL}`;
 			const emailDetails = createEmailDetails(customerName, portalUrl);
 
-			const postOffice = new PostOffice(createAdminDetailsForEmail());
+			const postOffice = new PostOffice(
+				createAdminDetailsForEmail(order.invoiceId, order.totalOrderCost),
+			);
 			await postOffice.deliver(
 				{
 					to: [email],
@@ -101,11 +106,18 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 				Buffer.from(pdf.data),
 			);
 
-			await postOffice.deliver(
+			const adminPostOffice = new PostOffice(
+				createAdminDetailsForAdminEmail(
+					customerName,
+					order.invoiceId,
+					order.totalOrderCost,
+				),
+			);
+			await adminPostOffice.deliver(
 				{
 					to: ["nextgenelitesupplies@gmail.com"],
 				},
-				EmailTemplate({ emailDetails }),
+				AdminEmailTemplate({ details: createAdminEmailDetails(order) }),
 				Buffer.from(pdf.data),
 			);
 

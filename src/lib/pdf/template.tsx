@@ -52,9 +52,6 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 						<Text style={styles.addressText}>{shipTo.name}</Text>
 						<Text style={styles.addressText}>{shipTo.company}</Text>
 						<Text style={styles.addressText}>{shipTo.streetAddress}</Text>
-						<Text style={styles.addressText}>
-							{[shipTo.suburb, shipTo.postcode].join(", ")}
-						</Text>
 						<Text style={styles.addressText}>{shipTo.country}</Text>
 					</View>
 				</View>
