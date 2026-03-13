@@ -3,11 +3,9 @@
 import { ProductData } from "@/actions/products/fetch-products-action";
 import { CartItem, useCartStore } from "@/lib/store/product-store";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { CatalogCard } from "./CatalogCard";
 import { catalogColumns, getCardViewModel } from "./catalog-columns";
-import { CoolCartSheet } from "./CoolCartSheet";
 import { CatalogRow } from "./types";
 
 interface CatalogGridProps {
@@ -24,23 +22,19 @@ const toCartItem = (product: ProductData, quantity: number): CartItem => ({
 	quantity,
 	total: quantity * Number(product.unitCost),
 	unitCost: Number(product.unitCost),
+	imageUrl: product.imageUrl ?? null,
 });
 
 export const CatalogGrid = ({
 	products,
 	emptyMessage = "No products found.",
 }: CatalogGridProps) => {
-	const [isCartOpen, setIsCartOpen] = useState(false);
 	const {
 		maybeSelectedProducts,
-		selectedProductHandles,
 		setQuantity,
 		getIsProductSelected,
-		prepareCartForCheckout,
 		toggleProduct,
 	} = useCartStore();
-	const router = useRouter();
-	const pathname = usePathname();
 
 	const rows = useMemo<CatalogRow[]>(() => {
 		return products.map((product) => {
@@ -63,27 +57,6 @@ export const CatalogGrid = ({
 
 	const visibleRows = table.getCoreRowModel().rows;
 	const hasRows = visibleRows.length > 0;
-	const imageByHandle = useMemo(
-		() =>
-			new Map(
-				products.map((product) => [product.handle, product.imageUrl ?? null]),
-			),
-		[products],
-	);
-	const cartItems = useMemo<CartItem[]>(
-		() =>
-			Array.from(selectedProductHandles)
-				.map((handle) => maybeSelectedProducts.get(handle))
-				.filter((item): item is CartItem => Boolean(item)),
-		[selectedProductHandles, maybeSelectedProducts],
-	);
-	const cartSize = cartItems.length;
-	const cartSubtotal = useMemo(
-		() =>
-			cartItems.reduce((sum, item) => sum + item.quantity * item.unitCost, 0),
-		[cartItems],
-	);
-
 	const handleCardQuantityChange = (product: ProductData, quantity: number) => {
 		const safeQuantity = Math.max(
 			0,
@@ -103,33 +76,6 @@ export const CatalogGrid = ({
 		const nextQty = existingQty > 0 ? existingQty : 1;
 		setQuantity(toCartItem(product, nextQty));
 		toggleProduct(product.handle);
-	};
-
-	const handleCartQuantityChange = (handle: string, quantity: number) => {
-		const existing = maybeSelectedProducts.get(handle);
-		if (!existing) return;
-
-		const safeQuantity = Math.max(
-			0,
-			Math.min(MAX_QUANTITY, Math.floor(quantity)),
-		);
-		setQuantity({ ...existing, quantity: safeQuantity });
-	};
-
-	const handleRemoveFromCart = (handle: string) => {
-		const existing = maybeSelectedProducts.get(handle);
-		if (!existing) return;
-		setQuantity({ ...existing, quantity: 0 });
-	};
-
-	const handleCheckout = () => {
-		const match = pathname.match(/^\/dashboard\/([^/]+)(?:\/.*)?$/);
-		const uuid = match?.[1];
-		if (!uuid) return;
-
-		prepareCartForCheckout();
-		setIsCartOpen(false);
-		router.push(`/dashboard/${uuid}/order/checkout`);
 	};
 
 	return (
@@ -157,18 +103,6 @@ export const CatalogGrid = ({
 					{emptyMessage}
 				</div>
 			)}
-
-			<CoolCartSheet
-				isOpen={isCartOpen}
-				onOpenChange={setIsCartOpen}
-				cartItems={cartItems}
-				cartSize={cartSize}
-				cartSubtotal={cartSubtotal}
-				imageByHandle={imageByHandle}
-				onQuantityChange={handleCartQuantityChange}
-				onDelete={handleRemoveFromCart}
-				onCheckout={handleCheckout}
-			/>
 		</div>
 	);
 };

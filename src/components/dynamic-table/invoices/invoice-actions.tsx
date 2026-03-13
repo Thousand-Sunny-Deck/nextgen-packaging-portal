@@ -20,7 +20,7 @@ interface InvoiceActionsProps {
 
 export const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
 	const { handleReorder, isReordering } = useReorder();
-	const loading = isReordering(invoice.invoiceId);
+	const loading = isReordering(invoice.orderId);
 
 	const handleViewInvoice = () => {
 		if (!invoice.pdfUrl) {
