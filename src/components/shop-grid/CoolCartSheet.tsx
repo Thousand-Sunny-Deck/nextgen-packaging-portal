@@ -23,6 +23,7 @@ interface CoolCartSheetProps {
 	onQuantityChange: (handle: string, quantity: number) => void;
 	onDelete: (handle: string) => void;
 	onCheckout: () => void;
+	onClearCart: () => void;
 }
 
 const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
@@ -37,6 +38,7 @@ export const CoolCartSheet = ({
 	onQuantityChange,
 	onDelete,
 	onCheckout,
+	onClearCart,
 }: CoolCartSheetProps) => {
 	return (
 		<Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -69,20 +71,25 @@ export const CoolCartSheet = ({
 				</div>
 
 				<SheetFooter className="border-t">
-					<div className="flex w-full items-center justify-between">
+					<div className="flex w-full items-center justify-between gap-3">
 						<div>
 							<p className="text-xs text-muted-foreground">Subtotal</p>
 							<p className="text-base font-semibold">
 								{formatCurrency(cartSubtotal)}
 							</p>
 						</div>
-						<Button
-							type="button"
-							disabled={cartSize === 0}
-							onClick={onCheckout}
-						>
-							Proceed to checkout
-						</Button>
+						<div className="flex items-center gap-2">
+							<Button type="button" variant="outline" onClick={onClearCart}>
+								Clear cart
+							</Button>
+							<Button
+								type="button"
+								disabled={cartSize === 0}
+								onClick={onCheckout}
+							>
+								Proceed to checkout
+							</Button>
+						</div>
 					</div>
 				</SheetFooter>
 			</SheetContent>
