@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
-import { fetchCatalog } from "@/actions/products/fetch-products-action";
+import { fetchNonEntitledCatalogProducts } from "@/actions/products/fetch-products-action";
 import { CatalogGrid } from "@/components/shop-grid/CatalogGrid";
 import { CatalogPagination } from "@/components/shop-grid/CatalogPagination";
 import { CatalogSearch } from "@/components/shop-grid/CatalogSearch";
@@ -34,7 +34,8 @@ const ShopPage = async ({ params, searchParams }: ShopPageProps) => {
 		notFound();
 	}
 
-	const result = await fetchCatalog({
+	const result = await fetchNonEntitledCatalogProducts({
+		userId: slug.uuid,
 		search: q,
 		page: page ? Number(page) : undefined,
 		pageSize: pageSize ? Number(pageSize) : undefined,
@@ -53,7 +54,10 @@ const ShopPage = async ({ params, searchParams }: ShopPageProps) => {
 					</div>
 					<CatalogSearch defaultValue={q} />
 				</div>
-				<CatalogGrid products={result.items} />
+				<CatalogGrid
+					products={result.items}
+					emptyMessage="No additional products available. Your items are in Quick Order."
+				/>
 				<CatalogPagination
 					page={result.page}
 					totalPages={result.totalPages}
