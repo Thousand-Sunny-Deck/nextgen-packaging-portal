@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Eye, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FavouriteOrderData } from "@/actions/favourites/fetch-favourites-action";
 import { deleteFavouriteAction } from "@/actions/favourites/delete-favourite-action";
 import { addFavouriteToCartAction } from "@/actions/favourites/add-favourite-to-cart-action";
 import { useCartStore } from "@/lib/store/product-store";
 import { Button } from "../ui/button";
+import FavouriteOrderDetailModal from "./FavouriteOrderDetailModal";
 
 const MAX_DISPLAYED_ITEMS = 3;
 
@@ -34,6 +35,7 @@ const FavouriteOrderCard = ({
 }: FavouriteOrderCardProps) => {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isAddingToCart, setIsAddingToCart] = useState(false);
+	const [detailOpen, setDetailOpen] = useState(false);
 	const mergeCartFromOrder = useCartStore((state) => state.mergeCartFromOrder);
 	const setCartSheetOpen = useCartStore((state) => state.setCartSheetOpen);
 
@@ -86,60 +88,76 @@ const FavouriteOrderCard = ({
 	};
 
 	return (
-		<div className="bg-white rounded-lg p-4 flex flex-col gap-3 hover:bg-slate-50">
-			<div className="flex items-start justify-between gap-3">
-				<h3 className="font-semibold text-md">{favourite.name}</h3>
-				<span className="text-sm text-neutral-400 whitespace-nowrap flex-shrink-0">
-					Saved {formatTimeAgo(favourite.createdAt)}
-				</span>
-			</div>
+		<>
+			<FavouriteOrderDetailModal
+				open={detailOpen}
+				onOpenChange={setDetailOpen}
+				favourite={favourite}
+			/>
+			<div className="bg-white rounded-lg p-4 flex flex-col gap-3 hover:bg-slate-50">
+				<div className="flex items-start justify-between gap-3">
+					<h3 className="font-semibold text-md">{favourite.name}</h3>
+					<span className="text-sm text-neutral-400 whitespace-nowrap flex-shrink-0">
+						Saved {formatTimeAgo(favourite.createdAt)}
+					</span>
+				</div>
 
-			<div className="space-y-0.5">
-				{displayedItems.map((item, index) => (
-					<p key={index} className="text-neutral-400 text-sm">
-						{item.quantity} X {item.name}
+				<div className="space-y-0.5">
+					{displayedItems.map((item, index) => (
+						<p key={index} className="text-neutral-400 text-sm">
+							{item.quantity} X {item.name}
+						</p>
+					))}
+					{extraCount > 0 && (
+						<p className="text-neutral-400 text-sm">+{extraCount} more items</p>
+					)}
+				</div>
+
+				<div className="flex items-center justify-between">
+					<p className="text-xs text-neutral-400 italic">
+						Prices update at checkout
 					</p>
-				))}
-				{extraCount > 0 && (
-					<p className="text-neutral-400 text-sm">+{extraCount} more items</p>
-				)}
-			</div>
-
-			<div className="flex items-center justify-between">
-				<p className="text-xs text-neutral-400 italic">
-					Prices update at checkout
-				</p>
-				<div className="flex items-center gap-2">
-					<Button
-						onClick={handleDelete}
-						variant="secondary"
-						disabled={isDeleting || isAddingToCart}
-						aria-label="Remove favourite"
-						className="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:cursor-not-allowed"
-					>
-						{isDeleting ? (
-							<Loader2 className="h-4 w-4 animate-spin" />
-						) : (
-							<Trash2 className="h-4 w-4" />
-						)}
-					</Button>
-					<Button
-						onClick={handleAddToCart}
-						disabled={isAddingToCart || isDeleting}
-						className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-neutral-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
-					>
-						{isAddingToCart ? (
-							<>
+					<div className="flex items-center gap-2">
+						<Button
+							onClick={() => setDetailOpen(true)}
+							variant="secondary"
+							disabled={isDeleting || isAddingToCart}
+							aria-label="View details"
+							className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 transition-colors"
+						>
+							<Eye className="h-4 w-4" />
+						</Button>
+						<Button
+							onClick={handleDelete}
+							variant="secondary"
+							disabled={isDeleting || isAddingToCart}
+							aria-label="Remove favourite"
+							className="p-2 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:cursor-not-allowed"
+						>
+							{isDeleting ? (
 								<Loader2 className="h-4 w-4 animate-spin" />
-								Loading...
-							</>
-						) : (
-							"Add to Cart"
-						)}
-					</Button>
+							) : (
+								<Trash2 className="h-4 w-4" />
+							)}
+						</Button>
+						<Button
+							onClick={handleAddToCart}
+							disabled={isAddingToCart || isDeleting}
+							className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-neutral-800 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+						>
+							{isAddingToCart ? (
+								<>
+									<Loader2 className="h-4 w-4 animate-spin" />
+									Loading...
+								</>
+							) : (
+								"Add to Cart"
+							)}
+						</Button>
+					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 
