@@ -30,7 +30,7 @@ export function OrderPendingApprovalModal({
 					<DialogTitle>Submit Order for Review</DialogTitle>
 					<DialogDescription>
 						Your order will be reviewed by our team before processing begins.
-						You&apos;ll receive a confirmation email once it&apos;s approved —
+						You&apos;ll receive a confirmation email once it&apos;s approved -
 						typically within 1–2 business days.
 					</DialogDescription>
 				</DialogHeader>
