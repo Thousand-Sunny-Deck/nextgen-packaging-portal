@@ -23,6 +23,7 @@ export type FetchProductsResult = {
 const MAX_PAGE_SIZE = 100;
 
 type FetchProductsInput = {
+	userId?: string;
 	search?: string;
 	page?: number;
 	pageSize?: number;
@@ -114,6 +115,62 @@ export const fetchCatalog = async ({
 				],
 			}
 		: {};
+
+	const [total, rows] = await prisma.$transaction([
+		prisma.product.count({ where }),
+		prisma.product.findMany({
+			where,
+			skip,
+			take: sanitizedPageSize,
+			orderBy: { handle: "asc" },
+		}),
+	]);
+
+	const items = rows.map((product) => toProductData(product));
+
+	return {
+		items,
+		page: sanitizedPage,
+		pageSize: sanitizedPageSize,
+		total,
+		totalPages: Math.ceil(total / sanitizedPageSize),
+	};
+};
+
+export const fetchNonEntitledCatalogProducts = async ({
+	userId,
+	search,
+	page = 1,
+	pageSize = 24,
+}: FetchProductsInput): Promise<FetchProductsResult> => {
+	const { sanitizedPage, sanitizedPageSize, skip } = sanitizePagination({
+		page,
+		pageSize,
+	});
+	const sanitizedSearch = sanitizeSearch(search);
+
+	const where = {
+		entitledUsers: {
+			none: {
+				userId,
+			},
+		},
+		...(sanitizedSearch
+			? {
+					OR: [
+						{
+							sku: { contains: sanitizedSearch, mode: "insensitive" as const },
+						},
+						{
+							description: {
+								contains: sanitizedSearch,
+								mode: "insensitive" as const,
+							},
+						},
+					],
+				}
+			: {}),
+	};
 
 	const [total, rows] = await prisma.$transaction([
 		prisma.product.count({ where }),
