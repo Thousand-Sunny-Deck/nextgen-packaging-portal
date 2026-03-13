@@ -116,10 +116,12 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 	const userId = session.user.id;
 	const recentOrdersForUser = await fetchRecentOrdersForUser(userId);
 
+	const recentOrderIds = recentOrdersForUser.map((o) => o.id);
 	const favourites = await prisma.favouriteOrder.findMany({
-		where: { userId },
+		where: { userId, orderId: { in: recentOrderIds } },
 		select: { orderId: true },
 	});
+
 	const favouritedOrderIds = new Set(favourites.map((f) => f.orderId));
 
 	const recentOrder = recentOrdersForUser.map((order): RecentOrder => {
