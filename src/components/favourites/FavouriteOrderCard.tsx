@@ -7,7 +7,6 @@ import { FavouriteOrderData } from "@/actions/favourites/fetch-favourites-action
 import { deleteFavouriteAction } from "@/actions/favourites/delete-favourite-action";
 import { addFavouriteToCartAction } from "@/actions/favourites/add-favourite-to-cart-action";
 import { useCartStore } from "@/lib/store/product-store";
-import { useRouter, usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 
 const MAX_DISPLAYED_ITEMS = 3;
@@ -35,11 +34,8 @@ const FavouriteOrderCard = ({
 }: FavouriteOrderCardProps) => {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isAddingToCart, setIsAddingToCart] = useState(false);
-	const populateCartFromOrder = useCartStore(
-		(state) => state.populateCartFromOrder,
-	);
-	const router = useRouter();
-	const pathname = usePathname();
+	const mergeCartFromOrder = useCartStore((state) => state.mergeCartFromOrder);
+	const setCartSheetOpen = useCartStore((state) => state.setCartSheetOpen);
 
 	const displayedItems = favourite.items.slice(0, MAX_DISPLAYED_ITEMS);
 	const extraCount = favourite.items.length - MAX_DISPLAYED_ITEMS;
@@ -65,17 +61,23 @@ const FavouriteOrderCard = ({
 		try {
 			const result = await addFavouriteToCartAction(favourite.id);
 			if (!result.success) {
-				toast.error(result.error ?? "Failed to load order.");
+				toast.error(result.message);
 				return;
 			}
-			populateCartFromOrder(result.data.items);
-			const segments = pathname.split("/").filter(Boolean);
-			const base =
-				segments.length >= 2 && segments[0] === "dashboard"
-					? `/dashboard/${segments[1]}`
-					: "/";
-			router.push(`${base}/order/checkout`);
-			toast.success("Order loaded! Review and proceed to checkout.");
+
+			const { items, addedCount, skippedCount } = result.data;
+			if (addedCount === 0) {
+				toast.message("No items available to reorder.");
+				return;
+			}
+
+			mergeCartFromOrder(items);
+			setCartSheetOpen(true);
+			if (skippedCount > 0) {
+				toast.warning("Some items could not be added.");
+			}
+
+			toast.success("Order loaded into cart.");
 		} catch {
 			toast.error("Something went wrong. Please try again.");
 		} finally {
