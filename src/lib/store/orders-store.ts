@@ -278,6 +278,7 @@ export async function fetchActiveOrdersForUser(userId: string) {
 			},
 			status: {
 				in: [
+					OrderStatus.AWAITING_APPROVAL,
 					OrderStatus.PENDING,
 					OrderStatus.PROCESSING,
 					OrderStatus.PDF_GENERATED,

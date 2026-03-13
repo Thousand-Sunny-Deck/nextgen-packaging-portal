@@ -47,13 +47,15 @@ export const fetchOrdersForUser = async () => {
 export type ActiveOrder = {
 	orderId: string;
 	price: number;
-	status: "Order Placed" | "Processing" | "Failed";
+	status: "Order Placed" | "Processing" | "Failed" | "Pending Approval";
 };
 
 const mapOrderStatusToActiveOrder = (
 	status: OrderStatus,
 ): ActiveOrder["status"] => {
 	switch (status) {
+		case "AWAITING_APPROVAL":
+			return "Pending Approval";
 		case "PENDING":
 		case "PROCESSING":
 		case "PDF_GENERATED":

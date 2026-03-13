@@ -11,6 +11,7 @@ import confetti from "canvas-confetti";
 import { usePathname, useRouter } from "next/navigation";
 import { preparePayloadAndFire } from "@/actions/order-delivery/deliver-order-action";
 import { saveFavouriteAction } from "@/actions/favourites/save-favourite-action";
+import { features } from "@/config/features";
 
 export type CheckoutState = "cart" | "billing" | "order" | "shipped";
 
@@ -31,6 +32,7 @@ interface UseCheckoutFlowReturn {
 	currentStep: CheckoutState;
 	isHydrated: boolean;
 	isLoading: boolean;
+	showApprovalConfirmationModal: boolean;
 
 	// Cart data (from store)
 	cart: CartItem[];
@@ -52,6 +54,8 @@ interface UseCheckoutFlowReturn {
 	goToBilling: () => void;
 	goToOrder: () => void;
 	placeOrder: () => Promise<void>;
+	confirmApprovalAndFireOrder: () => Promise<void>;
+	dismissApprovalConfirmationModal: () => void;
 
 	// Progress
 	progressSteps: ProgressStep[];
@@ -91,6 +95,8 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 	const [currentStep, setCurrentStep] = useState<CheckoutState>("cart");
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const [showApprovalConfirmationModal, setShowApprovalConfirmationModal] =
+		useState(false);
 
 	const pathname = usePathname();
 	const router = useRouter();
@@ -157,13 +163,8 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		setCurrentStep("order");
 	}, [hasBillingInfo]);
 
-	// Order placement logic
-	const placeOrder = useCallback(async () => {
-		if (!canPlaceOrder) {
-			toast.error("Cannot place order. Missing cart items or billing info.");
-			return;
-		}
-
+	// Internal: actual API firing logic, shared between both paths
+	const fireOrder = useCallback(async () => {
 		setIsLoading(true);
 		setCurrentStep("shipped");
 
@@ -177,7 +178,6 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 				return;
 			}
 
-			// Prepare payload and send to backend
 			const response = await preparePayloadAndFire(
 				{
 					items: cartItems,
@@ -198,22 +198,25 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 				);
 			}
 
-			// Show success message with confetti
-			toast.success("Your order has been placed successfully.");
-			confetti({
-				particleCount: 200,
-				spread: 70,
-				origin: { x: 0, y: 0.6 },
-			});
-			confetti({
-				particleCount: 200,
-				spread: 70,
-				origin: { x: 1, y: 0.6 },
-			});
-
 			// Clear stores (also clears pendingFavouriteName)
 			clearCart();
 			clearBillingInfo();
+
+			if (response.pendingApproval) {
+				toast.success("Your order has been submitted for review.");
+			} else {
+				toast.success("Your order has been placed successfully.");
+				confetti({
+					particleCount: 200,
+					spread: 70,
+					origin: { x: 0, y: 0.6 },
+				});
+				confetti({
+					particleCount: 200,
+					spread: 70,
+					origin: { x: 1, y: 0.6 },
+				});
+			}
 
 			// Redirect to dashboard home
 			const baseDashboardPath = getDashboardBasePath(pathname);
@@ -223,7 +226,6 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 			setIsLoading(false);
 		}
 	}, [
-		canPlaceOrder,
 		getCart,
 		billingInfo,
 		orderSummary,
@@ -234,11 +236,37 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		router,
 	]);
 
+	// Public: called by "Place Order" button
+	const placeOrder = useCallback(async () => {
+		if (!canPlaceOrder) {
+			toast.error("Cannot place order. Missing cart items or billing info.");
+			return;
+		}
+
+		if (features.adminApprovalRequired) {
+			setShowApprovalConfirmationModal(true);
+			return;
+		}
+
+		await fireOrder();
+	}, [canPlaceOrder, fireOrder]);
+
+	// Public: called by modal "Submit for Review" button
+	const confirmApprovalAndFireOrder = useCallback(async () => {
+		setShowApprovalConfirmationModal(false);
+		await fireOrder();
+	}, [fireOrder]);
+
+	const dismissApprovalConfirmationModal = useCallback(() => {
+		setShowApprovalConfirmationModal(false);
+	}, []);
+
 	return {
 		// State
 		currentStep,
 		isHydrated,
 		isLoading,
+		showApprovalConfirmationModal,
 
 		// Cart data
 		cart,
@@ -260,6 +288,8 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		goToBilling,
 		goToOrder,
 		placeOrder,
+		confirmApprovalAndFireOrder,
+		dismissApprovalConfirmationModal,
 
 		// Progress
 		progressSteps,

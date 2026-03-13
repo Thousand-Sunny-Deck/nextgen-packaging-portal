@@ -29,12 +29,9 @@ export class PostOffice {
 			to: targetDetails.to,
 			subject: this.adminDetails.subject,
 			react: template,
-			attachments: [
-				{
-					content: pdfBuffer,
-					filename: "invoice.pdf",
-				},
-			],
+			...(pdfBuffer && {
+				attachments: [{ content: pdfBuffer, filename: "invoice.pdf" }],
+			}),
 		});
 
 		return {

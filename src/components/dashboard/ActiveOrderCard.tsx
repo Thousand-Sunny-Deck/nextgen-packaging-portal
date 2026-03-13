@@ -5,6 +5,9 @@ const ActiveOrderCard = ({ orderId, price, status }: ActiveOrder) => {
 	const displayId = getDisplayOrderId(orderId, "active");
 
 	const statusConfig = {
+		"Pending Approval": {
+			color: "bg-yellow-400",
+		},
 		"Order Placed": {
 			color: "bg-green-500",
 		},
