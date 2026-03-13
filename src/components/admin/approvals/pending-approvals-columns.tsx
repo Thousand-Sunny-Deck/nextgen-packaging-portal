@@ -5,10 +5,14 @@ import { formatCurrency, formatDate } from "@/components/admin/home/common";
 
 type PendingApprovalsColumnsOptions = {
 	onOpenItems: (row: OrderActivityRow) => void;
+	onAccept: (row: OrderActivityRow) => void;
+	approvingId: string | null;
 };
 
 export function getPendingApprovalsColumns({
 	onOpenItems,
+	onAccept,
+	approvingId,
 }: PendingApprovalsColumnsOptions): AdminTableColumn<OrderActivityRow>[] {
 	return [
 		{
@@ -72,6 +76,22 @@ export function getPendingApprovalsColumns({
 					View items
 				</Button>
 			),
+		},
+		{
+			key: "actions",
+			header: "Actions",
+			render: (row) => {
+				const isApproving = approvingId === row.id;
+				return (
+					<Button
+						size="sm"
+						onClick={() => onAccept(row)}
+						disabled={approvingId !== null}
+					>
+						{isApproving ? "Accepting..." : "Accept"}
+					</Button>
+				);
+			},
 		},
 	];
 }
