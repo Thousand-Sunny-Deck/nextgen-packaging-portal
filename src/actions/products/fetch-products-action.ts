@@ -142,7 +142,9 @@ export const fetchNonEntitledCatalogProducts = async ({
 	search,
 	page = 1,
 	pageSize = 24,
-}: FetchProductsInput): Promise<FetchProductsResult> => {
+}: FetchProductsInput & {
+	userId: string;
+}): Promise<FetchProductsResult> => {
 	const { sanitizedPage, sanitizedPageSize, skip } = sanitizePagination({
 		page,
 		pageSize,
