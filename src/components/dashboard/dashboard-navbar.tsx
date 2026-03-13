@@ -15,9 +15,13 @@ import {
 
 interface DashboardNavbarProps {
 	uuid: string;
+	showAdminPortalLink?: boolean;
 }
 
-export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
+export function DashboardNavbar({
+	uuid,
+	showAdminPortalLink = false,
+}: DashboardNavbarProps) {
 	const [open, setOpen] = useState(false);
 
 	const navLinks = [
@@ -26,6 +30,9 @@ export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
 		{ href: `/dashboard/${uuid}/favourites`, label: "Favourites" },
 		{ href: `/dashboard/${uuid}/home#all-invoices`, label: "Invoices" },
 		{ href: `/dashboard/${uuid}/account`, label: "Account" },
+		...(showAdminPortalLink
+			? [{ href: "/admin/home", label: "Admin Portal" }]
+			: []),
 	];
 
 	return (

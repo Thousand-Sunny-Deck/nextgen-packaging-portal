@@ -3,13 +3,27 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { AdminSidebar } from "@/components/admin/layout/sidebar";
+import type { AdminSession } from "@/lib/auth/admin-guard";
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+interface AdminShellProps {
+	children: React.ReactNode;
+	adminSession: AdminSession;
+}
+
+export function AdminShell({ children, adminSession }: AdminShellProps) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
 		<div className="flex min-h-screen">
-			<AdminSidebar isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+			<AdminSidebar
+				isOpen={mobileOpen}
+				onClose={() => setMobileOpen(false)}
+				user={{
+					userId: adminSession.userId,
+					name: adminSession.name,
+					email: adminSession.email,
+				}}
+			/>
 
 			<div className="flex-1 flex flex-col bg-slate-50 min-w-0">
 				{/* Mobile top bar */}
