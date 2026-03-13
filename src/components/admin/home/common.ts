@@ -12,6 +12,8 @@ export function getStatusLozenge(status: OrderActivityRow["status"]): {
 			return { appearence: "success" as const, label: "Completed" };
 		case "FAILED":
 			return { appearence: "removed" as const, label: "Failed" };
+		case "CANCELLED":
+			return { appearence: "default" as const, label: "Cancelled" };
 		default:
 			return { appearence: "inprogress" as const, label: "In Progress" };
 	}

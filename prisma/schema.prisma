@@ -166,8 +166,11 @@ model Order {
   emailSentAt DateTime?
 
   // Admin approval
-  approvedAt DateTime?
-  approvedBy String?
+  approvedAt  DateTime?
+  approvedBy  String?
+
+  // Cancellation
+  cancelledAt DateTime?
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -242,6 +245,7 @@ enum OrderStatus {
   PDF_STORED // pdf is stored in s3
   EMAIL_SENT // email sent with pdf
   FAILED // Processing failed after retries
+  CANCELLED // Cancelled by user while awaiting approval
 
   @@map("order_status")
 }

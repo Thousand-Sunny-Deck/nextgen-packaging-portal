@@ -10,21 +10,31 @@ export type Invoice = {
 	invoiceId: string;
 	orderId: string;
 	amount: number;
-	status: "Pending" | "Processing" | "Success" | "Failed";
+	status:
+		| "Pending Approval"
+		| "Pending"
+		| "Processing"
+		| "Success"
+		| "Failed"
+		| "Cancelled";
 	date: string;
 	pdfUrl?: string;
 };
 
 const LozengeAppereanceMap = (status: Invoice["status"]) => {
 	switch (status) {
+		case "Pending Approval":
+			return "inprogress";
 		case "Pending":
 			return "inprogress";
-		case "Failed":
-			return "removed";
 		case "Processing":
 			return "inprogress";
 		case "Success":
 			return "success";
+		case "Failed":
+			return "removed";
+		case "Cancelled":
+			return "default";
 		default:
 			return "default";
 	}
