@@ -9,7 +9,7 @@ const mapOrderStatusToInvoiceStatus = (
 ): Invoice["status"] => {
 	switch (status) {
 		case "AWAITING_APPROVAL":
-			return "Pending";
+			return "Pending Approval";
 		case "PENDING":
 			return "Pending";
 		case "PROCESSING":
@@ -20,6 +20,8 @@ const mapOrderStatusToInvoiceStatus = (
 			return "Success";
 		case "FAILED":
 			return "Failed";
+		case "CANCELLED":
+			return "Cancelled";
 		default:
 			return "Pending";
 	}
