@@ -1,6 +1,6 @@
 // RecentOrderCard.tsx
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Heart } from "lucide-react";
 import { RecentOrderItem } from "@/actions/order-delivery/fetch-orders-action";
 import { getDisplayOrderId } from "@/lib/utils";
 
@@ -12,6 +12,9 @@ interface RecentOrderCardProps {
 	timeAgo: string;
 	onReorder: () => void;
 	isLoading?: boolean;
+	isFavourited?: boolean;
+	isFavouriting?: boolean;
+	onFavourite?: () => void;
 }
 
 const RecentOrderCard = ({
@@ -21,6 +24,9 @@ const RecentOrderCard = ({
 	onReorder,
 	invoiceId,
 	isLoading = false,
+	isFavourited = false,
+	isFavouriting = false,
+	onFavourite,
 }: RecentOrderCardProps) => {
 	const displayInvoiceId = getDisplayOrderId(invoiceId, "recent");
 	return (
@@ -42,9 +48,24 @@ const RecentOrderCard = ({
 				</div>
 			</div>
 
-			{/* Right side - Price and re-order button */}
-			<div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 flex-shrink-0">
+			{/* Right side - Price, heart, and re-order button */}
+			<div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
 				<p className="font-bold text-md">AU ${price.toFixed(2)}</p>
+
+				<button
+					onClick={onFavourite}
+					disabled={isFavourited || isFavouriting}
+					aria-label={isFavourited ? "Already saved" : "Save as favourite"}
+					className="p-2 rounded-lg hover:bg-neutral-100 transition-colors disabled:cursor-not-allowed"
+				>
+					{isFavouriting ? (
+						<Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+					) : (
+						<Heart
+							className={`h-4 w-4 ${isFavourited ? "fill-red-400 text-red-400" : "text-neutral-400 hover:text-red-400"}`}
+						/>
+					)}
+				</button>
 
 				<button
 					onClick={onReorder}

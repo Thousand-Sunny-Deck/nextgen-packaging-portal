@@ -23,6 +23,7 @@ export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
 	const navLinks = [
 		{ href: `/dashboard/${uuid}/order`, label: "Quick Order" },
 		{ href: `/dashboard/${uuid}/shop`, label: "Shop" },
+		{ href: `/dashboard/${uuid}/favourites`, label: "Favourites" },
 		{ href: `/dashboard/${uuid}/home#all-invoices`, label: "Invoices" },
 		{ href: `/dashboard/${uuid}/account`, label: "Account" },
 	];
@@ -44,16 +45,18 @@ export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
 								<SheetTitle className="text-left">Menu</SheetTitle>
 							</SheetHeader>
 							<nav className="flex flex-col gap-2 mt-6">
-								{navLinks.map((link) => (
-									<Link
-										key={link.href}
-										href={link.href}
-										onClick={() => setOpen(false)}
-										className="px-4 py-2.5 text-sm font-medium text-gray-800 hover:bg-orange-100 hover:translate-x-1 active:bg-orange-200 rounded-md transition-all cursor-pointer"
-									>
-										{link.label}
-									</Link>
-								))}
+								{navLinks.map((link) => {
+									return (
+										<Link
+											key={link.href}
+											href={link.href}
+											onClick={() => setOpen(false)}
+											className="px-4 py-2.5 text-sm font-medium text-gray-800 hover:bg-orange-100 hover:translate-x-1 active:bg-orange-200 rounded-md transition-all cursor-pointer flex items-center gap-2"
+										>
+											{link.label}
+										</Link>
+									);
+								})}
 								<div className="mt-4 pt-4 border-t">
 									<SignOutButton />
 								</div>
@@ -64,15 +67,17 @@ export function DashboardNavbar({ uuid }: DashboardNavbarProps) {
 
 				{/* Desktop: Navigation Links */}
 				<div className="hidden md:flex gap-2 lg:gap-6 px-2 lg:px-6">
-					{navLinks.map((link) => (
-						<Link
-							key={link.href}
-							href={link.href}
-							className="px-2 lg:px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-white/60 rounded-md transition-all"
-						>
-							{link.label}
-						</Link>
-					))}
+					{navLinks.map((link) => {
+						return (
+							<Link
+								key={link.href}
+								href={link.href}
+								className="px-2 lg:px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-white/60 rounded-md transition-all flex items-center gap-1.5"
+							>
+								{link.label}
+							</Link>
+						);
+					})}
 				</div>
 
 				{/* Center: Branding */}

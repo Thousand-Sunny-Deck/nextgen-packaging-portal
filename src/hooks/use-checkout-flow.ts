@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { usePathname, useRouter } from "next/navigation";
 import { preparePayloadAndFire } from "@/actions/order-delivery/deliver-order-action";
+import { saveFavouriteAction } from "@/actions/favourites/save-favourite-action";
 
 export type CheckoutState = "cart" | "billing" | "order" | "shipped";
 
@@ -95,7 +96,14 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 	const router = useRouter();
 
 	// Store subscriptions
-	const { cart, cartSize, totalCost, getCart, clearCart } = useCartStore();
+	const {
+		cart,
+		cartSize,
+		totalCost,
+		getCart,
+		clearCart,
+		pendingFavouriteName,
+	} = useCartStore();
 	const { billingInfo, hasBillingInfo, clearBillingInfo } =
 		useBillingInfoStore();
 
@@ -183,6 +191,13 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 				throw new Error(`Something went wrong. ${response.error}`);
 			}
 
+			// Save favourite before clearing cart (name lives in cart store)
+			if (pendingFavouriteName && response.orderId) {
+				saveFavouriteAction(response.orderId, pendingFavouriteName).catch(
+					(err) => console.error("Failed to save favourite:", err),
+				);
+			}
+
 			// Show success message with confetti
 			toast.success("Your order has been placed successfully.");
 			confetti({
@@ -196,7 +211,7 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 				origin: { x: 1, y: 0.6 },
 			});
 
-			// Clear stores after successful order
+			// Clear stores (also clears pendingFavouriteName)
 			clearCart();
 			clearBillingInfo();
 
@@ -212,6 +227,7 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		getCart,
 		billingInfo,
 		orderSummary,
+		pendingFavouriteName,
 		clearCart,
 		clearBillingInfo,
 		pathname,
