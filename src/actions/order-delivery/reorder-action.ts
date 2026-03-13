@@ -51,6 +51,14 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		};
 	}
 
+	if (order.status === "AWAITING_APPROVAL") {
+		return {
+			success: false,
+			message:
+				"This order is pending approval. If you need changes, contact support or wait for approval.",
+		};
+	}
+
 	const requestedCount = order.items.length;
 
 	if (requestedCount === 0) {
