@@ -15,7 +15,7 @@ interface Props {
 	favourite: FavouriteOrderData;
 }
 
-const FavouriteOrderDetailModal = ({
+const FavouriteOrderDetailsDrawer = ({
 	open,
 	onOpenChange,
 	favourite,
@@ -70,4 +70,4 @@ const FavouriteOrderDetailModal = ({
 	);
 };
 
-export default FavouriteOrderDetailModal;
+export default FavouriteOrderDetailsDrawer;
