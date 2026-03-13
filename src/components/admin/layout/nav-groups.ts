@@ -1,4 +1,10 @@
-import { LayoutDashboard, Users, Package, ShieldCheck } from "lucide-react";
+import {
+	LayoutDashboard,
+	Users,
+	Package,
+	ShieldCheck,
+	Clock,
+} from "lucide-react";
 
 export const navGroups = [
 	{
@@ -14,6 +20,11 @@ export const navGroups = [
 				label: "Entitlements",
 				href: "/admin/entitlements",
 				icon: ShieldCheck,
+			},
+			{
+				label: "Pending Approvals",
+				href: "/admin/approvals",
+				icon: Clock,
 			},
 		],
 	},
