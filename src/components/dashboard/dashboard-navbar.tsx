@@ -136,7 +136,7 @@ export function DashboardNavbar({
 
 				{/* Desktop: Account Navigation + Sign Out (Right) */}
 				<div className="hidden md:flex items-center justify-end gap-2">
-					<div className="h-6 w-px bg-orange-200" />
+					<div className="w-px bg-orange-200" />
 					{rightNavLinks.map((link) => {
 						return (
 							<Link
