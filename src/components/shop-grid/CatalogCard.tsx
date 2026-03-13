@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ProductImageViewerModal } from "@/components/admin/products/product-image-viewer-modal";
+import { useState } from "react";
+import Image from "next/image";
+import { ProductImageViewerModal } from "@/components/admin/products/product-image-viewer-modal";
 import { CatalogCardViewModel } from "./types";
 import { CatalogQuantityControl } from "./CatalogQuantityControl";
 import { CatalogSelectButton } from "./CatalogSelectButton";
@@ -22,6 +25,8 @@ export const CatalogCard = ({
 	onQuantityChange,
 	onToggleSelect,
 }: CatalogCardProps) => {
+	const [isZoomed, setIsZoomed] = useState(false);
+
 	const [isZoomed, setIsZoomed] = useState(false);
 
 	const handleDecrement = () => {
@@ -62,6 +67,32 @@ export const CatalogCard = ({
 							error={null}
 						/>
 					</>
+					<>
+					<div
+						className="h-full w-full cursor-zoom-in"
+						onClick={(e) => {
+							e.stopPropagation();
+							setIsZoomed(true);
+						}}
+					>
+						<Image
+							src={item.imageUrl}
+							alt={item.name}
+							width={320}
+							height={320}
+							sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+							className="h-full w-full object-cover"
+							loading="lazy"
+						/>
+					</div>
+					<ProductImageViewerModal
+						open={isZoomed}
+						onOpenChange={setIsZoomed}
+						imageUrl={item.imageUrl}
+						loading={false}
+						error={null}
+					/>
+				</>
 				) : (
 					<div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
 						No image
