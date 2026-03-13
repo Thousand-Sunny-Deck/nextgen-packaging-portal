@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/product-store";
 import { reorderAction } from "@/actions/order-delivery/reorder-action";
@@ -10,11 +9,8 @@ export function useReorder() {
 	const [reorderingOrderId, setReorderingOrderId] = useState<string | null>(
 		null,
 	);
-	const populateCartFromOrder = useCartStore(
-		(state) => state.populateCartFromOrder,
-	);
-	const router = useRouter();
-	const pathname = usePathname();
+	const mergeCartFromOrder = useCartStore((state) => state.mergeCartFromOrder);
+	const setCartSheetOpen = useCartStore((state) => state.setCartSheetOpen);
 
 	const handleReorder = async (orderId: string) => {
 		setReorderingOrderId(orderId);
@@ -28,13 +24,20 @@ export function useReorder() {
 				return;
 			}
 
-			const { items } = result.data;
+			const { items, addedCount, skippedCount } = result.data;
 
-			populateCartFromOrder(items);
+			if (addedCount === 0) {
+				toast.message("No items available to reorder.");
+				return;
+			}
 
-			const orderRoute = pathname.replace("home", "order");
-			router.push(`${orderRoute}/checkout`);
-			toast.success("Order loaded! Review and proceed to checkout.");
+			mergeCartFromOrder(items);
+			setCartSheetOpen(true);
+
+			if (skippedCount > 0) {
+				toast.warning("Some items could not be added.");
+			}
+			toast.success("Order loaded into cart.");
 		} catch {
 			toast.error("Something went wrong. Please try again.");
 		} finally {

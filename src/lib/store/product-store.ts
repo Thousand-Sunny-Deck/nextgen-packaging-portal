@@ -10,6 +10,7 @@ export interface CartItem {
 	description: string;
 	total: number;
 	unitCost: number;
+	imageUrl?: string | null;
 }
 
 export type ProductTableStore = ProductData & {
@@ -41,7 +42,30 @@ interface CartStore {
 
 	prepareCartForCheckout: () => void;
 	populateCartFromOrder: (items: CartItem[]) => void;
+	mergeCartFromOrder: (items: CartItem[]) => void;
+	isCartSheetOpen: boolean;
+	setCartSheetOpen: (open: boolean) => void;
 }
+
+const MAX_QUANTITY = 999;
+
+const prepareCheckoutState = (
+	selectedProductHandles: Set<string>,
+	maybeSelectedProducts: Map<string, CartItem>,
+) => {
+	const cart = Array.from(maybeSelectedProducts.values())
+		.map((item) => (selectedProductHandles.has(item.handle) ? item : null))
+		.filter((item): item is CartItem => Boolean(item));
+
+	const totalCost =
+		Math.round(cart.reduce((sum, item) => sum + item.total, 0) * 100) / 100;
+
+	return {
+		cart,
+		cartSize: cart.length,
+		totalCost,
+	};
+};
 
 export const useCartStore = create<CartStore>()(
 	persist(
@@ -51,6 +75,7 @@ export const useCartStore = create<CartStore>()(
 			cart: [],
 			cartSize: 0,
 			totalCost: 0,
+			isCartSheetOpen: false,
 
 			setQuantity: (cartInfo) => {
 				set((state) => {
@@ -88,6 +113,7 @@ export const useCartStore = create<CartStore>()(
 					cart: [],
 					cartSize: 0,
 					totalCost: 0,
+					isCartSheetOpen: false,
 				});
 			},
 
@@ -166,17 +192,10 @@ export const useCartStore = create<CartStore>()(
 			prepareCartForCheckout: () => {
 				set((state) => {
 					const { selectedProductHandles, maybeSelectedProducts } = state;
-					const cart = Array.from(maybeSelectedProducts.values())
-						.map((item) =>
-							selectedProductHandles.has(item.handle) ? item : null,
-						)
-						.filter((x) => x !== null);
-
-					const totalCost =
-						Math.round(cart.reduce((sum, item) => sum + item.total, 0) * 100) /
-						100;
-
-					return { cart, cartSize: cart.length, totalCost };
+					return prepareCheckoutState(
+						selectedProductHandles,
+						maybeSelectedProducts,
+					);
 				});
 			},
 
@@ -199,6 +218,41 @@ export const useCartStore = create<CartStore>()(
 					cart: items,
 					cartSize: items.length,
 					totalCost,
+				});
+			},
+
+			mergeCartFromOrder: (items: CartItem[]) => {
+				set((state) => {
+					const newMap = new Map(state.maybeSelectedProducts);
+					const newSet = new Set(state.selectedProductHandles);
+
+					for (const incoming of items) {
+						const existing = newMap.get(incoming.handle);
+						const quantity = Math.min(
+							MAX_QUANTITY,
+							(existing?.quantity ?? 0) + incoming.quantity,
+						);
+						const total = Math.round(quantity * incoming.unitCost * 100) / 100;
+
+						newMap.set(incoming.handle, {
+							...incoming,
+							quantity,
+							total,
+						});
+						newSet.add(incoming.handle);
+					}
+
+					return {
+						maybeSelectedProducts: newMap,
+						selectedProductHandles: newSet,
+						...prepareCheckoutState(newSet, newMap),
+					};
+				});
+			},
+
+			setCartSheetOpen: (open) => {
+				set({
+					isCartSheetOpen: open,
 				});
 			},
 		}),

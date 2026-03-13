@@ -1,4 +1,5 @@
 import { DashboardNavbar } from "@/components/dashboard/dashboard-navbar";
+import { DashboardCartSheet } from "@/components/dashboard/DashboardCartSheet";
 
 interface DashboardLayoutProps {
 	children: React.ReactNode;
@@ -14,6 +15,7 @@ export default async function DashboardLayout({
 	return (
 		<>
 			<DashboardNavbar uuid={uuid} />
+			<DashboardCartSheet uuid={uuid} />
 			<main>{children}</main>
 		</>
 	);
