@@ -1,17 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowLeft, LogOut, X } from "lucide-react";
 import { navGroups } from "./nav-groups";
+import { SignOutUser } from "@/actions/auth/sign-out-action";
+import { toast } from "sonner";
 
 interface AdminSidebarProps {
 	isOpen: boolean;
 	onClose: () => void;
+	user: {
+		userId: string;
+		name: string;
+		email: string;
+	};
 }
 
-export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+const getInitials = (name: string): string => {
+	const trimmedName = name.trim();
+
+	if (!trimmedName) {
+		return "AD";
+	}
+
+	const nameParts = trimmedName
+		.split(/\s+/)
+		.map((part) => part.trim())
+		.filter(Boolean);
+
+	if (nameParts.length >= 2) {
+		return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase();
+	}
+
+	const firstPart = nameParts[0];
+	return firstPart.slice(0, 2).toUpperCase();
+};
+
+export function AdminSidebar({ isOpen, onClose, user }: AdminSidebarProps) {
 	const pathname = usePathname();
+	const router = useRouter();
+	const [isSigningOut, setIsSigningOut] = useState(false);
+
+	const handleSignOut = async () => {
+		if (isSigningOut) {
+			return;
+		}
+
+		setIsSigningOut(true);
+		const { error } = await SignOutUser();
+
+		if (error) {
+			setIsSigningOut(false);
+			toast.error(error);
+			return;
+		}
+
+		onClose();
+		router.replace("/auth/login");
+	};
 
 	return (
 		<>
@@ -82,37 +130,34 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 				<div className="p-4 border-t border-slate-200 space-y-1">
 					<div className="flex items-center gap-3 px-3 py-2 mb-2">
 						<div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-							AD
+							{getInitials(user.name)}
 						</div>
 						<div className="min-w-0">
-							{/* TODO: get user details and truncate the email if too big*/}
 							<p className="text-sm font-medium text-slate-900 truncate">
-								Admin User
+								{user.name}
 							</p>
-							<p className="text-xs text-slate-500 truncate">
-								admin@company.io
-							</p>
+							<p className="text-xs text-slate-500 truncate">{user.email}</p>
 						</div>
 					</div>
 
-					{/* TODO: go back to dashbord using user information in session. */}
 					<Link
-						href="/dashboard"
+						href={`/dashboard/${user.userId}/home`}
 						onClick={onClose}
 						className="flex items-center gap-3 px-3 py-2 text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-md transition-colors"
 					>
 						<ArrowLeft className="h-4 w-4" />
 						Back to Dashboard
 					</Link>
-					{/* TODO: sign user out on onclick. */}
-					<Link
-						href="/auth/login"
-						onClick={onClose}
+
+					<button
+						type="button"
+						onClick={handleSignOut}
+						disabled={isSigningOut}
 						className="flex items-center gap-3 px-3 py-2 text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-md transition-colors"
 					>
 						<LogOut className="h-4 w-4" />
-						Sign Out
-					</Link>
+						{isSigningOut ? "Signing Out..." : "Sign Out"}
+					</button>
 				</div>
 			</aside>
 		</>

@@ -8,6 +8,6 @@ interface NewAdminLayoutProps {
 export default async function NewAdminLayout({
 	children,
 }: NewAdminLayoutProps) {
-	await requireSuperAdmin();
-	return <AdminShell>{children}</AdminShell>;
+	const adminSession = await requireSuperAdmin();
+	return <AdminShell adminSession={adminSession}>{children}</AdminShell>;
 }
