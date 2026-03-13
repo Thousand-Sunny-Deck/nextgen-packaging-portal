@@ -2,50 +2,11 @@ import { Lozenge } from "@/components/Lozenge";
 import type { AdminTableColumn } from "@/components/admin/ui/admin-data-table";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
 import { Button } from "@/components/ui/button";
+import { formatCurrency, formatDate, getStatusLozenge } from "./common";
 
 type OrderActivityColumnsOptions = {
 	onOpenItems: (row: OrderActivityRow) => void;
 };
-
-function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleString("en-AU", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
-function formatCurrency(value: number) {
-	return value.toLocaleString("en-AU", {
-		style: "currency",
-		currency: "AUD",
-		currencyDisplay: "code",
-	});
-}
-
-function getStatusLozengeAppearance(status: OrderActivityRow["status"]) {
-	switch (status) {
-		case "EMAIL_SENT":
-			return "success" as const;
-		case "FAILED":
-			return "removed" as const;
-		default:
-			return "inprogress" as const;
-	}
-}
-
-function getStatusLabel(status: OrderActivityRow["status"]) {
-	switch (status) {
-		case "EMAIL_SENT":
-			return "Completed";
-		case "FAILED":
-			return "Failed";
-		default:
-			return "In Progress";
-	}
-}
 
 export function getOrderActivityColumns({
 	onOpenItems,
@@ -116,11 +77,10 @@ export function getOrderActivityColumns({
 		{
 			key: "status",
 			header: "Status",
-			render: (row) => (
-				<Lozenge appearance={getStatusLozengeAppearance(row.status)}>
-					{getStatusLabel(row.status)}
-				</Lozenge>
-			),
+			render: (row) => {
+				const { appearence, label } = getStatusLozenge(row.status);
+				return <Lozenge appearance={appearence}>{label}</Lozenge>;
+			},
 		},
 	];
 }

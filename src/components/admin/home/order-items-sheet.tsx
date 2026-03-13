@@ -8,6 +8,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
+import { formatDate, getStatusLozenge } from "./common";
 
 interface OrderItemsSheetProps {
 	order: OrderActivityRow | null;
@@ -23,43 +24,12 @@ function formatCurrency(value: number) {
 	});
 }
 
-function formatDate(isoString: string) {
-	return new Date(isoString).toLocaleString("en-AU", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
-function getStatusLozengeAppearance(status: OrderActivityRow["status"]) {
-	switch (status) {
-		case "EMAIL_SENT":
-			return "success" as const;
-		case "FAILED":
-			return "removed" as const;
-		default:
-			return "inprogress" as const;
-	}
-}
-
-function getStatusLabel(status: OrderActivityRow["status"]) {
-	switch (status) {
-		case "EMAIL_SENT":
-			return "Completed";
-		case "FAILED":
-			return "Failed";
-		default:
-			return "In Progress";
-	}
-}
-
 export function OrderItemsSheet({
 	order,
 	open,
 	onOpenChange,
 }: OrderItemsSheetProps) {
+	const { label, appearence } = getStatusLozenge(order?.status || "PROCESSING");
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
@@ -87,11 +57,7 @@ export function OrderItemsSheet({
 											{order.customerOrganization}
 										</p>
 									</div>
-									<Lozenge
-										appearance={getStatusLozengeAppearance(order.status)}
-									>
-										{getStatusLabel(order.status)}
-									</Lozenge>
+									<Lozenge appearance={appearence}>{label}</Lozenge>
 								</div>
 								<div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
 									<span className="text-sm text-slate-600">
