@@ -7,7 +7,7 @@ import type { AdminEmailDetails } from "@/lib/resend/admin-template";
 
 // Company details - can be moved to env variables if needed
 const COMPANY_NAME = "NextGen Packaging";
-const COMPANY_EMAIL = "info@nextgenpackaging.com";
+const COMPANY_EMAIL = "info@nextgenpackaging.com.au";
 const COMPANY_ADDRESS = "Adelaide, SA, Australia";
 const COMPANY_WEBSITE = "https://nextgenpackaging.com.au";
 

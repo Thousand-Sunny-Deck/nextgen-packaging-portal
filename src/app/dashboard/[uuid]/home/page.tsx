@@ -54,10 +54,8 @@ const PortalPage = async ({ params }: PortalPageProps) => {
 
 	return (
 		<div className="w-screen min-h-screen flex flex-col">
-			{/* background image */}
-			<div className="min-h-[20vh] w-full bg-gray-100"></div>
 			{/* main content */}
-			<div className="w-full flex flex-1 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32">
+			<div className="w-full flex flex-1 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 pt-4 md:pt-6">
 				{/* Welcome, active and recent orders component */}
 				<div className="w-full flex flex-col p-1">
 					<div className="space-y-6 md:space-y-8">
