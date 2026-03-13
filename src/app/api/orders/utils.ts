@@ -8,6 +8,8 @@ const mapOrderStatusToInvoiceStatus = (
 	status: OrderStatus,
 ): Invoice["status"] => {
 	switch (status) {
+		case "AWAITING_APPROVAL":
+			return "Pending";
 		case "PENDING":
 			return "Pending";
 		case "PROCESSING":

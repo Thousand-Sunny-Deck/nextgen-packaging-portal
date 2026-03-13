@@ -6,6 +6,8 @@ export function getStatusLozenge(status: OrderActivityRow["status"]): {
 	label: string;
 } {
 	switch (status) {
+		case "AWAITING_APPROVAL":
+			return { appearence: "inprogress" as const, label: "Awaiting Approval" };
 		case "EMAIL_SENT":
 			return { appearence: "success" as const, label: "Completed" };
 		case "FAILED":

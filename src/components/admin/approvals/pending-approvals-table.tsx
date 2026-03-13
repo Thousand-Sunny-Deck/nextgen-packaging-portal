@@ -9,6 +9,8 @@ import { AdminPagination } from "@/components/admin/ui/admin-pagination";
 import { AdminDataTable } from "@/components/admin/ui/admin-data-table";
 import { OrderItemsSheet } from "@/components/admin/home/order-items-sheet";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
+import { approveOrderAction } from "@/actions/admin/approve-order-action";
+import { toast } from "sonner";
 import { getPendingApprovalsColumns } from "./pending-approvals-columns";
 
 interface PendingApprovalsTableProps {
@@ -38,6 +40,22 @@ export function PendingApprovalsTable({
 		null,
 	);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const [approvingId, setApprovingId] = useState<string | null>(null);
+
+	const handleAccept = async (row: OrderActivityRow) => {
+		setApprovingId(row.id);
+		try {
+			const result = await approveOrderAction(row.orderId);
+			if (result.success) {
+				toast.success(`Order ${row.orderId} approved.`);
+				onRefresh();
+			} else {
+				toast.error(result.error);
+			}
+		} finally {
+			setApprovingId(null);
+		}
+	};
 
 	const columns = useMemo(
 		() =>
@@ -46,8 +64,11 @@ export function PendingApprovalsTable({
 					setSelectedOrder(row);
 					setSheetOpen(true);
 				},
+				onAccept: handleAccept,
+				approvingId,
 			}),
-		[],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[approvingId],
 	);
 
 	return (
@@ -91,7 +112,7 @@ export function PendingApprovalsTable({
 					data={approvals}
 					getRowId={(row) => row.id}
 					loading={loading}
-					minWidth="min-w-[1000px]"
+					minWidth="min-w-[1100px]"
 				/>
 			)}
 
