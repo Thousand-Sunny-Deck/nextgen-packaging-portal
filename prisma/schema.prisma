@@ -165,6 +165,10 @@ model Order {
   emailSent   Boolean   @default(false)
   emailSentAt DateTime?
 
+  // Admin approval
+  approvedAt DateTime?
+  approvedBy String?
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -231,6 +235,7 @@ enum UserRole {
 }
 
 enum OrderStatus {
+  AWAITING_APPROVAL // Held for admin review before processing
   PENDING // Just created, background job queued
   PROCESSING // background jobs are running
   PDF_GENERATED // PDF_GENERATED
