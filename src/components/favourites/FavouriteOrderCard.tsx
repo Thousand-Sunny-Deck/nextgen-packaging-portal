@@ -8,7 +8,7 @@ import { deleteFavouriteAction } from "@/actions/favourites/delete-favourite-act
 import { addFavouriteToCartAction } from "@/actions/favourites/add-favourite-to-cart-action";
 import { useCartStore } from "@/lib/store/product-store";
 import { Button } from "../ui/button";
-import FavouriteOrderDetailModal from "./FavouriteOrderDetailModal";
+import FavouriteOrderDetailsDrawer from "./FavouriteOrderDetailsDrawer";
 
 const MAX_DISPLAYED_ITEMS = 3;
 
@@ -89,7 +89,7 @@ const FavouriteOrderCard = ({
 
 	return (
 		<>
-			<FavouriteOrderDetailModal
+			<FavouriteOrderDetailsDrawer
 				open={detailOpen}
 				onOpenChange={setDetailOpen}
 				favourite={favourite}
