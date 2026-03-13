@@ -2,10 +2,20 @@ import { Users, Package, ShoppingCart, Calendar } from "lucide-react";
 import { PageHeader } from "@/components/admin/layout/page-header";
 import { MetricCard } from "@/components/admin/ui/metric-card";
 import { getAdminDashboardMetrics } from "@/actions/spike/dashboard-actions";
+import { OrdersActivityClient } from "@/components/admin/home/orders-activity-client";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
-export default async function AdminHomePage() {
+interface PageProps {
+	searchParams: Promise<{ q?: string; page?: string; pageSize?: string }>;
+}
+
+export default async function AdminHomePage({ searchParams }: PageProps) {
+	const params = await searchParams;
+	const search = params.q?.trim() ?? "";
+	const page = Number(params.page) || 1;
+	const pageSize = Number(params.pageSize) || 20;
+
 	const metricsData = await getAdminDashboardMetrics();
 	const metrics = [
 		{
@@ -38,6 +48,14 @@ export default async function AdminHomePage() {
 				{metrics.map((m) => (
 					<MetricCard key={m.label} {...m} />
 				))}
+			</div>
+
+			<div className="mt-8 md:mt-10">
+				<PageHeader
+					title="Recent Activity"
+					subtitle="Latest orders across all users"
+				/>
+				<OrdersActivityClient search={search} page={page} pageSize={pageSize} />
 			</div>
 		</div>
 	);
