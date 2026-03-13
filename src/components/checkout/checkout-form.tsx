@@ -6,6 +6,7 @@ import BillingAddressSelector from "./billing/billing-address-selector";
 import EmptyCartState from "./empty-cart-state";
 import { useCheckoutFlow } from "@/hooks/use-checkout-flow";
 import { Button } from "@/components/ui/button";
+import { OrderPendingApprovalModal } from "./OrderPendingApprovalModal";
 
 interface CheckoutFormProps {
 	userMetadata: {
@@ -18,6 +19,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 		currentStep,
 		isHydrated,
 		isLoading,
+		showApprovalConfirmationModal,
 		cart,
 		orderSummary,
 		billingInfo,
@@ -28,6 +30,8 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 		goToBilling,
 		goToOrder,
 		placeOrder,
+		confirmApprovalAndFireOrder,
+		dismissApprovalConfirmationModal,
 		progressSteps,
 		currentStepIndex,
 	} = useCheckoutFlow();
@@ -76,6 +80,12 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 
 	return (
 		<div className="w-full mt-10">
+			<OrderPendingApprovalModal
+				open={showApprovalConfirmationModal}
+				isLoading={isLoading}
+				onConfirm={confirmApprovalAndFireOrder}
+				onCancel={dismissApprovalConfirmationModal}
+			/>
 			<div className="hidden md:flex justify-between gap-4 md:gap-6 lg:gap-8">
 				{(isReviewOrderState || isOrderState) && <CartSummary cart={cart} />}
 				{isBillingState && (

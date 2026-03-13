@@ -12,6 +12,9 @@ import {
 } from "@/lib/store/orders-store";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { inngest } from "@/inngest/client";
+import { features } from "@/config/features";
+import { PostOffice } from "@/service/post-office";
+import { AdminApprovalNotificationEmail } from "@/lib/resend/admin-approval-notification-template";
 
 export type OrderPayload = {
 	cart: CartPayload;
@@ -27,7 +30,11 @@ type FireResponse = {
 	ok: boolean;
 	error?: unknown;
 	orderId?: string;
+	pendingApproval?: boolean;
 };
+
+const ADMIN_EMAIL = "nextgenelitesupplies@gmail.com";
+const FROM_EMAIL = "Invoice <invoices@nextgenpackaging-portal.site>";
 
 export const preparePayloadAndFire = async (
 	cart: CartPayload,
@@ -70,6 +77,53 @@ export const preparePayloadAndFire = async (
 			validatedPayload,
 			session.user.id,
 		);
+
+		if (features.adminApprovalRequired) {
+			await updateStateForOrder(
+				order.orderId,
+				order.userId!,
+				OrderStatus.AWAITING_APPROVAL,
+			);
+
+			try {
+				const formattedTotal = new Intl.NumberFormat("en-AU", {
+					style: "currency",
+					currency: "AUD",
+				}).format(order.totalOrderCost);
+
+				const customerName = order.billingOrganization || order.customerEmail;
+
+				const postOffice = new PostOffice({
+					from: FROM_EMAIL,
+					subject: `New order pending approval - ${order.invoiceId} (${customerName})`,
+				});
+
+				await postOffice.deliver(
+					{ to: [ADMIN_EMAIL] },
+					AdminApprovalNotificationEmail({
+						details: {
+							customerName,
+							customerEmail: order.customerEmail,
+							customerOrganisation: order.billingOrganization,
+							orderId: order.orderId,
+							invoiceId: order.invoiceId,
+							totalFormatted: formattedTotal,
+						},
+					}),
+				);
+			} catch (emailError) {
+				console.error(
+					"Failed to send admin approval notification:",
+					emailError,
+				);
+			}
+
+			return {
+				ok: true,
+				orderId: order.orderId,
+				pendingApproval: true,
+			};
+		}
 
 		try {
 			await inngest.send({
