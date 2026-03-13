@@ -32,7 +32,6 @@ const FavouritesPage = async ({ params }: FavouritesPageProps) => {
 
 	return (
 		<div className="w-screen min-h-screen flex flex-col">
-			<div className="min-h-[20vh] w-full bg-gray-100"></div>
 			<div className="w-full flex flex-1 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 mt-8">
 				<div className="w-full flex flex-col gap-4">
 					<div>
