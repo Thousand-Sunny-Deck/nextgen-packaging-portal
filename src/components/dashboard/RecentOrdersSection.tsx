@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import { RecentOrder } from "@/actions/order-delivery/fetch-orders-action";
+import { saveFavouriteAction } from "@/actions/favourites/save-favourite-action";
 import RecentOrderCard from "./RecentOrderCard";
 import { useReorder } from "@/hooks/use-reorder";
+import { FavouriteNameModal } from "@/components/favourites/FavouriteNameModal";
 
 interface RecentOrderSectionProps {
 	recentOrders: RecentOrder[];
@@ -10,6 +14,34 @@ interface RecentOrderSectionProps {
 
 const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 	const { handleReorder, isReordering } = useReorder();
+	const [favouriteTargetOrderId, setFavouriteTargetOrderId] = useState<
+		string | null
+	>(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [savedOrderIds, setSavedOrderIds] = useState<Set<string>>(new Set());
+
+	const handleFavourite = (orderId: string) => {
+		setFavouriteTargetOrderId(orderId);
+	};
+
+	const handleSaveFavourite = async (name: string) => {
+		if (!favouriteTargetOrderId) return;
+		setIsSaving(true);
+		try {
+			const result = await saveFavouriteAction(favouriteTargetOrderId, name);
+			if (result.success) {
+				toast.success("Saved to favourites!");
+				setSavedOrderIds((prev) => new Set(prev).add(favouriteTargetOrderId));
+				setFavouriteTargetOrderId(null);
+			} else {
+				toast.error(result.error ?? "Failed to save favourite.");
+			}
+		} catch {
+			toast.error("Something went wrong. Please try again.");
+		} finally {
+			setIsSaving(false);
+		}
+	};
 
 	return (
 		<div className="bg-orange-50 rounded-xl p-4">
@@ -29,6 +61,13 @@ const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 							timeAgo={order.timeAgo}
 							onReorder={() => handleReorder(order.orderId)}
 							isLoading={isReordering(order.orderId)}
+							isFavourited={
+								order.isFavourited || savedOrderIds.has(order.orderId)
+							}
+							isFavouriting={
+								favouriteTargetOrderId === order.orderId && isSaving
+							}
+							onFavourite={() => handleFavourite(order.orderId)}
 						/>
 					))}
 				</div>
@@ -41,6 +80,15 @@ const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 					</p>
 				</div>
 			)}
+
+			<FavouriteNameModal
+				open={favouriteTargetOrderId !== null}
+				onOpenChange={(open) => {
+					if (!open) setFavouriteTargetOrderId(null);
+				}}
+				onSave={handleSaveFavourite}
+				isSaving={isSaving}
+			/>
 		</div>
 	);
 };

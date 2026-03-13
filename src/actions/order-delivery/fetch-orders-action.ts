@@ -8,6 +8,7 @@ import {
 import { OrderStatus } from "@/generated/prisma/enums";
 import { OrderItem } from "@/generated/prisma/client";
 import { prepareAllOrdersData } from "@/app/api/orders/utils";
+import { prisma } from "@/lib/config/prisma";
 
 export const fetchOrdersForUser = async () => {
 	const session = await auth.api.getSession({
@@ -95,6 +96,7 @@ export interface RecentOrder {
 	items: RecentOrderItem[];
 	price: number;
 	invoiceId: string;
+	isFavourited: boolean;
 }
 
 export interface RecentOrderItem {
@@ -114,6 +116,12 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 	const userId = session.user.id;
 	const recentOrdersForUser = await fetchRecentOrdersForUser(userId);
 
+	const favourites = await prisma.favouriteOrder.findMany({
+		where: { userId },
+		select: { orderId: true },
+	});
+	const favouritedOrderIds = new Set(favourites.map((f) => f.orderId));
+
 	const recentOrder = recentOrdersForUser.map((order): RecentOrder => {
 		return {
 			invoiceId: order.invoiceId,
@@ -121,6 +129,7 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 			timeAgo: calculateTimeAgo(order.updatedAt),
 			price: order.totalOrderCost,
 			items: constructRecentOrderItems(order.items),
+			isFavourited: favouritedOrderIds.has(order.id),
 		};
 	});
 

@@ -26,6 +26,7 @@ type CartPayload = {
 type FireResponse = {
 	ok: boolean;
 	error?: unknown;
+	orderId?: string;
 };
 
 export const preparePayloadAndFire = async (
@@ -94,6 +95,7 @@ export const preparePayloadAndFire = async (
 
 		return {
 			ok: true,
+			orderId: order.orderId,
 		};
 	} catch (err: unknown) {
 		console.error("Error in preparePayloadAndFire:", err);

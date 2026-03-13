@@ -28,7 +28,8 @@ model User {
   accounts         Account[]
   orders           Order[]
   billingAddresses BillingAddress[]
-  entitledProducts UserProductEntitlement[] // NEW
+  entitledProducts UserProductEntitlement[]
+  favouriteOrders  FavouriteOrder[]
 
   @@map("users")
 }
@@ -152,7 +153,8 @@ model Order {
   billingAddressId String?
 
   // Order items
-  items OrderItem[]
+  items     OrderItem[]
+  favourite FavouriteOrder?
 
   // Invoice processing
   invoiceGenerated Boolean @default(false)
@@ -237,6 +239,22 @@ enum OrderStatus {
   FAILED // Processing failed after retries
 
   @@map("order_status")
+}
+
+model FavouriteOrder {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name    String
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, orderId])
+  @@index([userId])
+  @@map("favourite_orders")
 }
 
 model Verification {

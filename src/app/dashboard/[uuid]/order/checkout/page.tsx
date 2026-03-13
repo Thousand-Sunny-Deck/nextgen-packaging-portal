@@ -4,6 +4,7 @@ import { verifyOrgId } from "@/hooks/use-org-id";
 
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
 import CheckoutForm from "@/components/checkout/checkout-form";
+import CheckoutFavouriteButton from "@/components/checkout/CheckoutFavouriteButton";
 import { Suspense } from "react";
 import CheckoutLoading from "./loading";
 
@@ -37,9 +38,12 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 				<div className="w-full md:w-11/12 lg:w-9/12 xl:w-8/12 max-w-7xl">
 					<DynamicBreadcrumb />
 					<p className="mt-5 text-2xl md:text-3xl font-bold">Checkout</p>
-					<p className="mt-1 text-xs md:text-sm text-gray-400">
-						Review and confirm order.
-					</p>
+					<div className="flex items-center justify-between mt-1">
+						<p className="text-xs md:text-sm text-gray-400">
+							Review and confirm order.
+						</p>
+						<CheckoutFavouriteButton />
+					</div>
 
 					{/* This is the main section */}
 
