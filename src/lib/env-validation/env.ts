@@ -14,7 +14,7 @@ export const env = createEnv({
 		RESEND_API_KEY: z.string(),
 		UPSTASH_REDIS_REST_URL: z.string(),
 		UPSTASH_REDIS_REST_TOKEN: z.string(),
-		CLOUDFRONT_URL: z.string().optional(),
+		CLOUDFRONT_URL: z.string(),
 	},
 	client: {
 		NEXT_PUBLIC_API_URL: z.url(),
