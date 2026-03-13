@@ -24,6 +24,7 @@ interface CartStore {
 	cart: CartItem[];
 	cartSize: number;
 	totalCost: number;
+	pendingFavouriteName: string | null;
 
 	setQuantity: (cartInfo: CartItem) => void;
 	getQuantity: (handle: string) => number;
@@ -45,6 +46,7 @@ interface CartStore {
 	mergeCartFromOrder: (items: CartItem[]) => void;
 	isCartSheetOpen: boolean;
 	setCartSheetOpen: (open: boolean) => void;
+	setPendingFavouriteName: (name: string | null) => void;
 }
 
 const MAX_QUANTITY = 999;
@@ -76,6 +78,7 @@ export const useCartStore = create<CartStore>()(
 			cartSize: 0,
 			totalCost: 0,
 			isCartSheetOpen: false,
+			pendingFavouriteName: null,
 
 			setQuantity: (cartInfo) => {
 				set((state) => {
@@ -114,8 +117,11 @@ export const useCartStore = create<CartStore>()(
 					cartSize: 0,
 					totalCost: 0,
 					isCartSheetOpen: false,
+					pendingFavouriteName: null,
 				});
 			},
+
+			setPendingFavouriteName: (name) => set({ pendingFavouriteName: name }),
 
 			getIsProductSelected: (handle) => {
 				return get().selectedProductHandles.has(handle);
@@ -218,6 +224,7 @@ export const useCartStore = create<CartStore>()(
 					cart: items,
 					cartSize: items.length,
 					totalCost,
+					pendingFavouriteName: null,
 				});
 			},
 
