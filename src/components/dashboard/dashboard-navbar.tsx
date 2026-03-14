@@ -92,7 +92,7 @@ export function DashboardNavbar({
 								</div>
 
 								<div className="mt-2 pt-4 border-t">
-									<SignOutButton />
+									<SignOutButton className="w-full justify-start px-4 py-2.5 h-auto text-sm font-medium hover:bg-orange-100 hover:translate-x-1 active:bg-orange-200" />
 								</div>
 							</nav>
 						</SheetContent>
@@ -148,7 +148,7 @@ export function DashboardNavbar({
 							</Link>
 						);
 					})}
-					<SignOutButton />
+					<SignOutButton className="px-2 lg:px-3 py-1.5 h-auto text-sm font-medium" />
 				</div>
 
 				{/* Mobile: Empty space for balance */}
