@@ -8,8 +8,13 @@ import { toast } from "sonner";
 import { LogOut } from "lucide-react";
 import { useCartStore } from "@/lib/store/product-store";
 import { useBillingInfoStore } from "@/lib/store/billing-info-store";
+import { cn } from "@/lib/utils";
 
-export function SignOutButton() {
+interface SignOutButtonProps {
+	className?: string;
+}
+
+export function SignOutButton({ className }: SignOutButtonProps) {
 	const [isPending, setIsPending] = useState<boolean>(false);
 	const { clearCart } = useCartStore();
 	const { clearBillingInfo } = useBillingInfoStore();
@@ -31,13 +36,16 @@ export function SignOutButton() {
 
 	return (
 		<Button
-			variant="default"
+			variant="ghost"
 			size="sm"
 			onClick={handleSignOut}
 			disabled={isPending}
-			className="bg-white text-gray-800 hover:text-gray-200 rounded-md"
+			className={cn(
+				"text-gray-800 hover:bg-white/60 hover:text-gray-800",
+				className,
+			)}
 		>
-			<LogOut />
+			<LogOut className="size-4" />
 			Log Out
 		</Button>
 	);
