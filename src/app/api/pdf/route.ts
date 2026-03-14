@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePdfRequest, validatePdfAccess } from "./utilts";
 
-// TODO: Consider moving this to a server action.
+// TODO: This is already moved to a server action. This API can be safely deleted and is not used currently.
 
 /**
  * HEAD /api/pdf?orderId=xxx
