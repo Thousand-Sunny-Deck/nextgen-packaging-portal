@@ -5,6 +5,7 @@ import { prisma } from "@/lib/config/prisma";
 import { slugify } from "@/lib/utils";
 import { S3Service } from "@/service/s3";
 import { getProductImagePresignedUrlWithCache } from "./product-image-url-cache";
+import { CacheService } from "@/service/cache";
 
 export type SpikeAdminProduct = {
 	id: string;
@@ -378,6 +379,10 @@ export async function updateSpikeProductImage(input: {
 			where: { id: input.productId },
 			data: { imageUrl },
 		});
+
+		const cache = new CacheService("product-image-url");
+		await cache.delete(`${input.productId}:${imageUrl}`);
+
 		return { success: true };
 	} catch (error: unknown) {
 		console.error("Failed to update spike product image:", error);
