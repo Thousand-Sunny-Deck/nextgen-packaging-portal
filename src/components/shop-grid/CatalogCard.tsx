@@ -13,7 +13,7 @@ interface CatalogCardProps {
 
 const MAX_QUANTITY = 999;
 const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
-// TODO: Figure out what to do for "adding to cart"
+
 export const CatalogCard = ({
 	item,
 	onQuantityChange,

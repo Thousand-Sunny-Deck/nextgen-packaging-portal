@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-// TODO: need to update this for later
+// TODO: need to make a /contact
 const footerLinks = [
-	{ label: "Support", href: "/support" },
+	{ label: "Support", href: "/" },
 	{ label: "Contact", href: "/contact" },
-	{ label: "Terms", href: "/terms" },
-	{ label: "Privacy", href: "/privacy" },
+	{ label: "Terms", href: "/" },
+	{ label: "Privacy", href: "/" },
 ];
 
 export const DashboardFooter = () => {

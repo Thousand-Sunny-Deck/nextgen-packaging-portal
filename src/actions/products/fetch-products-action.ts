@@ -78,65 +78,6 @@ const toProductData = ({
 	imageUrl: toImageUrl(imageUrl),
 });
 
-// TODO: Optimised prefetch loading
-// Instead of fetching only the requested page, fetch current + next page in a single DB call
-// (take: pageSize * 2). Return the current page's items in the response as normal, but also
-// return the nextPageItems separately. On the client, CatalogPagination detects the prefetched
-// data and stores it (e.g. in a ref or zustand slice keyed by page number). When the user
-// clicks Next, the client renders the cached nextPageItems instantly while a background fetch
-// loads page+2 — making navigation feel seamless unless the user spams through pages faster
-// than a single round-trip. Only prefetch when page < totalPages to avoid wasted work on the
-// last page.
-export const fetchCatalog = async ({
-	search,
-	page = 1,
-	pageSize = 24,
-}: {
-	search?: string;
-	page?: number;
-	pageSize?: number;
-} = {}): Promise<FetchProductsResult> => {
-	const { sanitizedPage, sanitizedPageSize, skip } = sanitizePagination({
-		page,
-		pageSize,
-	});
-	const sanitizedSearch = sanitizeSearch(search);
-
-	const where = sanitizedSearch
-		? {
-				OR: [
-					{ sku: { contains: sanitizedSearch, mode: "insensitive" as const } },
-					{
-						description: {
-							contains: sanitizedSearch,
-							mode: "insensitive" as const,
-						},
-					},
-				],
-			}
-		: {};
-
-	const [total, rows] = await prisma.$transaction([
-		prisma.product.count({ where }),
-		prisma.product.findMany({
-			where,
-			skip,
-			take: sanitizedPageSize,
-			orderBy: { handle: "asc" },
-		}),
-	]);
-
-	const items = rows.map((product) => toProductData(product));
-
-	return {
-		items,
-		page: sanitizedPage,
-		pageSize: sanitizedPageSize,
-		total,
-		totalPages: Math.ceil(total / sanitizedPageSize),
-	};
-};
-
 export const fetchNonEntitledCatalogProducts = async ({
 	userId,
 	search,
@@ -290,9 +231,4 @@ export const fetchEntitledProducts = async ({
 		total,
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
-};
-
-export const fetchProductsForUser = async (userId: string, search?: string) => {
-	const result = await fetchEntitledProducts({ userId, search });
-	return result.items;
 };
