@@ -9,7 +9,7 @@ import { AdminPagination } from "@/components/admin/ui/admin-pagination";
 import { AdminDataTable } from "@/components/admin/ui/admin-data-table";
 import { OrderItemsSheet } from "@/components/admin/home/order-items-sheet";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
-import { approveOrderAction } from "@/actions/admin/approve-order-action";
+import { approveOrderAction } from "@/actions/spike/approve-order-action";
 import { toast } from "sonner";
 import { getPendingApprovalsColumns } from "./pending-approvals-columns";
 

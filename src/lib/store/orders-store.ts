@@ -245,7 +245,6 @@ export async function fetchRecentOrdersForUser(userId: string) {
 	const orders = await prisma.order.findMany({
 		where: {
 			userId,
-			// TODO: we need to do by status here. only orders that are completed.
 		},
 		include: {
 			items: true,
