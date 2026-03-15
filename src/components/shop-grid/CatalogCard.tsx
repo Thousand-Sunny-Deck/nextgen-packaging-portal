@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { ProductImageViewerModal } from "@/components/admin/products/product-image-viewer-modal";
 import { CatalogCardViewModel } from "./types";
 import { CatalogQuantityControl } from "./CatalogQuantityControl";
 import { CatalogSelectButton } from "./CatalogSelectButton";
@@ -14,40 +15,6 @@ interface CatalogCardProps {
 
 const MAX_QUANTITY = 999;
 const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
-
-interface CatalogImageZoomProps {
-	imageUrl: string;
-	name?: string | null;
-	onClose: () => void;
-}
-
-const CatalogImageZoom = ({
-	imageUrl,
-	name,
-	onClose,
-}: CatalogImageZoomProps) => {
-	useEffect(() => {
-		const previousOverflow = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-		return () => {
-			document.body.style.overflow = previousOverflow;
-		};
-	}, []);
-
-	return (
-		<div
-			className="fixed inset-0 z-[10000] flex cursor-zoom-out items-center justify-center bg-black/95"
-			onClick={onClose}
-		>
-			<img
-				src={imageUrl}
-				alt={name ?? "Product image"}
-				className="max-h-[90vh] max-w-[90vw] rounded-md shadow-2xl"
-				onClick={(e) => e.stopPropagation()}
-			/>
-		</div>
-	);
-};
 
 // TODO: Figure out what to do for "adding to cart"
 export const CatalogCard = ({
@@ -87,13 +54,13 @@ export const CatalogCard = ({
 								loading="lazy"
 							/>
 						</div>
-						{isZoomed && (
-							<CatalogImageZoom
-								imageUrl={item.imageUrl}
-								name={item.name}
-								onClose={() => setIsZoomed(false)}
-							/>
-						)}
+						<ProductImageViewerModal
+							open={isZoomed}
+							onOpenChange={setIsZoomed}
+							imageUrl={item.imageUrl}
+							loading={false}
+							error={null}
+						/>
 					</>
 				) : (
 					<div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
