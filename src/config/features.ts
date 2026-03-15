@@ -1,3 +1,3 @@
 export const features = {
-	adminApprovalRequired: false,
+	adminApprovalRequired: true,
 } as const;
