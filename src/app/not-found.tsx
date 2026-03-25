@@ -1,17 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function NotFound() {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center px-4 bg-white">
 			<div className="max-w-md w-full text-center">
-				<Image
+				<img
 					src="/assets/not-found-illustration.jpg"
 					alt="Page not found illustration"
-					width={400}
-					height={400}
 					className="mx-auto mb-8"
-					priority
 				/>
 
 				<h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>

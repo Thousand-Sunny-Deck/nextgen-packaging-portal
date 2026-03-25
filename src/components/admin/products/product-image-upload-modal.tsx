@@ -2,7 +2,6 @@
 
 import { useRef } from "react";
 import { ImagePlus, Loader2, Upload, X } from "lucide-react";
-import Image from "next/image";
 import {
 	Dialog,
 	DialogContent,
@@ -56,11 +55,10 @@ export function ProductImageUploadModal({
 				<div className="space-y-2 py-2">
 					{imagePreview ? (
 						<div className="relative h-72 w-full overflow-hidden rounded-lg border border-slate-200">
-							<Image
+							<img
 								src={imagePreview}
 								alt="preview"
-								fill
-								className="object-cover"
+								className="absolute inset-0 w-full h-full object-cover"
 							/>
 							<button
 								type="button"

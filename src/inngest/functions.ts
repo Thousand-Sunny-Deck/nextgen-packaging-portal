@@ -115,7 +115,10 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 			);
 			await adminPostOffice.deliver(
 				{
-					to: ["nextgenelitesupplies@gmail.com"],
+					to: [
+						"Manav.gohel@nextgenpackaging.com.au",
+						"Manthan.gohel@nextgenpackaging.com.au",
+					],
 				},
 				AdminEmailTemplate({ details: createAdminEmailDetails(order) }),
 				Buffer.from(pdf.data),

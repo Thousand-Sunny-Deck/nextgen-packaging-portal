@@ -26,7 +26,7 @@ export class PostOffice {
 	) {
 		const { data, error } = await this.client.emails.send({
 			from: this.adminDetails.from,
-			to: targetDetails.to,
+			to: [...targetDetails.to],
 			subject: this.adminDetails.subject,
 			react: template,
 			...(pdfBuffer && {

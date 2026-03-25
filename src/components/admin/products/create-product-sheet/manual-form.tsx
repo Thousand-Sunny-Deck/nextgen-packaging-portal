@@ -13,7 +13,6 @@ import {
 	type ProductDraftItem,
 } from "@/lib/store/create-product-store";
 import { ProductDraftCard } from "./product-draft-card";
-import Image from "next/image";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
@@ -183,11 +182,10 @@ export function ManualForm() {
 
 					{imagePreview ? (
 						<div className="relative w-full h-44 rounded-lg border border-slate-200 overflow-hidden">
-							<Image
+							<img
 								src={imagePreview}
 								alt="preview"
-								fill
-								className="object-cover"
+								className="absolute inset-0 w-full h-full object-cover"
 							/>
 							<button
 								type="button"

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 
 const EmptyCartState = () => {
@@ -12,11 +11,9 @@ const EmptyCartState = () => {
 		<div className="flex-1 flex items-center justify-center p-8 mt-10">
 			<div className="w-full max-w-md border-2 border-dashed border-gray-300 rounded-lg p-12 flex flex-col items-center justify-center text-center">
 				<div className="mb-6">
-					<Image
+					<img
 						src="/assets/empty-cart.png"
 						alt="Empty cart"
-						width={120}
-						height={120}
 						className="opacity-60"
 					/>
 				</div>

@@ -1,6 +1,5 @@
 import { ImageOff, Pencil, Trash2 } from "lucide-react";
 import type { ProductDraftItem } from "@/lib/store/create-product-store";
-import Image from "next/image";
 
 interface ProductDraftCardProps {
 	item: ProductDraftItem;
@@ -24,11 +23,9 @@ export function ProductDraftCard({
 			{/* Top: image or placeholder */}
 			{item.imagePreview ? (
 				<div className="relative w-full h-32">
-					<Image
+					<img
 						src={item.imagePreview}
-						alt={item.sku}
-						fill
-						className="object-cover"
+						className="absolute inset-0 w-full h-full object-cover"
 					/>
 				</div>
 			) : (
