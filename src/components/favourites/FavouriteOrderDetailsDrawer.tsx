@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { FavouriteOrderData } from "@/actions/favourites/fetch-favourites-action";
 import {
 	Sheet,
@@ -37,12 +36,9 @@ const FavouriteOrderDetailsDrawer = ({
 							<div key={index} className="flex flex-col gap-1">
 								<div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
 									{item.imageUrl ? (
-										<Image
+										<img
 											src={item.imageUrl}
 											alt={item.name}
-											width={200}
-											height={200}
-											sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
 											className="h-full w-full object-cover"
 											loading="lazy"
 										/>

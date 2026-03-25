@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CatalogQuantityControl } from "./CatalogQuantityControl";
@@ -35,11 +34,9 @@ export const CoolCartItem = ({
 			<div className="flex items-start gap-3">
 				<div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
 					{imageUrl ? (
-						<Image
+						<img
 							src={imageUrl}
 							alt={item.description}
-							width={64}
-							height={64}
 							className="h-full w-full object-cover"
 						/>
 					) : (

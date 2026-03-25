@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import {
 	Check,
 	Eye,
@@ -265,11 +265,9 @@ export function ProductsTable({
 				toast.custom(() => (
 					<div className="w-56 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
 						<div className="relative h-32 w-full">
-							<Image
+							<img
 								src={uploadedPreview}
 								alt={`${uploadedSku} uploaded image`}
-								fill
-								unoptimized
 								className="object-cover"
 							/>
 						</div>

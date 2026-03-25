@@ -15,7 +15,6 @@ import {
 } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -54,12 +53,10 @@ const ForgotPasswordPage = () => {
 						NEXTGEN PACKAGING
 					</h1>
 				</div>
-				<Image
+				<img
 					src="/assets/login/login.jpg"
 					alt="NextGen Packaging"
 					className="h-full w-full"
-					width={10000}
-					height={10000}
 				/>
 			</div>
 			<div className="w-1/4 h-full p-8 flex flex-col ml-auto mr-32 mt-48">

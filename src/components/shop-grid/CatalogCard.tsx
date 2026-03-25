@@ -3,7 +3,6 @@
 import { CatalogCardViewModel } from "./types";
 import { CatalogQuantityControl } from "./CatalogQuantityControl";
 import { CatalogSelectButton } from "./CatalogSelectButton";
-import Image from "next/image";
 
 interface CatalogCardProps {
 	item: CatalogCardViewModel;
@@ -31,12 +30,9 @@ export const CatalogCard = ({
 		<article className="min-w-0 rounded-lg border border-border bg-white p-2.5 shadow-xs transition-colors md:p-3">
 			<div className="mb-2 aspect-[4/3] w-full overflow-hidden rounded-md border bg-muted sm:mb-3 sm:aspect-square">
 				{item.imageUrl ? (
-					<Image
+					<img
 						src={item.imageUrl}
 						alt={item.name}
-						width={320}
-						height={320}
-						sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
 						className="h-full w-full object-cover"
 						loading="lazy"
 					/>

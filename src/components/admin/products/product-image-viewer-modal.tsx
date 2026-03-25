@@ -3,7 +3,6 @@
 import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 interface ProductImageViewerModalProps {
 	open: boolean;
@@ -49,11 +48,10 @@ export function ProductImageViewerModal({
 					)}
 
 					{!loading && !error && imageUrl && (
-						<Image
+						<img
 							src={imageUrl}
 							alt="Product"
-							fill
-							className="max-h-[80vh] max-w-[90vw] rounded-md border border-slate-700 object-contain"
+							className="absolute inset-0 w-full h-full max-h-[80vh] max-w-[90vw] rounded-md border border-slate-700 object-contain"
 						/>
 					)}
 				</div>
