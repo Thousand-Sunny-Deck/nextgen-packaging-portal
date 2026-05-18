@@ -20,7 +20,7 @@ export const auth = betterAuth({
 		sendResetPassword: async ({ user, url }) => {
 			// Don't await to prevent timing attacks (Better Auth recommendation)
 			resend.emails.send({
-				from: "NextGen Packaging <onboarding@resend.dev>",
+				from: "NextGen Packaging <admin.no-reply@nextgenpackaging-portal.site>",
 				to: user.email,
 				subject: "Reset your password",
 				react: PasswordResetEmail({
