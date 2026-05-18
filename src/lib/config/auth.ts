@@ -33,7 +33,7 @@ export const auth = betterAuth({
 	},
 	advanced: {
 		database: {
-			generateId: false,
+			generateId: () => crypto.randomUUID(),
 		},
 	},
 	plugins: [nextCookies()],
