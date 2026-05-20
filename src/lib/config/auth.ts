@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "../config/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
+import { after } from "next/server";
 import { env } from "../env-validation/env";
 import { PasswordResetEmail } from "../resend/password-reset-template";
 
@@ -18,16 +19,17 @@ export const auth = betterAuth({
 		enabled: true,
 		autoSignIn: false,
 		sendResetPassword: async ({ user, url }) => {
-			// Don't await to prevent timing attacks (Better Auth recommendation)
-			resend.emails.send({
-				from: "NextGen Packaging <admin.no-reply@nextgenpackaging-portal.site>",
-				to: user.email,
-				subject: "Reset your password",
-				react: PasswordResetEmail({
-					userName: user.name,
-					resetUrl: url,
+			after(
+				resend.emails.send({
+					from: "NextGen Packaging <admin@nextgenpackaging-portal.site>",
+					to: user.email,
+					subject: "Reset your password",
+					react: PasswordResetEmail({
+						userName: user.name,
+						resetUrl: url,
+					}),
 				}),
-			});
+			);
 		},
 		resetPasswordTokenExpiresIn: 60 * 60, // 1 hour in seconds
 	},
