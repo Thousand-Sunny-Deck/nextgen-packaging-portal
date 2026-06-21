@@ -6,6 +6,8 @@ import {
 	useBillingInfoStore,
 	BillingInfoItem,
 } from "@/lib/store/billing-info-store";
+import { useCheckoutExtrasStore } from "@/lib/store/checkout-extras-store";
+import { isAllowedDeliveryDate } from "@/lib/schemas/delivery";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { usePathname, useRouter } from "next/navigation";
@@ -112,6 +114,7 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 	} = useCartStore();
 	const { billingInfo, hasBillingInfo, clearBillingInfo } =
 		useBillingInfoStore();
+	const { deliveryDate, notes, clearCheckoutExtras } = useCheckoutExtrasStore();
 
 	// Hydration handling
 	useEffect(() => {
@@ -121,7 +124,9 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 	// Computed values
 	const isCartEmpty = cart.length === 0;
 	const canProceedToBilling = !isCartEmpty;
-	const canPlaceOrder = !isCartEmpty && hasBillingInfo();
+	const hasValidDeliveryDate = isAllowedDeliveryDate(deliveryDate);
+	const canPlaceOrder =
+		!isCartEmpty && hasBillingInfo() && hasValidDeliveryDate;
 
 	// Order summary calculation
 	const orderSummary = calculateOrderSummary(totalCost, cartSize);
@@ -178,12 +183,23 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 				return;
 			}
 
+			if (!isAllowedDeliveryDate(deliveryDate)) {
+				toast.error("Please choose a valid weekday delivery date.");
+				setCurrentStep("order");
+				setIsLoading(false);
+				return;
+			}
+
 			const response = await preparePayloadAndFire(
 				{
 					items: cartItems,
 					extraCartInfo: orderSummary,
 				},
 				currentBillingInfo,
+				{
+					deliveryDate,
+					notes: notes.trim(),
+				},
 			);
 
 			if (!response.ok || response.error) {
@@ -201,6 +217,7 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 			// Clear stores (also clears pendingFavouriteName)
 			clearCart();
 			clearBillingInfo();
+			clearCheckoutExtras();
 
 			if (response.pendingApproval) {
 				toast.success("Your order has been submitted for review.");
@@ -229,9 +246,12 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		getCart,
 		billingInfo,
 		orderSummary,
+		deliveryDate,
+		notes,
 		pendingFavouriteName,
 		clearCart,
 		clearBillingInfo,
+		clearCheckoutExtras,
 		pathname,
 		router,
 	]);

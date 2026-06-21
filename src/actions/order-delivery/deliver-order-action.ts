@@ -5,7 +5,10 @@ import { BillingInfoItem as BillingInfoPayload } from "@/lib/store/billing-info-
 import { CartItem } from "@/lib/store/product-store";
 import { auth } from "@/lib/config/auth";
 import { headers } from "next/headers";
-import { orderPayloadSchema } from "@/app/api/orders/validate-request";
+import {
+	orderPayloadSchema,
+	type CheckoutMeta,
+} from "@/app/api/orders/validate-request";
 import {
 	storePreparedOrderInDb,
 	updateStateForOrder,
@@ -15,10 +18,12 @@ import { inngest } from "@/inngest/client";
 import { features } from "@/config/features";
 import { PostOffice } from "@/service/post-office";
 import { AdminApprovalNotificationEmail } from "@/lib/resend/admin-approval-notification-template";
+import { formatDeliveryDate } from "@/lib/schemas/delivery";
 
 export type OrderPayload = {
 	cart: CartPayload;
 	billingInfo: BillingInfoPayload;
+	meta: CheckoutMeta;
 };
 
 type CartPayload = {
@@ -39,6 +44,7 @@ const FROM_EMAIL = "Invoice <invoices@nextgenpackaging-portal.site>";
 export const preparePayloadAndFire = async (
 	cart: CartPayload,
 	billingInfo: BillingInfoPayload,
+	meta: CheckoutMeta,
 ): Promise<FireResponse> => {
 	try {
 		const session = await auth.api.getSession({
@@ -55,6 +61,7 @@ export const preparePayloadAndFire = async (
 		const payload: OrderPayload = {
 			cart: cart,
 			billingInfo: billingInfo,
+			meta: meta,
 		};
 
 		const validationResult = orderPayloadSchema.safeParse(payload);
@@ -108,6 +115,8 @@ export const preparePayloadAndFire = async (
 							orderId: order.orderId,
 							invoiceId: order.invoiceId,
 							totalFormatted: formattedTotal,
+							requestedDelivery: formatDeliveryDate(order.deliveryDate),
+							notes: order.notes,
 						},
 					}),
 				);

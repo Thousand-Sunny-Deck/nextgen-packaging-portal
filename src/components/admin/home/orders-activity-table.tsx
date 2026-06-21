@@ -110,6 +110,7 @@ export function OrdersActivityTable({
 					setSheetOpen(open);
 					if (!open) setSelectedOrder(null);
 				}}
+				onOrderUpdated={onRefresh}
 			/>
 		</>
 	);

@@ -3,6 +3,7 @@
 import { requireSuperAdmin } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/config/prisma";
 import { OrderStatus } from "@/generated/prisma/enums";
+import { isAllowedDeliveryDate } from "@/lib/schemas/delivery";
 
 export type OrderActivityItem = {
 	id: string;
@@ -21,6 +22,8 @@ export type OrderActivityRow = {
 	cartSize: number;
 	customerOrganization: string;
 	createdAt: string;
+	deliveryDate: string | null;
+	notes: string | null;
 	user: {
 		id: string;
 		name: string;
@@ -108,6 +111,8 @@ export async function getOrderActivities(
 				cartSize: true,
 				customerOrganization: true,
 				createdAt: true,
+				deliveryDate: true,
+				notes: true,
 				user: {
 					select: {
 						id: true,
@@ -137,6 +142,8 @@ export async function getOrderActivities(
 		cartSize: row.cartSize,
 		customerOrganization: row.customerOrganization,
 		createdAt: row.createdAt.toISOString(),
+		deliveryDate: row.deliveryDate ? row.deliveryDate.toISOString() : null,
+		notes: row.notes,
 		user: row.user
 			? {
 					id: row.user.id,
@@ -161,4 +168,51 @@ export async function getOrderActivities(
 		pageSize: sanitizedPageSize,
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
+}
+
+// ─── Admin: edit the requested delivery date ─────────────────────────────────
+
+/**
+ * Updates the requested delivery date for an order. Admin-only.
+ * Validates the date is a weekday on/after the earliest allowed day, matching
+ * the customer-side checkout rules.
+ */
+export async function updateOrderDeliveryDate(input: {
+	orderId: string;
+	deliveryDate: string;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireSuperAdmin();
+
+	if (!isAllowedDeliveryDate(input.deliveryDate)) {
+		return {
+			success: false,
+			error:
+				"Delivery date must be a weekday on or after the earliest available day.",
+		};
+	}
+
+	const order = await prisma.order.findUnique({
+		where: { orderId: input.orderId },
+		select: { id: true },
+	});
+	if (!order) {
+		return { success: false, error: "Order not found." };
+	}
+
+	try {
+		await prisma.order.update({
+			where: { orderId: input.orderId },
+			data: {
+				deliveryDate: new Date(`${input.deliveryDate}T00:00:00.000Z`),
+				updatedAt: new Date(),
+			},
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update order delivery date:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update delivery date." };
+	}
 }

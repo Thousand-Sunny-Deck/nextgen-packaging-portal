@@ -51,12 +51,18 @@ export async function storePreparedOrderInDb(
 	payload: OrderPayload,
 	userId?: string,
 ): Promise<Order> {
-	const { cart, billingInfo } = payload;
+	const { cart, billingInfo, meta } = payload;
 	const { items, extraCartInfo } = cart;
 
 	// Generate custom order ID and invoice ID
 	const orderId = generateOrderId();
 	const invoiceId = await generateInvoiceId(billingInfo.organization);
+
+	// Parse the requested delivery day (YYYY-MM-DD) to a UTC-midnight Date.
+	const deliveryDate = meta?.deliveryDate
+		? new Date(`${meta.deliveryDate}T00:00:00.000Z`)
+		: null;
+	const notes = meta?.notes?.trim() || null;
 
 	// Calculate service fee and tax server-side from subtotal.
 	const serviceFee = extraCartInfo.subTotal < 150 ? 10 : 0;
@@ -108,6 +114,10 @@ export async function storePreparedOrderInDb(
 			billingABN: billingInfo.ABN,
 
 			invoiceId: invoiceId,
+
+			// Requested delivery day + customer note
+			deliveryDate,
+			notes,
 		},
 		include: {
 			items: true,

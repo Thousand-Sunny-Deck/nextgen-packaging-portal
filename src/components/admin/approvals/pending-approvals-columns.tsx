@@ -2,6 +2,7 @@ import type { AdminTableColumn } from "@/components/admin/ui/admin-data-table";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/components/admin/home/common";
+import { formatDeliveryDate } from "@/lib/schemas/delivery";
 
 type PendingApprovalsColumnsOptions = {
 	onOpenItems: (row: OrderActivityRow) => void;
@@ -63,6 +64,15 @@ export function getPendingApprovalsColumns({
 			key: "totalItems",
 			header: "Total Items",
 			render: (row) => row.cartSize,
+		},
+		{
+			key: "delivery",
+			header: "Delivery",
+			render: (row) => (
+				<span className="text-slate-700">
+					{formatDeliveryDate(row.deliveryDate)}
+				</span>
+			),
 		},
 		{
 			key: "items",

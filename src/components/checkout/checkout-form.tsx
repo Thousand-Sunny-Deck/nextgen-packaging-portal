@@ -2,6 +2,7 @@
 
 import CartSummary from "./cart/cart-summary";
 import OrderInfo from "./order/order-info";
+import DeliveryAndNotes from "./order/delivery-and-notes";
 import BillingAddressSelector from "./billing/billing-address-selector";
 import EmptyCartState from "./empty-cart-state";
 import { useCheckoutFlow } from "@/hooks/use-checkout-flow";
@@ -106,6 +107,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 					onGoToBilling={goToBilling}
 					onGoToCart={goToCart}
 					onPlaceOrder={placeOrder}
+					extras={isOrderState ? <DeliveryAndNotes /> : null}
 				/>
 			</div>
 
@@ -122,6 +124,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 					onGoToBilling={goToBilling}
 					onGoToCart={goToCart}
 					onPlaceOrder={placeOrder}
+					extras={isOrderState ? <DeliveryAndNotes /> : null}
 				/>
 				{(isReviewOrderState || isOrderState) && <CartSummary cart={cart} />}
 				{isBillingState && (
