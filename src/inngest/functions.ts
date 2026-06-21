@@ -6,20 +6,16 @@ import {
 } from "@/lib/store/orders-store";
 import { inngest } from "./client";
 import {
-	createAdminDetailsForEmail,
 	createAdminDetailsForAdminEmail,
 	createAdminEmailDetails,
-	createEmailDetails,
 	enrichInvoiceData,
 	validateEventData,
 } from "./utils";
-import { env } from "@/lib/env-validation/env";
 import { NonRetriableError } from "inngest";
 import { generateInvoicePdf } from "@/lib/pdf/generate-invoice";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { S3Service } from "@/service/s3";
 import { PostOffice } from "@/service/post-office";
-import { EmailTemplate } from "@/lib/resend/template";
 import { AdminEmailTemplate } from "@/lib/resend/admin-template";
 
 export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
@@ -83,28 +79,16 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 		});
 
 		await step.run("send-email", async () => {
-			const { orderId, userId, email } = event.data;
+			const { orderId, userId } = event.data;
 
-			// Fetch order to get customer details
+			// Customers are NOT emailed their invoice — they view it from the
+			// portal (Past Orders) once it's generated. Admins still get a copy.
 			const order = await fetchOrderByUserAndOrderId(orderId, userId);
 			if (!order) {
 				throw new NonRetriableError(`Order ${orderId} not found for email.`);
 			}
 
 			const customerName = order.billingOrganization || order.customerEmail;
-			const portalUrl = `${env.NEXT_PUBLIC_API_URL}`;
-			const emailDetails = createEmailDetails(customerName, portalUrl);
-
-			const postOffice = new PostOffice(
-				createAdminDetailsForEmail(order.invoiceId, order.totalOrderCost),
-			);
-			await postOffice.deliver(
-				{
-					to: [email],
-				},
-				EmailTemplate({ emailDetails }),
-				Buffer.from(pdf.data),
-			);
 
 			const adminPostOffice = new PostOffice(
 				createAdminDetailsForAdminEmail(
@@ -124,6 +108,7 @@ export const generatePdfAndSendEmailBackgroundJob = inngest.createFunction(
 				Buffer.from(pdf.data),
 			);
 
+			// Marks the order complete so the invoice is viewable in the portal.
 			await updateOrderWithEmail(orderId, userId, OrderStatus.EMAIL_SENT);
 		});
 	},
