@@ -104,27 +104,40 @@ export const fetchNonEntitledCatalogProducts = async ({
 	const sanitizedSearch = sanitizeSearch(search);
 
 	const where = {
+		// A product shows in this user's shop when it is global OR has been
+		// granted per-user shop visibility to them. Products the user is already
+		// entitled to live in Quick Order, so they are excluded here.
 		entitledUsers: {
 			none: {
 				userId,
 			},
 		},
 		...(categoryId ? { categories: { some: { categoryId } } } : {}),
-		...(sanitizedSearch
-			? {
-					OR: [
+		AND: [
+			{
+				OR: [{ isGlobal: true }, { shopVisibilities: { some: { userId } } }],
+			},
+			...(sanitizedSearch
+				? [
 						{
-							sku: { contains: sanitizedSearch, mode: "insensitive" as const },
+							OR: [
+								{
+									sku: {
+										contains: sanitizedSearch,
+										mode: "insensitive" as const,
+									},
+								},
+								{
+									description: {
+										contains: sanitizedSearch,
+										mode: "insensitive" as const,
+									},
+								},
+							],
 						},
-						{
-							description: {
-								contains: sanitizedSearch,
-								mode: "insensitive" as const,
-							},
-						},
-					],
-				}
-			: {}),
+					]
+				: []),
+		],
 	};
 
 	const [total, rows] = await prisma.$transaction([
@@ -269,6 +282,10 @@ export const fetchShopCategories = async ({
 						where: {
 							product: {
 								entitledUsers: { none: { userId } },
+								OR: [
+									{ isGlobal: true },
+									{ shopVisibilities: { some: { userId } } },
+								],
 							},
 						},
 					},

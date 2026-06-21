@@ -12,6 +12,7 @@ import {
 	Pencil,
 	RefreshCw,
 	Trash2,
+	Users,
 	X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -45,6 +46,7 @@ import { getProductColumns, type ProductEditDraft } from "./products-columns";
 import { ProductImageViewerModal } from "./product-image-viewer-modal";
 import { ProductImageUploadModal } from "./product-image-upload-modal";
 import { ManageProductCategoriesDialog } from "./manage-product-categories-dialog";
+import { ManageProductShopAccessDialog } from "./manage-product-shop-access-dialog";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -103,6 +105,10 @@ export function ProductsTable({
 
 	const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
 	const [categoriesTarget, setCategoriesTarget] =
+		useState<SpikeAdminProduct | null>(null);
+
+	const [shopAccessModalOpen, setShopAccessModalOpen] = useState(false);
+	const [shopAccessTarget, setShopAccessTarget] =
 		useState<SpikeAdminProduct | null>(null);
 
 	const productById = useMemo(
@@ -208,6 +214,11 @@ export function ProductsTable({
 	const openCategoriesModal = (row: SpikeAdminProduct) => {
 		setCategoriesTarget(row);
 		setCategoriesModalOpen(true);
+	};
+
+	const openShopAccessModal = (row: SpikeAdminProduct) => {
+		setShopAccessTarget(row);
+		setShopAccessModalOpen(true);
 	};
 
 	const handleUploadFileSelect = (file: File | null) => {
@@ -398,6 +409,12 @@ export function ProductsTable({
 				label: "Manage categories",
 				icon: <FolderTree className="h-4 w-4" />,
 				onSelect: openCategoriesModal,
+			},
+			{
+				key: "manage-shop-access",
+				label: "Manage customer access",
+				icon: <Users className="h-4 w-4" />,
+				onSelect: openShopAccessModal,
 			},
 			{
 				key: "delete-product",
@@ -611,6 +628,19 @@ export function ProductsTable({
 				}}
 				productId={categoriesTarget?.id ?? null}
 				productSku={categoriesTarget?.sku ?? null}
+				onSaved={onRefresh}
+			/>
+
+			<ManageProductShopAccessDialog
+				open={shopAccessModalOpen}
+				onOpenChange={(open) => {
+					setShopAccessModalOpen(open);
+					if (!open) {
+						setShopAccessTarget(null);
+					}
+				}}
+				productId={shopAccessTarget?.id ?? null}
+				productSku={shopAccessTarget?.sku ?? null}
 				onSaved={onRefresh}
 			/>
 		</>

@@ -14,6 +14,8 @@ export type SpikeAdminProduct = {
 	description: string;
 	unitCost: number;
 	imageUrl: string | null;
+	isGlobal: boolean;
+	shopAccessCount: number;
 	createdAt: string;
 };
 
@@ -79,7 +81,9 @@ export async function getSpikeProducts(
 				description: true,
 				unitCost: true,
 				imageUrl: true,
+				isGlobal: true,
 				createdAt: true,
+				_count: { select: { shopVisibilities: true } },
 			},
 		}),
 	]);
@@ -91,6 +95,8 @@ export async function getSpikeProducts(
 		description: product.description,
 		unitCost: Number(product.unitCost),
 		imageUrl: product.imageUrl,
+		isGlobal: product.isGlobal,
+		shopAccessCount: product._count.shopVisibilities,
 		createdAt: product.createdAt.toISOString(),
 	}));
 
@@ -263,6 +269,113 @@ export async function updateSpikeProduct(input: {
 			return { success: false, error: error.message };
 		}
 		return { success: false, error: "Failed to update product." };
+	}
+}
+
+export type SpikeShopAccessUser = {
+	id: string;
+	name: string;
+	email: string;
+	selected: boolean;
+};
+
+/**
+ * Returns the visibility mode for a product plus every customer with a flag
+ * indicating whether the product is shown in their shop. Drives the
+ * "Manage customer access" dialog.
+ */
+export async function getSpikeProductShopAccess(input: {
+	productId: string;
+}): Promise<{
+	success: boolean;
+	isGlobal?: boolean;
+	users?: SpikeShopAccessUser[];
+	error?: string;
+}> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true, isGlobal: true },
+	});
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const [users, visibilities] = await Promise.all([
+		prisma.user.findMany({
+			orderBy: { name: "asc" },
+			select: { id: true, name: true, email: true },
+		}),
+		prisma.productShopVisibility.findMany({
+			where: { productId: input.productId },
+			select: { userId: true },
+		}),
+	]);
+
+	const selectedIds = new Set(visibilities.map((v) => v.userId));
+
+	return {
+		success: true,
+		isGlobal: product.isGlobal,
+		users: users.map((user) => ({
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			selected: selectedIds.has(user.id),
+		})),
+	};
+}
+
+/**
+ * Sets a product's shop visibility: either global (all customers) or restricted
+ * to a chosen set of customers. Replaces the per-user visibility rows in one
+ * transaction.
+ */
+export async function setSpikeProductShopAccess(input: {
+	productId: string;
+	isGlobal: boolean;
+	userIds: string[];
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true },
+	});
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const nextIds = Array.from(new Set(input.userIds));
+
+	try {
+		await prisma.$transaction([
+			prisma.product.update({
+				where: { id: input.productId },
+				data: { isGlobal: input.isGlobal },
+			}),
+			prisma.productShopVisibility.deleteMany({
+				where: {
+					productId: input.productId,
+					...(nextIds.length > 0 ? { userId: { notIn: nextIds } } : {}),
+				},
+			}),
+			prisma.productShopVisibility.createMany({
+				data: nextIds.map((userId) => ({
+					productId: input.productId,
+					userId,
+				})),
+				skipDuplicates: true,
+			}),
+		]);
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update product shop access:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update product shop access." };
 	}
 }
 

@@ -108,6 +108,23 @@ export function getProductColumns({
 				),
 		},
 		{
+			key: "visibility",
+			header: "Visibility",
+			render: (product) => {
+				if (product.isGlobal) {
+					return <Lozenge appearance="success">Global</Lozenge>;
+				}
+				return product.shopAccessCount > 0 ? (
+					<Lozenge appearance="moved">
+						{product.shopAccessCount} customer
+						{product.shopAccessCount === 1 ? "" : "s"}
+					</Lozenge>
+				) : (
+					<Lozenge appearance="default">Hidden</Lozenge>
+				);
+			},
+		},
+		{
 			key: "created",
 			header: "Created",
 			render: (product) => formatDate(product.createdAt),
