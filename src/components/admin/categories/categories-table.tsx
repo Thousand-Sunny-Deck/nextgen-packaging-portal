@@ -1,18 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-// import Image from "next/image";
 import {
 	Check,
 	Eye,
 	FolderTree,
 	Loader2,
-	Package,
-	PackagePlus,
 	Pencil,
+	Plus,
 	RefreshCw,
 	Trash2,
 	X,
+	ImagePlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { CreateProductsSheet } from "@/components/admin/products/create-product-sheet/create-products";
 import { EmptyState } from "@/components/admin/ui/empty-state";
 import { AdminSearch } from "@/components/admin/ui/admin-search";
 import { AdminPagination } from "@/components/admin/ui/admin-pagination";
@@ -34,20 +32,23 @@ import {
 	type RowActionItem,
 } from "@/components/admin/ui/row-actions-menu";
 import {
-	deleteSpikeProduct,
-	getSpikeProductImageUploadUrl,
-	getSpikeProductImageViewUrl,
-	updateSpikeProduct,
-	updateSpikeProductImage,
-	type SpikeAdminProduct,
-} from "@/actions/spike/products-actions";
-import { getProductColumns, type ProductEditDraft } from "./products-columns";
-import { ProductImageViewerModal } from "./product-image-viewer-modal";
-import { ProductImageUploadModal } from "./product-image-upload-modal";
-import { ManageProductCategoriesDialog } from "./manage-product-categories-dialog";
+	deleteSpikeCategory,
+	getSpikeCategoryImageUploadUrl,
+	getSpikeCategoryImageViewUrl,
+	updateSpikeCategory,
+	updateSpikeCategoryImage,
+	type SpikeAdminCategory,
+} from "@/actions/spike/categories-actions";
+import { ProductImageViewerModal } from "@/components/admin/products/product-image-viewer-modal";
+import {
+	getCategoryColumns,
+	type CategoryEditDraft,
+} from "./categories-columns";
+import { CategoryCreateDialog } from "./category-create-dialog";
+import { CategoryImageUploadModal } from "./category-image-upload-modal";
 
-interface ProductsTableProps {
-	products: SpikeAdminProduct[];
+interface CategoriesTableProps {
+	categories: SpikeAdminCategory[];
 	total: number;
 	totalPages: number;
 	loading: boolean;
@@ -59,17 +60,20 @@ interface ProductsTableProps {
 }
 
 type ConfirmAction =
-	| { type: "edit"; rowId: string; draft: ProductEditDraft }
-	| { type: "delete"; rowId: string; sku: string };
+	| { type: "edit"; rowId: string; draft: CategoryEditDraft }
+	| { type: "delete"; rowId: string; name: string };
 
-const emptyDraft: ProductEditDraft = {
-	sku: "",
+const emptyDraft: CategoryEditDraft = {
+	name: "",
 	description: "",
-	unitCost: 0,
+	sortOrder: 0,
 };
 
-export function ProductsTable({
-	products,
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+export function CategoriesTable({
+	categories,
 	total,
 	totalPages,
 	loading,
@@ -78,10 +82,10 @@ export function ProductsTable({
 	page,
 	pageSize,
 	onRefresh,
-}: ProductsTableProps) {
-	const [sheetOpen, setSheetOpen] = useState(false);
+}: CategoriesTableProps) {
+	const [createOpen, setCreateOpen] = useState(false);
 	const [editingRowId, setEditingRowId] = useState<string | null>(null);
-	const [editDraft, setEditDraft] = useState<ProductEditDraft>(emptyDraft);
+	const [editDraft, setEditDraft] = useState<CategoryEditDraft>(emptyDraft);
 	const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
 		null,
 	);
@@ -93,26 +97,23 @@ export function ProductsTable({
 	const [imageUrl, setImageUrl] = useState<string | null>(null);
 	const [imageError, setImageError] = useState<string | null>(null);
 	const [uploadImageModalOpen, setUploadImageModalOpen] = useState(false);
-	const [uploadTargetProduct, setUploadTargetProduct] =
-		useState<SpikeAdminProduct | null>(null);
+	const [uploadTarget, setUploadTarget] = useState<SpikeAdminCategory | null>(
+		null,
+	);
 	const [uploadImageFile, setUploadImageFile] = useState<File | null>(null);
 	const [uploadImagePreview, setUploadImagePreview] = useState<string | null>(
 		null,
 	);
 	const [uploadImageError, setUploadImageError] = useState<string | null>(null);
 
-	const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
-	const [categoriesTarget, setCategoriesTarget] =
-		useState<SpikeAdminProduct | null>(null);
-
-	const productById = useMemo(
-		() => new Map(products.map((product) => [product.id, product])),
-		[products],
+	const categoryById = useMemo(
+		() => new Map(categories.map((category) => [category.id, category])),
+		[categories],
 	);
 
-	const productColumns = useMemo(
+	const categoryColumns = useMemo(
 		() =>
-			getProductColumns({
+			getCategoryColumns({
 				editingRowId,
 				editDraft,
 				setEditDraft,
@@ -120,13 +121,13 @@ export function ProductsTable({
 		[editingRowId, editDraft],
 	);
 
-	const startEditing = (row: SpikeAdminProduct) => {
+	const startEditing = (row: SpikeAdminCategory) => {
 		if (submitting) return;
 		setEditingRowId(row.id);
 		setEditDraft({
-			sku: row.sku,
-			description: row.description,
-			unitCost: row.unitCost,
+			name: row.name,
+			description: row.description ?? "",
+			sortOrder: row.sortOrder,
 		});
 		setSubmitError(null);
 	};
@@ -138,47 +139,46 @@ export function ProductsTable({
 
 	const hasDraftChanged = () => {
 		if (!editingRowId) return false;
-		const row = productById.get(editingRowId);
+		const row = categoryById.get(editingRowId);
 		if (!row) return false;
 		return (
-			editDraft.sku.trim() !== row.sku ||
-			editDraft.description.trim() !== row.description ||
-			editDraft.unitCost !== row.unitCost
+			editDraft.name.trim() !== row.name ||
+			editDraft.description.trim() !== (row.description ?? "") ||
+			editDraft.sortOrder !== row.sortOrder
 		);
 	};
 
 	const openEditConfirmation = () => {
 		if (!editingRowId) return;
-		const sku = editDraft.sku.trim();
-		const description = editDraft.description.trim();
-		if (!sku || !description || !Number.isFinite(editDraft.unitCost)) return;
+		const name = editDraft.name.trim();
+		if (!name || !Number.isFinite(editDraft.sortOrder)) return;
 		if (!hasDraftChanged()) return;
 		setSubmitError(null);
 		setConfirmAction({
 			type: "edit",
 			rowId: editingRowId,
 			draft: {
-				sku,
-				description,
-				unitCost: editDraft.unitCost,
+				name,
+				description: editDraft.description.trim(),
+				sortOrder: editDraft.sortOrder,
 			},
 		});
 	};
 
-	const openDeleteConfirmation = (row: SpikeAdminProduct) => {
+	const openDeleteConfirmation = (row: SpikeAdminCategory) => {
 		setSubmitError(null);
-		setConfirmAction({ type: "delete", rowId: row.id, sku: row.sku });
+		setConfirmAction({ type: "delete", rowId: row.id, name: row.name });
 	};
 
-	const openImageViewer = async (row: SpikeAdminProduct) => {
+	const openImageViewer = async (row: SpikeAdminCategory) => {
 		setImageModalOpen(true);
 		setImageLoading(true);
 		setImageError(null);
 		setImageUrl(null);
 
-		const result = await getSpikeProductImageViewUrl({ productId: row.id });
+		const result = await getSpikeCategoryImageViewUrl({ categoryId: row.id });
 		if (!result.success || !result.imageUrl) {
-			setImageError(result.error || "Failed to load product image.");
+			setImageError(result.error || "Failed to load category image.");
 			setImageLoading(false);
 			return;
 		}
@@ -187,27 +187,19 @@ export function ProductsTable({
 		setImageLoading(false);
 	};
 
-	const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-	const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"];
-
 	const resetUploadState = () => {
-		setUploadTargetProduct(null);
+		setUploadTarget(null);
 		setUploadImageFile(null);
 		setUploadImagePreview(null);
 		setUploadImageError(null);
 	};
 
-	const openUploadImageModal = (row: SpikeAdminProduct) => {
-		setUploadTargetProduct(row);
+	const openUploadImageModal = (row: SpikeAdminCategory) => {
+		setUploadTarget(row);
 		setUploadImageFile(null);
 		setUploadImagePreview(null);
 		setUploadImageError(null);
 		setUploadImageModalOpen(true);
-	};
-
-	const openCategoriesModal = (row: SpikeAdminProduct) => {
-		setCategoriesTarget(row);
-		setCategoriesModalOpen(true);
 	};
 
 	const handleUploadFileSelect = (file: File | null) => {
@@ -231,13 +223,13 @@ export function ProductsTable({
 	};
 
 	const handleConfirmUploadImage = async () => {
-		if (!uploadTargetProduct || !uploadImageFile) return;
+		if (!uploadTarget || !uploadImageFile) return;
 
 		setSubmitting(true);
 		setUploadImageError(null);
 		try {
-			const uploadMeta = await getSpikeProductImageUploadUrl({
-				productId: uploadTargetProduct.id,
+			const uploadMeta = await getSpikeCategoryImageUploadUrl({
+				categoryId: uploadTarget.id,
 			});
 			if (!uploadMeta.success || !uploadMeta.uploadUrl || !uploadMeta.s3Key) {
 				setUploadImageError(
@@ -260,8 +252,8 @@ export function ProductsTable({
 				return;
 			}
 
-			const updateResult = await updateSpikeProductImage({
-				productId: uploadTargetProduct.id,
+			const updateResult = await updateSpikeCategoryImage({
+				categoryId: uploadTarget.id,
 				imageUrl: uploadMeta.s3Key,
 			});
 			if (!updateResult.success) {
@@ -270,36 +262,14 @@ export function ProductsTable({
 				return;
 			}
 
-			const uploadedPreview = uploadImagePreview;
-			const uploadedSku = uploadTargetProduct.sku;
-			if (uploadedPreview) {
-				toast.custom(() => (
-					<div className="w-56 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-						<div className="relative h-32 w-full">
-							<img
-								src={uploadedPreview}
-								alt={`${uploadedSku} uploaded image`}
-								className="object-cover"
-							/>
-						</div>
-						<div className="px-3 py-2">
-							<p className="text-sm font-semibold text-slate-900">
-								Image uploaded
-							</p>
-							<p className="text-xs text-slate-500">{uploadedSku}</p>
-						</div>
-					</div>
-				));
-			} else {
-				toast.success("Product image uploaded.");
-			}
+			toast.success("Category image uploaded.");
 			setUploadImageModalOpen(false);
 			resetUploadState();
 			onRefresh();
 			setSubmitting(false);
-		} catch (error) {
+		} catch (err) {
 			setUploadImageError(
-				error instanceof Error ? error.message : "Failed to upload image.",
+				err instanceof Error ? err.message : "Failed to upload image.",
 			);
 			setSubmitting(false);
 		}
@@ -311,11 +281,11 @@ export function ProductsTable({
 		setSubmitError(null);
 
 		if (confirmAction.type === "edit") {
-			const result = await updateSpikeProduct({
-				productId: confirmAction.rowId,
-				sku: confirmAction.draft.sku,
-				description: confirmAction.draft.description,
-				unitCost: confirmAction.draft.unitCost,
+			const result = await updateSpikeCategory({
+				categoryId: confirmAction.rowId,
+				name: confirmAction.draft.name,
+				description: confirmAction.draft.description || null,
+				sortOrder: confirmAction.draft.sortOrder,
 			});
 
 			if (!result.success) {
@@ -323,17 +293,17 @@ export function ProductsTable({
 				setSubmitError(result.error || "Failed to apply changes.");
 				return;
 			}
-			toast.success("Product updated.");
+			toast.success("Category updated.");
 		} else {
-			const result = await deleteSpikeProduct({
-				productId: confirmAction.rowId,
+			const result = await deleteSpikeCategory({
+				categoryId: confirmAction.rowId,
 			});
 			if (!result.success) {
 				setSubmitting(false);
 				setSubmitError(result.error || "Failed to apply changes.");
 				return;
 			}
-			toast.success("Product deleted and entitlements removed.");
+			toast.success("Category deleted.");
 			if (result.warning) {
 				toast.warning(result.warning);
 			}
@@ -345,7 +315,7 @@ export function ProductsTable({
 		setSubmitting(false);
 	};
 
-	const renderRowActions = (row: SpikeAdminProduct) => {
+	const renderRowActions = (row: SpikeAdminCategory) => {
 		const isEditing = editingRowId === row.id;
 		const editingAnotherRow = editingRowId !== null && editingRowId !== row.id;
 
@@ -374,9 +344,9 @@ export function ProductsTable({
 			);
 		}
 
-		const rowActions: RowActionItem<SpikeAdminProduct>[] = [
+		const rowActions: RowActionItem<SpikeAdminCategory>[] = [
 			{
-				key: "edit-product",
+				key: "edit-category",
 				label: "Edit",
 				icon: <Pencil className="h-4 w-4" />,
 				onSelect: startEditing,
@@ -384,7 +354,7 @@ export function ProductsTable({
 			{
 				key: "upload-image",
 				label: "Upload image",
-				icon: <PackagePlus className="h-4 w-4" />,
+				icon: <ImagePlus className="h-4 w-4" />,
 				onSelect: openUploadImageModal,
 			},
 			{
@@ -394,13 +364,7 @@ export function ProductsTable({
 				onSelect: openImageViewer,
 			},
 			{
-				key: "manage-categories",
-				label: "Manage categories",
-				icon: <FolderTree className="h-4 w-4" />,
-				onSelect: openCategoriesModal,
-			},
-			{
-				key: "delete-product",
+				key: "delete-category",
 				label: "Delete",
 				icon: <Trash2 className="h-4 w-4" />,
 				variant: "destructive",
@@ -413,29 +377,29 @@ export function ProductsTable({
 				row={row}
 				items={rowActions}
 				disabled={editingAnotherRow || loading || submitting}
-				triggerLabel="Open product actions"
+				triggerLabel="Open category actions"
 			/>
 		);
 	};
 
 	return (
 		<>
-			<CreateProductsSheet
-				open={sheetOpen}
-				onOpenChange={setSheetOpen}
-				onProductsCreated={onRefresh}
+			<CategoryCreateDialog
+				open={createOpen}
+				onOpenChange={setCreateOpen}
+				onCreated={onRefresh}
 			/>
 
 			<div className="mb-4 flex flex-col items-stretch justify-between gap-2 sm:flex-row sm:items-center">
-				<AdminSearch defaultValue={search} placeholder="Search products..." />
+				<AdminSearch defaultValue={search} placeholder="Search categories..." />
 				<div className="flex items-center gap-2">
 					<Button
 						size="sm"
-						onClick={() => setSheetOpen(true)}
+						onClick={() => setCreateOpen(true)}
 						className="shrink-0"
 					>
-						<PackagePlus size={14} className="mr-1.5" />
-						Create Products
+						<Plus size={14} className="mr-1.5" />
+						Create Category
 					</Button>
 					<Button
 						variant="outline"
@@ -482,21 +446,21 @@ export function ProductsTable({
 				</div>
 			)}
 
-			{products.length === 0 && !loading ? (
+			{categories.length === 0 && !loading ? (
 				<EmptyState
-					icon={Package}
-					heading="No products found"
+					icon={FolderTree}
+					heading="No categories found"
 					description={
 						search
-							? `No products match "${search}". Try a different search.`
-							: "No products in the database yet."
+							? `No categories match "${search}". Try a different search.`
+							: "No categories yet. Create one to start grouping products."
 					}
 				/>
 			) : (
 				<AdminDataTable
-					columns={productColumns}
-					data={products}
-					getRowId={(product) => product.id}
+					columns={categoryColumns}
+					data={categories}
+					getRowId={(category) => category.id}
 					renderRowActions={renderRowActions}
 					loading={loading}
 					minWidth="min-w-[860px]"
@@ -508,7 +472,7 @@ export function ProductsTable({
 				totalPages={totalPages}
 				total={total}
 				pageSize={pageSize}
-				itemLabel="products"
+				itemLabel="categories"
 			/>
 
 			<Dialog
@@ -525,13 +489,13 @@ export function ProductsTable({
 					<DialogHeader>
 						<DialogTitle>
 							{confirmAction?.type === "edit"
-								? "Confirm Product Update"
-								: "Confirm Product Deletion"}
+								? "Confirm Category Update"
+								: "Confirm Category Deletion"}
 						</DialogTitle>
 						<DialogDescription>
 							{confirmAction?.type === "edit"
-								? "This will update SKU, description and unit cost for this product."
-								: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
+								? "This will update the name, description and sort order for this category."
+								: `This will permanently delete ${confirmAction?.name ?? "this category"} and remove it from all products. Products themselves are not deleted.`}
 						</DialogDescription>
 					</DialogHeader>
 					{submitError && (
@@ -585,7 +549,7 @@ export function ProductsTable({
 				error={imageError}
 			/>
 
-			<ProductImageUploadModal
+			<CategoryImageUploadModal
 				open={uploadImageModalOpen}
 				onOpenChange={(open) => {
 					setUploadImageModalOpen(open);
@@ -593,25 +557,12 @@ export function ProductsTable({
 						resetUploadState();
 					}
 				}}
-				productSku={uploadTargetProduct?.sku ?? null}
+				categoryName={uploadTarget?.name ?? null}
 				imagePreview={uploadImagePreview}
 				imageError={uploadImageError}
 				submitting={submitting}
 				onFileSelect={handleUploadFileSelect}
 				onConfirm={handleConfirmUploadImage}
-			/>
-
-			<ManageProductCategoriesDialog
-				open={categoriesModalOpen}
-				onOpenChange={(open) => {
-					setCategoriesModalOpen(open);
-					if (!open) {
-						setCategoriesTarget(null);
-					}
-				}}
-				productId={categoriesTarget?.id ?? null}
-				productSku={categoriesTarget?.sku ?? null}
-				onSaved={onRefresh}
 			/>
 		</>
 	);

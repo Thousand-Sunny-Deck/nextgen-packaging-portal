@@ -29,6 +29,15 @@ type FetchProductsInput = {
 	pageSize?: number;
 };
 
+export interface ShopCategory {
+	id: string;
+	name: string;
+	handle: string;
+	description: string | null;
+	imageUrl: string | null;
+	productCount: number;
+}
+
 const sanitizePagination = ({
 	page = 1,
 	pageSize = 24,
@@ -81,10 +90,12 @@ const toProductData = ({
 export const fetchNonEntitledCatalogProducts = async ({
 	userId,
 	search,
+	categoryId,
 	page = 1,
 	pageSize = 24,
 }: FetchProductsInput & {
 	userId: string;
+	categoryId?: string;
 }): Promise<FetchProductsResult> => {
 	const { sanitizedPage, sanitizedPageSize, skip } = sanitizePagination({
 		page,
@@ -98,6 +109,7 @@ export const fetchNonEntitledCatalogProducts = async ({
 				userId,
 			},
 		},
+		...(categoryId ? { categories: { some: { categoryId } } } : {}),
 		...(sanitizedSearch
 			? {
 					OR: [
@@ -231,4 +243,66 @@ export const fetchEntitledProducts = async ({
 		total,
 		totalPages: Math.ceil(total / sanitizedPageSize),
 	};
+};
+
+/**
+ * Categories shown on the shop landing page. Only categories that contain at
+ * least one product the user is NOT already entitled to are returned, so the
+ * grouping matches what the user can actually browse in the shop.
+ */
+export const fetchShopCategories = async ({
+	userId,
+}: {
+	userId: string;
+}): Promise<ShopCategory[]> => {
+	const categories = await prisma.category.findMany({
+		orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+		select: {
+			id: true,
+			name: true,
+			handle: true,
+			description: true,
+			imageUrl: true,
+			_count: {
+				select: {
+					products: {
+						where: {
+							product: {
+								entitledUsers: { none: { userId } },
+							},
+						},
+					},
+				},
+			},
+		},
+	});
+
+	return categories
+		.filter((category) => category._count.products > 0)
+		.map((category) => ({
+			id: category.id,
+			name: category.name,
+			handle: category.handle,
+			description: category.description,
+			imageUrl: toImageUrl(category.imageUrl),
+			productCount: category._count.products,
+		}));
+};
+
+/**
+ * Resolves a category handle to its id + display name for the shop drill-down
+ * view. Returns null when no such category exists.
+ */
+export const resolveShopCategoryByHandle = async (
+	handle: string,
+): Promise<{ id: string; name: string; handle: string } | null> => {
+	const sanitized = handle.trim().slice(0, 100);
+	if (!sanitized) return null;
+
+	const category = await prisma.category.findUnique({
+		where: { handle: sanitized },
+		select: { id: true, name: true, handle: true },
+	});
+
+	return category;
 };

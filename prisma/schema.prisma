@@ -86,10 +86,47 @@ model Product {
   imageUrl      String?
   // Relations
   entitledUsers UserProductEntitlement[]
+  categories    ProductCategory[]
 
   @@index([sku])
   @@index([handle])
   @@map("products")
+}
+
+// Product categories (admin-defined groupings shown in the shop)
+
+model Category {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  handle      String  @unique // slugify(name)
+  description String?
+  imageUrl    String? // S3 object key for the category tile image
+  sortOrder   Int     @default(0) // admin-controlled ordering
+
+  products ProductCategory[]
+
+  @@index([handle])
+  @@map("categories")
+}
+
+// Many-to-many join between products and categories
+
+model ProductCategory {
+  productId  String
+  categoryId String
+
+  createdAt DateTime @default(now())
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([productId])
+  @@index([categoryId])
+  @@map("product_categories")
 }
 
 // NEW: User entitlements with per-user customizations
@@ -151,6 +188,10 @@ model Order {
 
   // optional reference (for UI only)
   billingAddressId String?
+
+  // Customer-requested delivery day (weekday) and a short order note
+  deliveryDate DateTime?
+  notes        String?
 
   // Order items
   items     OrderItem[]
