@@ -53,6 +53,8 @@ const emptyEditDraft: PendingEntitlementEdit = {
 	customSku: null,
 	customDescription: null,
 	customUnitCost: null,
+	customSleevePrice: null,
+	customBoxPrice: null,
 };
 
 type ConfirmAction =
@@ -109,7 +111,9 @@ export function EntitlementsTable({
 			normalizeNullableString(editDraft.customSku) !== row.customSku ||
 			normalizeNullableString(editDraft.customDescription) !==
 				row.customDescription ||
-			editDraft.customUnitCost !== row.customUnitCost
+			editDraft.customUnitCost !== row.customUnitCost ||
+			editDraft.customSleevePrice !== row.customSleevePrice ||
+			editDraft.customBoxPrice !== row.customBoxPrice
 		);
 	};
 
@@ -125,6 +129,8 @@ export function EntitlementsTable({
 			customSku: row.customSku,
 			customDescription: row.customDescription,
 			customUnitCost: row.customUnitCost,
+			customSleevePrice: row.customSleevePrice,
+			customBoxPrice: row.customBoxPrice,
 		});
 		setSubmitError(null);
 	};
@@ -138,11 +144,15 @@ export function EntitlementsTable({
 			customSku: normalizeNullableString(editDraft.customSku),
 			customDescription: normalizeNullableString(editDraft.customDescription),
 			customUnitCost: editDraft.customUnitCost,
+			customSleevePrice: editDraft.customSleevePrice,
+			customBoxPrice: editDraft.customBoxPrice,
 		};
 		const changed =
 			draft.customSku !== row.customSku ||
 			draft.customDescription !== row.customDescription ||
-			draft.customUnitCost !== row.customUnitCost;
+			draft.customUnitCost !== row.customUnitCost ||
+			draft.customSleevePrice !== row.customSleevePrice ||
+			draft.customBoxPrice !== row.customBoxPrice;
 
 		if (!changed) return;
 		setSubmitError(null);
@@ -169,6 +179,8 @@ export function EntitlementsTable({
 									customSku: confirmAction.draft.customSku,
 									customDescription: confirmAction.draft.customDescription,
 									customUnitCost: confirmAction.draft.customUnitCost,
+									customSleevePrice: confirmAction.draft.customSleevePrice,
+									customBoxPrice: confirmAction.draft.customBoxPrice,
 								},
 							],
 							revocations: [],
@@ -325,7 +337,7 @@ export function EntitlementsTable({
 					getRowId={(entitlement) => entitlement.id}
 					renderRowActions={renderRowActions}
 					loading={loading}
-					minWidth="min-w-[1320px]"
+					minWidth="min-w-[1600px]"
 				/>
 			)}
 

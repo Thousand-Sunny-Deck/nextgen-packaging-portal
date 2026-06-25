@@ -176,6 +176,9 @@ model UserProductEntitlement {
   customDescription String?
   customUnitCost    Float?
   customImageUrl    String?
+  // Per-user prices for dual-unit (sleeve/box) products
+  customSleevePrice Float?
+  customBoxPrice    Float?
 
   // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -111,6 +111,8 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 				customSku: true,
 				customDescription: true,
 				customUnitCost: true,
+				customSleevePrice: true,
+				customBoxPrice: true,
 				customImageUrl: true,
 				product: {
 					select: {
@@ -149,7 +151,13 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		// Shared, server-authoritative pricing rule (sleeve/box, or custom price).
 		const unitCost = resolveLinePrice(
 			product,
-			entitlement?.customUnitCost ?? null,
+			entitlement
+				? {
+						customUnitCost: entitlement.customUnitCost,
+						customSleevePrice: entitlement.customSleevePrice,
+						customBoxPrice: entitlement.customBoxPrice,
+					}
+				: null,
 			unit,
 		);
 		const description = unit ? `${baseDescription} (${unit})` : baseDescription;

@@ -5,10 +5,16 @@ export type EntitlementDraftItem = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	// Dual-unit product info (for sleeve/box custom pricing)
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
 	// Custom overrides — empty string means "use product default" (stored as null)
 	customSku: string;
 	customDescription: string;
 	customUnitCost: string;
+	customSleevePrice: string;
+	customBoxPrice: string;
 	source: "manual" | "csv";
 };
 
@@ -26,7 +32,11 @@ type AddEntitlementsStore = {
 		patch: Partial<
 			Pick<
 				EntitlementDraftItem,
-				"customSku" | "customDescription" | "customUnitCost"
+				| "customSku"
+				| "customDescription"
+				| "customUnitCost"
+				| "customSleevePrice"
+				| "customBoxPrice"
 			>
 		>,
 	) => void;

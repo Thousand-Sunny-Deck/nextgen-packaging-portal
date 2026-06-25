@@ -34,7 +34,7 @@ export function DraftQueue() {
 								Custom Description
 							</th>
 							<th className="px-4 py-3 text-left font-medium text-slate-500 uppercase tracking-wide text-xs">
-								Custom Cost
+								Custom Price
 							</th>
 							<th className="w-10 px-4 py-3" />
 						</tr>
@@ -79,19 +79,50 @@ export function DraftQueue() {
 									/>
 								</td>
 								<td className="px-4 py-2">
-									<Input
-										type="number"
-										step="0.01"
-										min="0"
-										value={item.customUnitCost}
-										onChange={(e) =>
-											updateItem(item.productId, {
-												customUnitCost: e.target.value,
-											})
-										}
-										placeholder={String(item.unitCost)}
-										className="h-8 text-xs w-28"
-									/>
+									{item.hasUnitOptions ? (
+										<div className="flex flex-col gap-1">
+											<Input
+												type="number"
+												step="0.01"
+												min="0"
+												value={item.customSleevePrice}
+												onChange={(e) =>
+													updateItem(item.productId, {
+														customSleevePrice: e.target.value,
+													})
+												}
+												placeholder={`Sleeve ${item.sleevePrice ?? ""}`}
+												className="h-8 text-xs w-32"
+											/>
+											<Input
+												type="number"
+												step="0.01"
+												min="0"
+												value={item.customBoxPrice}
+												onChange={(e) =>
+													updateItem(item.productId, {
+														customBoxPrice: e.target.value,
+													})
+												}
+												placeholder={`Box ${item.boxPrice ?? ""}`}
+												className="h-8 text-xs w-32"
+											/>
+										</div>
+									) : (
+										<Input
+											type="number"
+											step="0.01"
+											min="0"
+											value={item.customUnitCost}
+											onChange={(e) =>
+												updateItem(item.productId, {
+													customUnitCost: e.target.value,
+												})
+											}
+											placeholder={String(item.unitCost)}
+											className="h-8 text-xs w-28"
+										/>
+									)}
 								</td>
 								<td className="px-4 py-2">
 									<Button

@@ -75,6 +75,12 @@ export function AddEntitlementsSheet({
 				customUnitCost: item.customUnitCost.trim()
 					? parseFloat(item.customUnitCost)
 					: null,
+				customSleevePrice: item.customSleevePrice.trim()
+					? parseFloat(item.customSleevePrice)
+					: null,
+				customBoxPrice: item.customBoxPrice.trim()
+					? parseFloat(item.customBoxPrice)
+					: null,
 			}));
 
 			const result = await _batchGrantEntitlements({ userId, entries });

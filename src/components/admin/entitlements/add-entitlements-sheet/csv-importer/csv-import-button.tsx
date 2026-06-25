@@ -62,9 +62,14 @@ export function CsvImportButton({
 					sku: product.sku,
 					description: product.description,
 					unitCost: product.unitCost,
+					hasUnitOptions: product.hasUnitOptions,
+					sleevePrice: product.sleevePrice,
+					boxPrice: product.boxPrice,
 					customSku: "",
 					customDescription: "",
 					customUnitCost: "",
+					customSleevePrice: "",
+					customBoxPrice: "",
 					source: "csv",
 				});
 			}
