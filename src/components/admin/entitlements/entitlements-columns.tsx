@@ -7,6 +7,8 @@ export type PendingEntitlementEdit = {
 	customSku: string | null;
 	customDescription: string | null;
 	customUnitCost: number | null;
+	customSleevePrice: number | null;
+	customBoxPrice: number | null;
 };
 
 type EntitlementsColumnsOptions = {
@@ -140,8 +142,17 @@ export function getEntitlementColumns({
 		},
 		{
 			key: "unitCost",
-			header: "Unit Cost",
+			header: "Price",
 			render: (row) => {
+				if (row.product.hasUnitOptions) {
+					const sleeve = row.customSleevePrice ?? row.product.sleevePrice ?? 0;
+					const box = row.customBoxPrice ?? row.product.boxPrice ?? 0;
+					return (
+						<div className="text-xs text-slate-700">
+							Sleeve {formatCurrency(sleeve)} · Box {formatCurrency(box)}
+						</div>
+					);
+				}
 				const effectiveCost = row.customUnitCost ?? row.product.unitCost;
 				return (
 					<div className="text-slate-700">
@@ -159,6 +170,9 @@ export function getEntitlementColumns({
 			key: "customUnitCost",
 			header: "Custom Unit Cost",
 			render: (row) => {
+				if (row.product.hasUnitOptions) {
+					return <span className="text-xs text-slate-400">— (sleeve/box)</span>;
+				}
 				if (editingRowId === row.id) {
 					return (
 						<Input
@@ -181,6 +195,76 @@ export function getEntitlementColumns({
 				return row.customUnitCost !== null ? (
 					<span className="text-slate-700">
 						{formatCurrency(row.customUnitCost)}
+					</span>
+				) : (
+					<span className="text-slate-400">Not set</span>
+				);
+			},
+		},
+		{
+			key: "customSleevePrice",
+			header: "Custom Sleeve",
+			render: (row) => {
+				if (!row.product.hasUnitOptions) {
+					return <span className="text-slate-400">—</span>;
+				}
+				if (editingRowId === row.id) {
+					return (
+						<Input
+							type="number"
+							step="0.01"
+							className="h-8 w-28 text-sm"
+							value={editDraft.customSleevePrice ?? ""}
+							placeholder={String(row.product.sleevePrice ?? "")}
+							onChange={(event) =>
+								setEditDraft((prev) => ({
+									...prev,
+									customSleevePrice: event.target.value
+										? Number.parseFloat(event.target.value)
+										: null,
+								}))
+							}
+						/>
+					);
+				}
+				return row.customSleevePrice !== null ? (
+					<span className="text-slate-700">
+						{formatCurrency(row.customSleevePrice)}
+					</span>
+				) : (
+					<span className="text-slate-400">Not set</span>
+				);
+			},
+		},
+		{
+			key: "customBoxPrice",
+			header: "Custom Box",
+			render: (row) => {
+				if (!row.product.hasUnitOptions) {
+					return <span className="text-slate-400">—</span>;
+				}
+				if (editingRowId === row.id) {
+					return (
+						<Input
+							type="number"
+							step="0.01"
+							className="h-8 w-28 text-sm"
+							value={editDraft.customBoxPrice ?? ""}
+							placeholder={String(row.product.boxPrice ?? "")}
+							onChange={(event) =>
+								setEditDraft((prev) => ({
+									...prev,
+									customBoxPrice: event.target.value
+										? Number.parseFloat(event.target.value)
+										: null,
+								}))
+							}
+						/>
+					);
+				}
+				return row.customBoxPrice !== null ? (
+					<span className="text-slate-700">
+						{formatCurrency(row.customBoxPrice)}
 					</span>
 				) : (
 					<span className="text-slate-400">Not set</span>

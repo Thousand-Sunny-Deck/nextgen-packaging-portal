@@ -52,13 +52,21 @@ export function AddEntitlementsReviewStep({
 								const hasCustom =
 									item.customSku.trim() ||
 									item.customDescription.trim() ||
-									item.customUnitCost.trim();
+									item.customUnitCost.trim() ||
+									item.customSleevePrice.trim() ||
+									item.customBoxPrice.trim();
 								const effectiveSku = item.customSku.trim() || item.sku;
 								const effectiveDescription =
 									item.customDescription.trim() || item.description;
 								const effectiveCost = item.customUnitCost.trim()
 									? parseFloat(item.customUnitCost)
 									: item.unitCost;
+								const sleevePrice = item.customSleevePrice.trim()
+									? parseFloat(item.customSleevePrice)
+									: (item.sleevePrice ?? 0);
+								const boxPrice = item.customBoxPrice.trim()
+									? parseFloat(item.customBoxPrice)
+									: (item.boxPrice ?? 0);
 								return (
 									<tr
 										key={item.productId}
@@ -71,7 +79,9 @@ export function AddEntitlementsReviewStep({
 											{effectiveDescription}
 										</td>
 										<td className="px-4 py-3 text-slate-700">
-											{formatCurrency(effectiveCost)}
+											{item.hasUnitOptions
+												? `Sleeve ${formatCurrency(sleevePrice)} · Box ${formatCurrency(boxPrice)}`
+												: formatCurrency(effectiveCost)}
 										</td>
 										<td className="px-4 py-3">
 											{hasCustom ? (

@@ -26,12 +26,17 @@ export type SpikeUserEntitlementRow = {
 	customSku: string | null;
 	customDescription: string | null;
 	customUnitCost: number | null;
+	customSleevePrice: number | null;
+	customBoxPrice: number | null;
 	product: {
 		id: string;
 		sku: string;
 		handle: string;
 		description: string;
 		unitCost: number;
+		hasUnitOptions: boolean;
+		sleevePrice: number | null;
+		boxPrice: number | null;
 	};
 };
 
@@ -55,6 +60,8 @@ export type SpikeEntitlementEditInput = {
 	customSku: string | null;
 	customDescription: string | null;
 	customUnitCost: number | null;
+	customSleevePrice: number | null;
+	customBoxPrice: number | null;
 };
 
 export type ApplySpikeEntitlementChangesInput = {
@@ -167,6 +174,9 @@ export type SpikeAvailableProduct = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
 };
 
 export async function getSpikeAvailableProducts(userId: string): Promise<{
@@ -178,7 +188,15 @@ export async function getSpikeAvailableProducts(userId: string): Promise<{
 	const [products, entitlements] = await Promise.all([
 		prisma.product.findMany({
 			orderBy: { sku: "asc" },
-			select: { id: true, sku: true, description: true, unitCost: true },
+			select: {
+				id: true,
+				sku: true,
+				description: true,
+				unitCost: true,
+				hasUnitOptions: true,
+				sleevePrice: true,
+				boxPrice: true,
+			},
 		}),
 		prisma.userProductEntitlement.findMany({
 			where: { userId },
@@ -201,6 +219,8 @@ export type GrantEntitlementEntry = {
 	customSku: string | null;
 	customDescription: string | null;
 	customUnitCost: number | null;
+	customSleevePrice: number | null;
+	customBoxPrice: number | null;
 };
 
 export async function _batchGrantEntitlements(input: {
@@ -226,6 +246,8 @@ export async function _batchGrantEntitlements(input: {
 						customSku: entry.customSku,
 						customDescription: entry.customDescription,
 						customUnitCost: entry.customUnitCost,
+						customSleevePrice: entry.customSleevePrice,
+						customBoxPrice: entry.customBoxPrice,
 					},
 				}),
 			),
@@ -323,6 +345,8 @@ export async function getSpikeUserEntitledProducts(
 				customSku: true,
 				customDescription: true,
 				customUnitCost: true,
+				customSleevePrice: true,
+				customBoxPrice: true,
 				product: {
 					select: {
 						id: true,
@@ -330,6 +354,9 @@ export async function getSpikeUserEntitledProducts(
 						handle: true,
 						description: true,
 						unitCost: true,
+						hasUnitOptions: true,
+						sleevePrice: true,
+						boxPrice: true,
 					},
 				},
 			},
@@ -343,12 +370,17 @@ export async function getSpikeUserEntitledProducts(
 			customSku: row.customSku,
 			customDescription: row.customDescription,
 			customUnitCost: row.customUnitCost,
+			customSleevePrice: row.customSleevePrice,
+			customBoxPrice: row.customBoxPrice,
 			product: {
 				id: row.product.id,
 				sku: row.product.sku,
 				handle: row.product.handle,
 				description: row.product.description,
 				unitCost: Number(row.product.unitCost),
+				hasUnitOptions: row.product.hasUnitOptions,
+				sleevePrice: row.product.sleevePrice,
+				boxPrice: row.product.boxPrice,
 			},
 		})),
 		total,
@@ -374,6 +406,8 @@ export async function applySpikeEntitlementChanges(
 		customSku: normalizeNullableString(entry.customSku),
 		customDescription: normalizeNullableString(entry.customDescription),
 		customUnitCost: entry.customUnitCost,
+		customSleevePrice: entry.customSleevePrice,
+		customBoxPrice: entry.customBoxPrice,
 	}));
 	const revocations = Array.from(new Set(input.revocations));
 
@@ -390,6 +424,8 @@ export async function applySpikeEntitlementChanges(
 						customSku: edit.customSku,
 						customDescription: edit.customDescription,
 						customUnitCost: edit.customUnitCost,
+						customSleevePrice: edit.customSleevePrice,
+						customBoxPrice: edit.customBoxPrice,
 					},
 				}),
 			),

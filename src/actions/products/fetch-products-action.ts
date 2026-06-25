@@ -187,6 +187,8 @@ export const fetchEntitledProducts = async ({
 			customSku: true,
 			customDescription: true,
 			customUnitCost: true,
+			customSleevePrice: true,
+			customBoxPrice: true,
 			customImageUrl: true,
 			product: {
 				select: {
@@ -212,11 +214,12 @@ export const fetchEntitledProducts = async ({
 					entitlement.customDescription ?? entitlement.product.description,
 				unitCost: entitlement.customUnitCost ?? entitlement.product.unitCost,
 				imageUrl: entitlement.customImageUrl ?? entitlement.product.imageUrl,
-				// Unit-priced products use their own sleeve/box prices; the single
-				// per-customer custom price applies only to normal products.
+				// Unit-priced products: the per-customer sleeve/box price overrides
+				// the product's, when set.
 				hasUnitOptions: entitlement.product.hasUnitOptions,
-				sleevePrice: entitlement.product.sleevePrice,
-				boxPrice: entitlement.product.boxPrice,
+				sleevePrice:
+					entitlement.customSleevePrice ?? entitlement.product.sleevePrice,
+				boxPrice: entitlement.customBoxPrice ?? entitlement.product.boxPrice,
 			}),
 		),
 	};

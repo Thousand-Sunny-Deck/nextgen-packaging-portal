@@ -18,6 +18,16 @@ export type PriceableProduct = {
 	boxPrice: number | null;
 };
 
+/**
+ * Per-customer price overrides (from an entitlement). Any null falls back to the
+ * product's price. Pass null for shop (non-entitled) lines.
+ */
+export type EntitlementPricing = {
+	customUnitCost: number | null;
+	customSleevePrice: number | null;
+	customBoxPrice: number | null;
+} | null;
+
 /** Normalises a free-form unit string against the product's capability. */
 export function normalizeUnit(
 	product: { hasUnitOptions: boolean },
@@ -29,14 +39,16 @@ export function normalizeUnit(
 
 export function resolveLinePrice(
 	product: PriceableProduct,
-	entitlementCustomUnitCost: number | null | undefined,
+	entitlement: EntitlementPricing,
 	unit: LineUnit,
 ): number {
 	if (product.hasUnitOptions) {
-		const price = unit === "Box" ? product.boxPrice : product.sleevePrice;
-		return Number(price ?? 0);
+		if (unit === "Box") {
+			return Number(entitlement?.customBoxPrice ?? product.boxPrice ?? 0);
+		}
+		return Number(entitlement?.customSleevePrice ?? product.sleevePrice ?? 0);
 	}
-	return Number(entitlementCustomUnitCost ?? product.unitCost);
+	return Number(entitlement?.customUnitCost ?? product.unitCost);
 }
 
 /** Rounds a monetary value to 2 decimal places. */

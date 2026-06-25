@@ -105,6 +105,8 @@ export async function storePreparedOrderInDb(
 					customSku: true,
 					customDescription: true,
 					customUnitCost: true,
+					customSleevePrice: true,
+					customBoxPrice: true,
 					product: { select: { handle: true } },
 				},
 			})
@@ -148,7 +150,13 @@ export async function storePreparedOrderInDb(
 		const unit = normalizeUnit(product, item.unit);
 		const price = resolveLinePrice(
 			product,
-			entitlement?.customUnitCost ?? null,
+			entitlement
+				? {
+						customUnitCost: entitlement.customUnitCost,
+						customSleevePrice: entitlement.customSleevePrice,
+						customBoxPrice: entitlement.customBoxPrice,
+					}
+				: null,
 			unit,
 		);
 		const quantity = Math.max(
