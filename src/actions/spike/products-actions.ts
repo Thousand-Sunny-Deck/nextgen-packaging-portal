@@ -539,6 +539,56 @@ export async function getSpikeProductImageViewUrl(input: {
 	}
 }
 
+export async function deleteSpikeProductImage(input: {
+	productId: string;
+}): Promise<{ success: boolean; warning?: string; error?: string }> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true, handle: true, imageUrl: true },
+	});
+
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const imageKey = product.imageUrl || `images/${product.handle}.png`;
+
+	// Clear the reference first so the product stops showing the image even if
+	// S3 cleanup fails.
+	try {
+		await prisma.product.update({
+			where: { id: product.id },
+			data: { imageUrl: null },
+		});
+		const cache = new CacheService("product-image-url");
+		await cache.delete(`${product.id}:${imageKey}`);
+	} catch (error: unknown) {
+		console.error("Failed to remove product image reference:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to delete product image." };
+	}
+
+	// Best-effort removal of the underlying S3 object.
+	try {
+		const s3 = new S3Service();
+		if (await s3.fileExists(imageKey)) {
+			await s3.deleteFile(imageKey);
+		}
+	} catch (error) {
+		console.error("Image reference cleared but S3 delete failed:", error);
+		return {
+			success: true,
+			warning: "Image removed from the product, but file cleanup in S3 failed.",
+		};
+	}
+
+	return { success: true };
+}
+
 export async function updateSpikeProductImage(input: {
 	productId: string;
 	imageUrl: string;

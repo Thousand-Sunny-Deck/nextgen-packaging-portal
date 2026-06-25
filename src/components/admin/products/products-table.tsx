@@ -6,6 +6,7 @@ import {
 	Check,
 	Eye,
 	FolderTree,
+	ImageOff,
 	Loader2,
 	Package,
 	PackagePlus,
@@ -37,6 +38,7 @@ import {
 } from "@/components/admin/ui/row-actions-menu";
 import {
 	deleteSpikeProduct,
+	deleteSpikeProductImage,
 	getSpikeProductImageUploadUrl,
 	getSpikeProductImageViewUrl,
 	updateSpikeProduct,
@@ -64,7 +66,8 @@ interface ProductsTableProps {
 
 type ConfirmAction =
 	| { type: "edit"; rowId: string; draft: ProductEditDraft }
-	| { type: "delete"; rowId: string; sku: string };
+	| { type: "delete"; rowId: string; sku: string }
+	| { type: "delete-image"; rowId: string; sku: string };
 
 const emptyDraft: ProductEditDraft = {
 	sku: "",
@@ -180,6 +183,11 @@ export function ProductsTable({
 	const openDeleteConfirmation = (row: SpikeAdminProduct) => {
 		setSubmitError(null);
 		setConfirmAction({ type: "delete", rowId: row.id, sku: row.sku });
+	};
+
+	const openDeleteImageConfirmation = (row: SpikeAdminProduct) => {
+		setSubmitError(null);
+		setConfirmAction({ type: "delete-image", rowId: row.id, sku: row.sku });
 	};
 
 	const openImageViewer = async (row: SpikeAdminProduct) => {
@@ -346,6 +354,19 @@ export function ProductsTable({
 				return;
 			}
 			toast.success("Product updated.");
+		} else if (confirmAction.type === "delete-image") {
+			const result = await deleteSpikeProductImage({
+				productId: confirmAction.rowId,
+			});
+			if (!result.success) {
+				setSubmitting(false);
+				setSubmitError(result.error || "Failed to delete image.");
+				return;
+			}
+			toast.success("Product image deleted.");
+			if (result.warning) {
+				toast.warning(result.warning);
+			}
 		} else {
 			const result = await deleteSpikeProduct({
 				productId: confirmAction.rowId,
@@ -405,7 +426,7 @@ export function ProductsTable({
 			},
 			{
 				key: "upload-image",
-				label: "Upload image",
+				label: row.imageUrl ? "Replace image" : "Upload image",
 				icon: <PackagePlus className="h-4 w-4" />,
 				onSelect: openUploadImageModal,
 			},
@@ -414,6 +435,12 @@ export function ProductsTable({
 				label: "View image",
 				icon: <Eye className="h-4 w-4" />,
 				onSelect: openImageViewer,
+			},
+			{
+				key: "delete-image",
+				label: "Delete image",
+				icon: <ImageOff className="h-4 w-4" />,
+				onSelect: openDeleteImageConfirmation,
 			},
 			{
 				key: "manage-categories",
@@ -560,12 +587,16 @@ export function ProductsTable({
 						<DialogTitle>
 							{confirmAction?.type === "edit"
 								? "Confirm Product Update"
-								: "Confirm Product Deletion"}
+								: confirmAction?.type === "delete-image"
+									? "Delete product image"
+									: "Confirm Product Deletion"}
 						</DialogTitle>
 						<DialogDescription>
 							{confirmAction?.type === "edit"
 								? "This will update SKU, description and unit cost for this product."
-								: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
+								: confirmAction?.type === "delete-image"
+									? `This removes the photo for ${confirmAction?.sku ?? "this product"}. It will show no image until a new one is uploaded.`
+									: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
 						</DialogDescription>
 					</DialogHeader>
 					{submitError && (
@@ -586,7 +617,10 @@ export function ProductsTable({
 						</Button>
 						<Button
 							variant={
-								confirmAction?.type === "delete" ? "destructive" : "default"
+								confirmAction?.type === "delete" ||
+								confirmAction?.type === "delete-image"
+									? "destructive"
+									: "default"
 							}
 							onClick={handleConfirmAction}
 							disabled={submitting}
