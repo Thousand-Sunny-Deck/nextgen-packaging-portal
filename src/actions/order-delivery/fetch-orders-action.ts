@@ -99,6 +99,8 @@ export interface RecentOrder {
 	price: number;
 	invoiceId: string;
 	isFavourited: boolean;
+	deliveryDate: string | null;
+	notes: string | null;
 }
 
 export interface RecentOrderItem {
@@ -134,6 +136,10 @@ export const fetchRecentOrders = async (): Promise<RecentOrder[]> => {
 			price: order.totalOrderCost,
 			items: constructRecentOrderItems(order.items),
 			isFavourited: favouritedOrderIds.has(order.id),
+			deliveryDate: order.deliveryDate
+				? order.deliveryDate.toISOString()
+				: null,
+			notes: order.notes,
 		};
 	});
 

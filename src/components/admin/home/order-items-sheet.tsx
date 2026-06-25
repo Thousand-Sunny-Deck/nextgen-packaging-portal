@@ -1,5 +1,10 @@
 "use client";
+import { useEffect, useState } from "react";
+import { Loader2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { Lozenge } from "@/components/Lozenge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
 	Sheet,
 	SheetContent,
@@ -8,12 +13,19 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import type { OrderActivityRow } from "@/actions/spike/orders-actions";
+import { updateOrderDeliveryDate } from "@/actions/spike/orders-actions";
+import {
+	formatDeliveryDate,
+	getEarliestDeliveryDate,
+	toDateInputValue,
+} from "@/lib/schemas/delivery";
 import { formatDate, getStatusLozenge } from "./common";
 
 interface OrderItemsSheetProps {
 	order: OrderActivityRow | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	onOrderUpdated?: () => void;
 }
 
 function formatCurrency(value: number) {
@@ -28,8 +40,39 @@ export function OrderItemsSheet({
 	order,
 	open,
 	onOpenChange,
+	onOrderUpdated,
 }: OrderItemsSheetProps) {
 	const { label, appearence } = getStatusLozenge(order?.status || "PROCESSING");
+
+	const [editingDate, setEditingDate] = useState(false);
+	const [dateDraft, setDateDraft] = useState("");
+	const [savingDate, setSavingDate] = useState(false);
+
+	// Reset the edit state whenever a different order is shown.
+	useEffect(() => {
+		setEditingDate(false);
+		setSavingDate(false);
+		setDateDraft(order?.deliveryDate ? order.deliveryDate.slice(0, 10) : "");
+	}, [order?.orderId, order?.deliveryDate]);
+
+	const minDeliveryDate = toDateInputValue(getEarliestDeliveryDate());
+
+	const handleSaveDate = async () => {
+		if (!order) return;
+		setSavingDate(true);
+		const result = await updateOrderDeliveryDate({
+			orderId: order.orderId,
+			deliveryDate: dateDraft,
+		});
+		setSavingDate(false);
+		if (!result.success) {
+			toast.error(result.error || "Failed to update delivery date.");
+			return;
+		}
+		toast.success("Delivery date updated.");
+		setEditingDate(false);
+		onOrderUpdated?.();
+	};
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent
@@ -67,6 +110,83 @@ export function OrderItemsSheet({
 										{formatCurrency(order.totalOrderCost)}
 									</span>
 								</div>
+							</div>
+
+							{/* Requested delivery (editable) + customer note */}
+							<div className="rounded-md border border-slate-200 bg-white p-3">
+								<div className="flex items-center justify-between gap-2">
+									<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+										Requested delivery
+									</p>
+									{!editingDate && (
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-7 px-2 text-xs"
+											onClick={() => setEditingDate(true)}
+										>
+											<Pencil className="mr-1 h-3.5 w-3.5" />
+											Edit
+										</Button>
+									)}
+								</div>
+
+								{editingDate ? (
+									<div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+										<Input
+											type="date"
+											min={minDeliveryDate}
+											value={dateDraft}
+											onChange={(event) => setDateDraft(event.target.value)}
+											className="h-8 w-full sm:w-48"
+										/>
+										<div className="flex items-center gap-2">
+											<Button
+												size="sm"
+												className="h-8"
+												onClick={handleSaveDate}
+												disabled={savingDate || !dateDraft}
+											>
+												{savingDate ? (
+													<Loader2 className="h-4 w-4 animate-spin" />
+												) : (
+													"Save"
+												)}
+											</Button>
+											<Button
+												size="sm"
+												variant="outline"
+												className="h-8"
+												onClick={() => {
+													setEditingDate(false);
+													setDateDraft(
+														order.deliveryDate
+															? order.deliveryDate.slice(0, 10)
+															: "",
+													);
+												}}
+												disabled={savingDate}
+											>
+												Cancel
+											</Button>
+										</div>
+									</div>
+								) : (
+									<p className="mt-1 text-sm font-semibold text-slate-900">
+										{formatDeliveryDate(order.deliveryDate)}
+									</p>
+								)}
+
+								{order.notes && (
+									<div className="mt-3 border-t border-slate-200 pt-3">
+										<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+											Customer note
+										</p>
+										<p className="mt-1 text-sm italic text-slate-700">
+											“{order.notes}”
+										</p>
+									</div>
+								)}
 							</div>
 
 							<div>

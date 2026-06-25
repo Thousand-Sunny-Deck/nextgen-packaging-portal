@@ -1,8 +1,9 @@
 // RecentOrderCard.tsx
 import React from "react";
-import { Loader2, Heart } from "lucide-react";
+import { Loader2, Heart, CalendarDays } from "lucide-react";
 import { RecentOrderItem } from "@/actions/order-delivery/fetch-orders-action";
 import { getDisplayOrderId } from "@/lib/utils";
+import { formatDeliveryDate } from "@/lib/schemas/delivery";
 
 interface RecentOrderCardProps {
 	orderId: string;
@@ -15,6 +16,8 @@ interface RecentOrderCardProps {
 	isFavourited?: boolean;
 	isFavouriting?: boolean;
 	onFavourite?: () => void;
+	deliveryDate?: string | null;
+	notes?: string | null;
 }
 
 const RecentOrderCard = ({
@@ -27,6 +30,8 @@ const RecentOrderCard = ({
 	isFavourited = false,
 	isFavouriting = false,
 	onFavourite,
+	deliveryDate = null,
+	notes = null,
 }: RecentOrderCardProps) => {
 	const displayInvoiceId = getDisplayOrderId(invoiceId, "recent");
 	return (
@@ -46,6 +51,19 @@ const RecentOrderCard = ({
 						</p>
 					))}
 				</div>
+
+				{/* Requested delivery + note */}
+				{deliveryDate && (
+					<p className="mt-2 flex items-center gap-1.5 text-xs text-neutral-500">
+						<CalendarDays className="h-3.5 w-3.5" />
+						Delivery: {formatDeliveryDate(deliveryDate)}
+					</p>
+				)}
+				{notes && (
+					<p className="mt-1 text-xs italic text-neutral-400 line-clamp-2">
+						“{notes}”
+					</p>
+				)}
 			</div>
 
 			{/* Right side - Price, heart, and re-order button */}

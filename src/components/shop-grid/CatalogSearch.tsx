@@ -19,8 +19,11 @@ export function CatalogSearch({ defaultValue = "" }: CatalogSearchProps) {
 	const navigate = (q: string) => {
 		const params = new URLSearchParams();
 		if (q) params.set("q", q);
-		const pageSize = searchParams.get("pageSize");
-		if (pageSize) params.set("pageSize", pageSize);
+		// Preserve the active category / view when searching within them.
+		const category = searchParams.get("category");
+		if (category) params.set("category", category);
+		const view = searchParams.get("view");
+		if (view) params.set("view", view);
 		router.push(`${pathname}?${params.toString()}`);
 	};
 

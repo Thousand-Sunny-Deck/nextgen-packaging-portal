@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ProgressBar } from "./progress-bar";
 import OrderSummary, { OrderSummaryInfo } from "./order-summary";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ interface OrderInfoProps {
 	onGoToBilling: () => void;
 	onGoToCart: () => void;
 	onPlaceOrder: () => Promise<void>;
+	extras?: ReactNode;
 }
 
 const OrderInfo = (props: OrderInfoProps) => {
@@ -33,6 +35,7 @@ const OrderInfo = (props: OrderInfoProps) => {
 		onGoToBilling,
 		onGoToCart,
 		onPlaceOrder,
+		extras,
 	} = props;
 
 	const isCartState = currentStep === "cart";
@@ -47,6 +50,8 @@ const OrderInfo = (props: OrderInfoProps) => {
 				billingInfo={billingInfo}
 				isOrderState={isOrderState}
 			/>
+
+			{extras}
 
 			<div className="hidden md:flex flex-col items-center justify-center w-full p-6 gap-2">
 				{isCartState && (

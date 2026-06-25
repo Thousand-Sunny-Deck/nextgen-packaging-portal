@@ -2,6 +2,13 @@ import { OrderPayload } from "@/actions/order-delivery/deliver-order-action";
 import { prisma } from "@/lib/config/prisma";
 import { OrderStatus } from "@/generated/prisma/enums";
 import { Order, OrderItem } from "@/generated/prisma/client";
+import {
+	normalizeUnit,
+	resolveLinePrice,
+	roundMoney,
+} from "@/lib/pricing/resolve-line-price";
+
+const MAX_LINE_QUANTITY = 999;
 
 /**
  * Type representing an Order with its related items and billing address
@@ -51,20 +58,134 @@ export async function storePreparedOrderInDb(
 	payload: OrderPayload,
 	userId?: string,
 ): Promise<Order> {
-	const { cart, billingInfo } = payload;
-	const { items, extraCartInfo } = cart;
+	const { cart, billingInfo, meta } = payload;
+	const { items } = cart;
 
 	// Generate custom order ID and invoice ID
 	const orderId = generateOrderId();
 	const invoiceId = await generateInvoiceId(billingInfo.organization);
 
-	// Calculate service fee and tax server-side from subtotal.
-	const serviceFee = extraCartInfo.subTotal < 150 ? 10 : 0;
-	const adjustedSubTotal = extraCartInfo.subTotal + serviceFee;
-	const tax = Math.round(adjustedSubTotal * 0.1 * 100) / 100;
-	const totalOrderCost = adjustedSubTotal + tax;
+	// Parse the requested delivery day (YYYY-MM-DD) to a UTC-midnight Date.
+	const deliveryDate = meta?.deliveryDate
+		? new Date(`${meta.deliveryDate}T00:00:00.000Z`)
+		: null;
+	const notes = meta?.notes?.trim() || null;
 
-	// Create order with all related data in a transaction
+	// ── Re-price every line server-side. Client-sent prices/descriptions are
+	// never trusted: the authoritative price comes from the product, the
+	// customer's entitlement, and the chosen unit. Lines for products the
+	// customer can't actually buy (deleted, or not entitled and not visible to
+	// them) are dropped (skip-and-report) so a tampered cart can't be charged.
+	const handles = Array.from(new Set(items.map((item) => item.handle)));
+	const visibilityUserId = userId ?? "";
+
+	const products = await prisma.product.findMany({
+		where: { handle: { in: handles } },
+		select: {
+			id: true,
+			handle: true,
+			sku: true,
+			description: true,
+			unitCost: true,
+			isGlobal: true,
+			hasUnitOptions: true,
+			sleevePrice: true,
+			boxPrice: true,
+			shopVisibilities: {
+				where: { userId: visibilityUserId },
+				select: { userId: true },
+			},
+		},
+	});
+
+	const entitlements = userId
+		? await prisma.userProductEntitlement.findMany({
+				where: { userId, product: { handle: { in: handles } } },
+				select: {
+					customSku: true,
+					customDescription: true,
+					customUnitCost: true,
+					product: { select: { handle: true } },
+				},
+			})
+		: [];
+
+	const productByHandle = new Map(products.map((p) => [p.handle, p]));
+	const entitlementByHandle = new Map(
+		entitlements.map((e) => [e.product.handle, e]),
+	);
+
+	type RepricedItem = {
+		productId: string;
+		sku: string;
+		handle: string;
+		quantity: number;
+		description: string;
+		total: number;
+		unitCost: number;
+		unit: string | null;
+	};
+	const orderItems: RepricedItem[] = [];
+	const skippedHandles: string[] = [];
+
+	for (const item of items) {
+		const product = productByHandle.get(item.handle);
+		if (!product) {
+			skippedHandles.push(item.handle);
+			continue;
+		}
+
+		const entitlement = entitlementByHandle.get(item.handle) ?? null;
+		const isEntitled = entitlement !== null;
+		const isVisibleInShop =
+			product.isGlobal || product.shopVisibilities.length > 0;
+
+		if (!isEntitled && !isVisibleInShop) {
+			skippedHandles.push(item.handle);
+			continue;
+		}
+
+		const unit = normalizeUnit(product, item.unit);
+		const price = resolveLinePrice(
+			product,
+			entitlement?.customUnitCost ?? null,
+			unit,
+		);
+		const quantity = Math.max(
+			1,
+			Math.min(MAX_LINE_QUANTITY, Math.floor(item.quantity)),
+		);
+		const baseDescription =
+			entitlement?.customDescription ?? product.description;
+
+		orderItems.push({
+			productId: product.id,
+			sku: entitlement?.customSku ?? product.sku,
+			handle: product.handle,
+			quantity,
+			description: unit ? `${baseDescription} (${unit})` : baseDescription,
+			total: roundMoney(quantity * price),
+			unitCost: price,
+			unit,
+		});
+	}
+
+	if (skippedHandles.length > 0) {
+		console.warn(
+			`Order ${orderId}: dropped ${skippedHandles.length} unavailable line(s):`,
+			skippedHandles,
+		);
+	}
+
+	// Totals derived from the re-priced lines (never from client-sent values).
+	const subTotal = roundMoney(
+		orderItems.reduce((sum, item) => sum + item.total, 0),
+	);
+	const serviceFee = subTotal < 150 ? 10 : 0;
+	const adjustedSubTotal = subTotal + serviceFee;
+	const tax = roundMoney(adjustedSubTotal * 0.1);
+	const totalOrderCost = roundMoney(adjustedSubTotal + tax);
+
 	const order = await prisma.order.create({
 		data: {
 			orderId,
@@ -75,12 +196,12 @@ export async function storePreparedOrderInDb(
 			customerEmail: billingInfo.email,
 			customerOrganization: billingInfo.organization,
 
-			// Order totals
+			// Order totals (server-authoritative)
 			serviceFee,
 			tax,
 			totalOrderCost,
-			cartSubTotal: extraCartInfo.subTotal,
-			cartSize: extraCartInfo.cartSize,
+			cartSubTotal: subTotal,
+			cartSize: orderItems.length,
 
 			// Initial states (defaults are set in schema, but being explicit)
 			invoiceGenerated: false,
@@ -89,16 +210,9 @@ export async function storePreparedOrderInDb(
 			// timestamps
 			createdAt: new Date(),
 
-			// Create related order items
+			// Create related order items (re-priced)
 			items: {
-				create: items.map((item) => ({
-					sku: item.sku,
-					handle: item.handle,
-					quantity: item.quantity,
-					description: item.description,
-					total: item.total,
-					unitCost: item.unitCost,
-				})),
+				create: orderItems,
 			},
 
 			// Create billing address
@@ -108,6 +222,10 @@ export async function storePreparedOrderInDb(
 			billingABN: billingInfo.ABN,
 
 			invoiceId: invoiceId,
+
+			// Requested delivery day + customer note
+			deliveryDate,
+			notes,
 		},
 		include: {
 			items: true,

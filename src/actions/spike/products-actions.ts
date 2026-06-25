@@ -14,6 +14,11 @@ export type SpikeAdminProduct = {
 	description: string;
 	unitCost: number;
 	imageUrl: string | null;
+	isGlobal: boolean;
+	shopAccessCount: number;
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
 	createdAt: string;
 };
 
@@ -79,7 +84,12 @@ export async function getSpikeProducts(
 				description: true,
 				unitCost: true,
 				imageUrl: true,
+				isGlobal: true,
+				hasUnitOptions: true,
+				sleevePrice: true,
+				boxPrice: true,
 				createdAt: true,
+				_count: { select: { shopVisibilities: true } },
 			},
 		}),
 	]);
@@ -91,6 +101,11 @@ export async function getSpikeProducts(
 		description: product.description,
 		unitCost: Number(product.unitCost),
 		imageUrl: product.imageUrl,
+		isGlobal: product.isGlobal,
+		shopAccessCount: product._count.shopVisibilities,
+		hasUnitOptions: product.hasUnitOptions,
+		sleevePrice: product.sleevePrice,
+		boxPrice: product.boxPrice,
 		createdAt: product.createdAt.toISOString(),
 	}));
 
@@ -266,6 +281,167 @@ export async function updateSpikeProduct(input: {
 	}
 }
 
+/**
+ * Enables/disables dual-unit (Sleeve/Box) pricing on a product and sets the two
+ * prices. When disabled the product reverts to its single unit cost.
+ */
+export async function setSpikeProductUnitPricing(input: {
+	productId: string;
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	if (input.hasUnitOptions) {
+		const { sleevePrice, boxPrice } = input;
+		if (
+			sleevePrice == null ||
+			boxPrice == null ||
+			!Number.isFinite(sleevePrice) ||
+			!Number.isFinite(boxPrice) ||
+			sleevePrice < 0 ||
+			boxPrice < 0
+		) {
+			return {
+				success: false,
+				error: "Both sleeve and box prices must be valid positive numbers.",
+			};
+		}
+	}
+
+	try {
+		await prisma.product.update({
+			where: { id: input.productId },
+			data: input.hasUnitOptions
+				? {
+						hasUnitOptions: true,
+						sleevePrice: input.sleevePrice,
+						boxPrice: input.boxPrice,
+					}
+				: {
+						hasUnitOptions: false,
+						sleevePrice: null,
+						boxPrice: null,
+					},
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update product unit pricing:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update unit pricing." };
+	}
+}
+
+export type SpikeShopAccessUser = {
+	id: string;
+	name: string;
+	email: string;
+	selected: boolean;
+};
+
+/**
+ * Returns the visibility mode for a product plus every customer with a flag
+ * indicating whether the product is shown in their shop. Drives the
+ * "Manage customer access" dialog.
+ */
+export async function getSpikeProductShopAccess(input: {
+	productId: string;
+}): Promise<{
+	success: boolean;
+	isGlobal?: boolean;
+	users?: SpikeShopAccessUser[];
+	error?: string;
+}> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true, isGlobal: true },
+	});
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const [users, visibilities] = await Promise.all([
+		prisma.user.findMany({
+			orderBy: { name: "asc" },
+			select: { id: true, name: true, email: true },
+		}),
+		prisma.productShopVisibility.findMany({
+			where: { productId: input.productId },
+			select: { userId: true },
+		}),
+	]);
+
+	const selectedIds = new Set(visibilities.map((v) => v.userId));
+
+	return {
+		success: true,
+		isGlobal: product.isGlobal,
+		users: users.map((user) => ({
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			selected: selectedIds.has(user.id),
+		})),
+	};
+}
+
+/**
+ * Sets a product's shop visibility: either global (all customers) or restricted
+ * to a chosen set of customers. Replaces the per-user visibility rows in one
+ * transaction.
+ */
+export async function setSpikeProductShopAccess(input: {
+	productId: string;
+	isGlobal: boolean;
+	userIds: string[];
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true },
+	});
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const nextIds = Array.from(new Set(input.userIds));
+
+	try {
+		await prisma.$transaction([
+			prisma.product.update({
+				where: { id: input.productId },
+				data: { isGlobal: input.isGlobal },
+			}),
+			prisma.productShopVisibility.deleteMany({
+				where: {
+					productId: input.productId,
+					...(nextIds.length > 0 ? { userId: { notIn: nextIds } } : {}),
+				},
+			}),
+			prisma.productShopVisibility.createMany({
+				data: nextIds.map((userId) => ({
+					productId: input.productId,
+					userId,
+				})),
+				skipDuplicates: true,
+			}),
+		]);
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update product shop access:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update product shop access." };
+	}
+}
+
 export async function deleteSpikeProduct(input: {
 	productId: string;
 }): Promise<{ success: boolean; warning?: string; error?: string }> {
@@ -361,6 +537,56 @@ export async function getSpikeProductImageViewUrl(input: {
 		}
 		return { success: false, error: "Failed to load product image." };
 	}
+}
+
+export async function deleteSpikeProductImage(input: {
+	productId: string;
+}): Promise<{ success: boolean; warning?: string; error?: string }> {
+	await requireAdmin();
+
+	const product = await prisma.product.findUnique({
+		where: { id: input.productId },
+		select: { id: true, handle: true, imageUrl: true },
+	});
+
+	if (!product) {
+		return { success: false, error: "Product not found." };
+	}
+
+	const imageKey = product.imageUrl || `images/${product.handle}.png`;
+
+	// Clear the reference first so the product stops showing the image even if
+	// S3 cleanup fails.
+	try {
+		await prisma.product.update({
+			where: { id: product.id },
+			data: { imageUrl: null },
+		});
+		const cache = new CacheService("product-image-url");
+		await cache.delete(`${product.id}:${imageKey}`);
+	} catch (error: unknown) {
+		console.error("Failed to remove product image reference:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to delete product image." };
+	}
+
+	// Best-effort removal of the underlying S3 object.
+	try {
+		const s3 = new S3Service();
+		if (await s3.fileExists(imageKey)) {
+			await s3.deleteFile(imageKey);
+		}
+	} catch (error) {
+		console.error("Image reference cleared but S3 delete failed:", error);
+		return {
+			success: true,
+			warning: "Image removed from the product, but file cleanup in S3 failed.",
+		};
+	}
+
+	return { success: true };
 }
 
 export async function updateSpikeProductImage(input: {

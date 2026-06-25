@@ -5,12 +5,16 @@ import { useMemo, useState } from "react";
 import {
 	Check,
 	Eye,
+	FolderTree,
+	ImageOff,
 	Loader2,
 	Package,
 	PackagePlus,
 	Pencil,
 	RefreshCw,
+	Tags,
 	Trash2,
+	Users,
 	X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +38,7 @@ import {
 } from "@/components/admin/ui/row-actions-menu";
 import {
 	deleteSpikeProduct,
+	deleteSpikeProductImage,
 	getSpikeProductImageUploadUrl,
 	getSpikeProductImageViewUrl,
 	updateSpikeProduct,
@@ -43,6 +48,9 @@ import {
 import { getProductColumns, type ProductEditDraft } from "./products-columns";
 import { ProductImageViewerModal } from "./product-image-viewer-modal";
 import { ProductImageUploadModal } from "./product-image-upload-modal";
+import { ManageProductCategoriesDialog } from "./manage-product-categories-dialog";
+import { ManageProductShopAccessDialog } from "./manage-product-shop-access-dialog";
+import { ManageProductUnitPricingDialog } from "./manage-product-unit-pricing-dialog";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -58,7 +66,8 @@ interface ProductsTableProps {
 
 type ConfirmAction =
 	| { type: "edit"; rowId: string; draft: ProductEditDraft }
-	| { type: "delete"; rowId: string; sku: string };
+	| { type: "delete"; rowId: string; sku: string }
+	| { type: "delete-image"; rowId: string; sku: string };
 
 const emptyDraft: ProductEditDraft = {
 	sku: "",
@@ -98,6 +107,18 @@ export function ProductsTable({
 		null,
 	);
 	const [uploadImageError, setUploadImageError] = useState<string | null>(null);
+
+	const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
+	const [categoriesTarget, setCategoriesTarget] =
+		useState<SpikeAdminProduct | null>(null);
+
+	const [shopAccessModalOpen, setShopAccessModalOpen] = useState(false);
+	const [shopAccessTarget, setShopAccessTarget] =
+		useState<SpikeAdminProduct | null>(null);
+
+	const [unitPricingModalOpen, setUnitPricingModalOpen] = useState(false);
+	const [unitPricingTarget, setUnitPricingTarget] =
+		useState<SpikeAdminProduct | null>(null);
 
 	const productById = useMemo(
 		() => new Map(products.map((product) => [product.id, product])),
@@ -164,6 +185,11 @@ export function ProductsTable({
 		setConfirmAction({ type: "delete", rowId: row.id, sku: row.sku });
 	};
 
+	const openDeleteImageConfirmation = (row: SpikeAdminProduct) => {
+		setSubmitError(null);
+		setConfirmAction({ type: "delete-image", rowId: row.id, sku: row.sku });
+	};
+
 	const openImageViewer = async (row: SpikeAdminProduct) => {
 		setImageModalOpen(true);
 		setImageLoading(true);
@@ -197,6 +223,21 @@ export function ProductsTable({
 		setUploadImagePreview(null);
 		setUploadImageError(null);
 		setUploadImageModalOpen(true);
+	};
+
+	const openCategoriesModal = (row: SpikeAdminProduct) => {
+		setCategoriesTarget(row);
+		setCategoriesModalOpen(true);
+	};
+
+	const openShopAccessModal = (row: SpikeAdminProduct) => {
+		setShopAccessTarget(row);
+		setShopAccessModalOpen(true);
+	};
+
+	const openUnitPricingModal = (row: SpikeAdminProduct) => {
+		setUnitPricingTarget(row);
+		setUnitPricingModalOpen(true);
 	};
 
 	const handleUploadFileSelect = (file: File | null) => {
@@ -313,6 +354,19 @@ export function ProductsTable({
 				return;
 			}
 			toast.success("Product updated.");
+		} else if (confirmAction.type === "delete-image") {
+			const result = await deleteSpikeProductImage({
+				productId: confirmAction.rowId,
+			});
+			if (!result.success) {
+				setSubmitting(false);
+				setSubmitError(result.error || "Failed to delete image.");
+				return;
+			}
+			toast.success("Product image deleted.");
+			if (result.warning) {
+				toast.warning(result.warning);
+			}
 		} else {
 			const result = await deleteSpikeProduct({
 				productId: confirmAction.rowId,
@@ -372,7 +426,7 @@ export function ProductsTable({
 			},
 			{
 				key: "upload-image",
-				label: "Upload image",
+				label: row.imageUrl ? "Replace image" : "Upload image",
 				icon: <PackagePlus className="h-4 w-4" />,
 				onSelect: openUploadImageModal,
 			},
@@ -381,6 +435,30 @@ export function ProductsTable({
 				label: "View image",
 				icon: <Eye className="h-4 w-4" />,
 				onSelect: openImageViewer,
+			},
+			{
+				key: "delete-image",
+				label: "Delete image",
+				icon: <ImageOff className="h-4 w-4" />,
+				onSelect: openDeleteImageConfirmation,
+			},
+			{
+				key: "manage-categories",
+				label: "Manage categories",
+				icon: <FolderTree className="h-4 w-4" />,
+				onSelect: openCategoriesModal,
+			},
+			{
+				key: "manage-shop-access",
+				label: "Manage customer access",
+				icon: <Users className="h-4 w-4" />,
+				onSelect: openShopAccessModal,
+			},
+			{
+				key: "unit-pricing",
+				label: "Unit pricing (sleeve/box)",
+				icon: <Tags className="h-4 w-4" />,
+				onSelect: openUnitPricingModal,
 			},
 			{
 				key: "delete-product",
@@ -509,12 +587,16 @@ export function ProductsTable({
 						<DialogTitle>
 							{confirmAction?.type === "edit"
 								? "Confirm Product Update"
-								: "Confirm Product Deletion"}
+								: confirmAction?.type === "delete-image"
+									? "Delete product image"
+									: "Confirm Product Deletion"}
 						</DialogTitle>
 						<DialogDescription>
 							{confirmAction?.type === "edit"
 								? "This will update SKU, description and unit cost for this product."
-								: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
+								: confirmAction?.type === "delete-image"
+									? `This removes the photo for ${confirmAction?.sku ?? "this product"}. It will show no image until a new one is uploaded.`
+									: `This will permanently delete ${confirmAction?.sku ?? "this product"}, remove all user entitlements for it, and it will no longer appear in shop.`}
 						</DialogDescription>
 					</DialogHeader>
 					{submitError && (
@@ -535,7 +617,10 @@ export function ProductsTable({
 						</Button>
 						<Button
 							variant={
-								confirmAction?.type === "delete" ? "destructive" : "default"
+								confirmAction?.type === "delete" ||
+								confirmAction?.type === "delete-image"
+									? "destructive"
+									: "default"
 							}
 							onClick={handleConfirmAction}
 							disabled={submitting}
@@ -582,6 +667,44 @@ export function ProductsTable({
 				submitting={submitting}
 				onFileSelect={handleUploadFileSelect}
 				onConfirm={handleConfirmUploadImage}
+			/>
+
+			<ManageProductCategoriesDialog
+				open={categoriesModalOpen}
+				onOpenChange={(open) => {
+					setCategoriesModalOpen(open);
+					if (!open) {
+						setCategoriesTarget(null);
+					}
+				}}
+				productId={categoriesTarget?.id ?? null}
+				productSku={categoriesTarget?.sku ?? null}
+				onSaved={onRefresh}
+			/>
+
+			<ManageProductShopAccessDialog
+				open={shopAccessModalOpen}
+				onOpenChange={(open) => {
+					setShopAccessModalOpen(open);
+					if (!open) {
+						setShopAccessTarget(null);
+					}
+				}}
+				productId={shopAccessTarget?.id ?? null}
+				productSku={shopAccessTarget?.sku ?? null}
+				onSaved={onRefresh}
+			/>
+
+			<ManageProductUnitPricingDialog
+				open={unitPricingModalOpen}
+				onOpenChange={(open) => {
+					setUnitPricingModalOpen(open);
+					if (!open) {
+						setUnitPricingTarget(null);
+					}
+				}}
+				product={unitPricingTarget}
+				onSaved={onRefresh}
 			/>
 		</>
 	);

@@ -101,11 +101,43 @@ export function getProductColumns({
 							}))
 						}
 					/>
+				) : product.hasUnitOptions ? (
+					<span className="text-xs text-slate-700">
+						Sleeve {formatCurrency(product.sleevePrice ?? 0)} · Box{" "}
+						{formatCurrency(product.boxPrice ?? 0)}
+					</span>
 				) : (
 					<span className="text-slate-700">
 						{formatCurrency(product.unitCost)}
 					</span>
 				),
+		},
+		{
+			key: "pricing",
+			header: "Pricing",
+			render: (product) =>
+				product.hasUnitOptions ? (
+					<Lozenge appearance="new">Sleeve/Box</Lozenge>
+				) : (
+					<span className="text-xs text-slate-400">Single</span>
+				),
+		},
+		{
+			key: "visibility",
+			header: "Visibility",
+			render: (product) => {
+				if (product.isGlobal) {
+					return <Lozenge appearance="success">Global</Lozenge>;
+				}
+				return product.shopAccessCount > 0 ? (
+					<Lozenge appearance="moved">
+						{product.shopAccessCount} customer
+						{product.shopAccessCount === 1 ? "" : "s"}
+					</Lozenge>
+				) : (
+					<Lozenge appearance="default">Hidden</Lozenge>
+				);
+			},
 		},
 		{
 			key: "created",

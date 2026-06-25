@@ -20,6 +20,8 @@ export interface AdminApprovalNotificationDetails {
 	orderId: string;
 	invoiceId: string;
 	totalFormatted: string;
+	requestedDelivery: string;
+	notes: string | null;
 }
 
 interface AdminApprovalNotificationEmailProps {
@@ -36,6 +38,8 @@ export function AdminApprovalNotificationEmail({
 		orderId,
 		invoiceId,
 		totalFormatted,
+		requestedDelivery,
+		notes,
 	} = details;
 
 	return (
@@ -79,6 +83,16 @@ export function AdminApprovalNotificationEmail({
 								<Column style={label}>Invoice ID</Column>
 								<Column style={value}>{invoiceId}</Column>
 							</Row>
+							<Row style={row}>
+								<Column style={label}>Requested delivery</Column>
+								<Column style={value}>{requestedDelivery}</Column>
+							</Row>
+							{notes ? (
+								<Row style={row}>
+									<Column style={label}>Notes</Column>
+									<Column style={value}>{notes}</Column>
+								</Row>
+							) : null}
 							<Row style={totalRow}>
 								<Column style={label}>Total</Column>
 								<Column style={totalValue}>{totalFormatted}</Column>

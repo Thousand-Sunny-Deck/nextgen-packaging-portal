@@ -87,6 +87,8 @@ export async function getPendingApprovals(
 				cartSize: true,
 				customerOrganization: true,
 				createdAt: true,
+				deliveryDate: true,
+				notes: true,
 				user: {
 					select: { id: true, name: true, email: true },
 				},
@@ -112,6 +114,8 @@ export async function getPendingApprovals(
 		cartSize: row.cartSize,
 		customerOrganization: row.customerOrganization,
 		createdAt: row.createdAt.toISOString(),
+		deliveryDate: row.deliveryDate ? row.deliveryDate.toISOString() : null,
+		notes: row.notes,
 		user: row.user
 			? { id: row.user.id, name: row.user.name, email: row.user.email }
 			: null,

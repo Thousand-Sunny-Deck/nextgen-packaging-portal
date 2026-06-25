@@ -68,6 +68,8 @@ const RecentOrdersSection = (props: RecentOrderSectionProps) => {
 								favouriteTargetOrderId === order.orderId && isSaving
 							}
 							onFavourite={() => handleFavourite(order.orderId)}
+							deliveryDate={order.deliveryDate}
+							notes={order.notes}
 						/>
 					))}
 				</div>

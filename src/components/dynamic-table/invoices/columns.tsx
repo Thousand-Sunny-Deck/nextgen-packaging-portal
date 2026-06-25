@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { InvoiceActions } from "./invoice-actions";
+import { formatDeliveryDate } from "@/lib/schemas/delivery";
 
 export type Invoice = {
 	invoiceId: string;
@@ -19,6 +20,8 @@ export type Invoice = {
 		| "Cancelled";
 	date: string;
 	pdfUrl?: string;
+	deliveryDate?: string | null;
+	notes?: string | null;
 };
 
 const LozengeAppereanceMap = (status: Invoice["status"]) => {
@@ -63,6 +66,19 @@ export const AllInvoicesTableColumns: ColumnDef<Invoice>[] = [
 		accessorKey: "invoiceId",
 		header: () => <div className="text-left">Invoice</div>,
 		size: 50,
+	},
+	{
+		accessorKey: "deliveryDate",
+		header: () => <div className="text-left">Delivery</div>,
+		cell: ({ row }) => {
+			const value = row.original.deliveryDate;
+			return (
+				<div className="text-left text-sm text-muted-foreground">
+					{value ? formatDeliveryDate(value) : "—"}
+				</div>
+			);
+		},
+		size: 20,
 	},
 	{
 		accessorKey: "amount",

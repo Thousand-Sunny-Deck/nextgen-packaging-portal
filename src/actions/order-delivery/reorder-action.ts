@@ -6,6 +6,11 @@ import { headers } from "next/headers";
 import { CartItem } from "@/lib/store/product-store";
 import { prisma } from "@/lib/config/prisma";
 import { env } from "@/lib/env-validation/env";
+import {
+	normalizeUnit,
+	resolveLinePrice,
+	roundMoney,
+} from "@/lib/pricing/resolve-line-price";
 
 export type ReorderResponse =
 	| {
@@ -88,6 +93,9 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 				description: true,
 				unitCost: true,
 				imageUrl: true,
+				hasUnitOptions: true,
+				sleevePrice: true,
+				boxPrice: true,
 			},
 		}),
 		prisma.userProductEntitlement.findMany({
@@ -134,20 +142,31 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		}
 
 		const entitlement = entitlementByHandle.get(orderItem.handle);
-		const unitCost = Number(entitlement?.customUnitCost ?? product.unitCost);
+		const unit = normalizeUnit(product, orderItem.unit);
+		const baseDescription =
+			entitlement?.customDescription ?? product.description;
+
+		// Shared, server-authoritative pricing rule (sleeve/box, or custom price).
+		const unitCost = resolveLinePrice(
+			product,
+			entitlement?.customUnitCost ?? null,
+			unit,
+		);
+		const description = unit ? `${baseDescription} (${unit})` : baseDescription;
 		const quantity = orderItem.quantity;
-		const total = Math.round(quantity * unitCost * 100) / 100;
+		const total = roundMoney(quantity * unitCost);
 
 		items.push({
 			handle: orderItem.handle,
 			sku: entitlement?.customSku ?? product.sku,
 			quantity,
-			description: entitlement?.customDescription ?? product.description,
+			description,
 			total,
 			unitCost,
 			imageUrl: toImageUrl(
 				entitlement?.customImageUrl ?? product.imageUrl ?? undefined,
 			),
+			unit,
 		});
 	}
 

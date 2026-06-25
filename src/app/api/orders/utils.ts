@@ -50,6 +50,10 @@ export const prepareAllOrdersData = async (
 				status,
 				date: order.createdAt.toISOString().split("T")[0],
 				pdfUrl,
+				deliveryDate: order.deliveryDate
+					? order.deliveryDate.toISOString()
+					: null,
+				notes: order.notes,
 			};
 		}),
 	);

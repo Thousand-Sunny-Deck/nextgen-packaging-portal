@@ -1,4 +1,8 @@
 import z from "zod";
+import {
+	MAX_ORDER_NOTES_LENGTH,
+	isAllowedDeliveryDate,
+} from "@/lib/schemas/delivery";
 
 // ABN validation helper
 const validateABN = (abn: string): boolean => {
@@ -28,6 +32,8 @@ const cartItemSchema = z.object({
 	total: z.number().nonnegative("Total must be non-negative"),
 	unitCost: z.number().nonnegative("Unit cost must be non-negative"),
 	handle: z.string().min(1, "handle is required"),
+	// Selected unit ("Sleeve" / "Box") for dual-unit products.
+	unit: z.string().max(20).nullish(),
 });
 
 const orderSummaryInfoSchema = z.object({
@@ -59,7 +65,28 @@ const billingInfoSchema = z.object({
 		),
 });
 
+const checkoutMetaSchema = z.object({
+	deliveryDate: z
+		.string()
+		.refine(
+			(value) => isAllowedDeliveryDate(value),
+			"Delivery date must be a weekday on or after the earliest available day",
+		),
+	notes: z
+		.string()
+		.trim()
+		.max(
+			MAX_ORDER_NOTES_LENGTH,
+			`Notes must be ${MAX_ORDER_NOTES_LENGTH} characters or fewer`,
+		)
+		.optional()
+		.or(z.literal("")),
+});
+
 export const orderPayloadSchema = z.object({
 	cart: cartPayloadSchema,
 	billingInfo: billingInfoSchema,
+	meta: checkoutMetaSchema,
 });
+
+export type CheckoutMeta = z.infer<typeof checkoutMetaSchema>;
