@@ -49,6 +49,7 @@ interface UseCheckoutFlowReturn {
 	// Computed
 	isCartEmpty: boolean;
 	canProceedToBilling: boolean;
+	canProceedToOrder: boolean;
 	canPlaceOrder: boolean;
 
 	// Actions
@@ -124,6 +125,9 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 	// Computed values
 	const isCartEmpty = cart.length === 0;
 	const canProceedToBilling = !isCartEmpty;
+	// Moving billing → order only needs billing info; the delivery date is
+	// entered in the order step, so it can't be required to reach it.
+	const canProceedToOrder = !isCartEmpty && hasBillingInfo();
 	const hasValidDeliveryDate = isAllowedDeliveryDate(deliveryDate);
 	const canPlaceOrder =
 		!isCartEmpty && hasBillingInfo() && hasValidDeliveryDate;
@@ -301,6 +305,7 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		// Computed
 		isCartEmpty,
 		canProceedToBilling,
+		canProceedToOrder,
 		canPlaceOrder,
 
 		// Actions
