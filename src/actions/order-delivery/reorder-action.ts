@@ -6,6 +6,11 @@ import { headers } from "next/headers";
 import { CartItem } from "@/lib/store/product-store";
 import { prisma } from "@/lib/config/prisma";
 import { env } from "@/lib/env-validation/env";
+import {
+	normalizeUnit,
+	resolveLinePrice,
+	roundMoney,
+} from "@/lib/pricing/resolve-line-price";
 
 export type ReorderResponse =
 	| {
@@ -137,24 +142,19 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		}
 
 		const entitlement = entitlementByHandle.get(orderItem.handle);
-		const unit = orderItem.unit ?? null;
+		const unit = normalizeUnit(product, orderItem.unit);
 		const baseDescription =
 			entitlement?.customDescription ?? product.description;
 
-		// Unit-priced products use their sleeve/box price; the single per-customer
-		// custom price applies only to normal products.
-		const unitCost =
-			product.hasUnitOptions && unit
-				? Number(
-						(unit === "Sleeve" ? product.sleevePrice : product.boxPrice) ?? 0,
-					)
-				: Number(entitlement?.customUnitCost ?? product.unitCost);
-		const description =
-			product.hasUnitOptions && unit
-				? `${baseDescription} (${unit})`
-				: baseDescription;
+		// Shared, server-authoritative pricing rule (sleeve/box, or custom price).
+		const unitCost = resolveLinePrice(
+			product,
+			entitlement?.customUnitCost ?? null,
+			unit,
+		);
+		const description = unit ? `${baseDescription} (${unit})` : baseDescription;
 		const quantity = orderItem.quantity;
-		const total = Math.round(quantity * unitCost * 100) / 100;
+		const total = roundMoney(quantity * unitCost);
 
 		items.push({
 			handle: orderItem.handle,
