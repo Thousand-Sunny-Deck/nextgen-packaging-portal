@@ -11,6 +11,7 @@ import {
 	PackagePlus,
 	Pencil,
 	RefreshCw,
+	Tags,
 	Trash2,
 	Users,
 	X,
@@ -47,6 +48,7 @@ import { ProductImageViewerModal } from "./product-image-viewer-modal";
 import { ProductImageUploadModal } from "./product-image-upload-modal";
 import { ManageProductCategoriesDialog } from "./manage-product-categories-dialog";
 import { ManageProductShopAccessDialog } from "./manage-product-shop-access-dialog";
+import { ManageProductUnitPricingDialog } from "./manage-product-unit-pricing-dialog";
 
 interface ProductsTableProps {
 	products: SpikeAdminProduct[];
@@ -109,6 +111,10 @@ export function ProductsTable({
 
 	const [shopAccessModalOpen, setShopAccessModalOpen] = useState(false);
 	const [shopAccessTarget, setShopAccessTarget] =
+		useState<SpikeAdminProduct | null>(null);
+
+	const [unitPricingModalOpen, setUnitPricingModalOpen] = useState(false);
+	const [unitPricingTarget, setUnitPricingTarget] =
 		useState<SpikeAdminProduct | null>(null);
 
 	const productById = useMemo(
@@ -219,6 +225,11 @@ export function ProductsTable({
 	const openShopAccessModal = (row: SpikeAdminProduct) => {
 		setShopAccessTarget(row);
 		setShopAccessModalOpen(true);
+	};
+
+	const openUnitPricingModal = (row: SpikeAdminProduct) => {
+		setUnitPricingTarget(row);
+		setUnitPricingModalOpen(true);
 	};
 
 	const handleUploadFileSelect = (file: File | null) => {
@@ -415,6 +426,12 @@ export function ProductsTable({
 				label: "Manage customer access",
 				icon: <Users className="h-4 w-4" />,
 				onSelect: openShopAccessModal,
+			},
+			{
+				key: "unit-pricing",
+				label: "Unit pricing (sleeve/box)",
+				icon: <Tags className="h-4 w-4" />,
+				onSelect: openUnitPricingModal,
 			},
 			{
 				key: "delete-product",
@@ -641,6 +658,18 @@ export function ProductsTable({
 				}}
 				productId={shopAccessTarget?.id ?? null}
 				productSku={shopAccessTarget?.sku ?? null}
+				onSaved={onRefresh}
+			/>
+
+			<ManageProductUnitPricingDialog
+				open={unitPricingModalOpen}
+				onOpenChange={(open) => {
+					setUnitPricingModalOpen(open);
+					if (!open) {
+						setUnitPricingTarget(null);
+					}
+				}}
+				product={unitPricingTarget}
 				onSaved={onRefresh}
 			/>
 		</>

@@ -11,7 +11,18 @@ export interface CartItem {
 	total: number;
 	unitCost: number;
 	imageUrl?: string | null;
+	// Selected unit ("Sleeve" / "Box") for dual-unit products; absent otherwise.
+	unit?: string | null;
 }
+
+/**
+ * Cart line identity. Normal products are keyed by handle (backward compatible);
+ * dual-unit products get a per-unit key so Sleeve and Box are separate lines.
+ */
+export const cartLineKey = (item: {
+	handle: string;
+	unit?: string | null;
+}): string => (item.unit ? `${item.handle}::${item.unit}` : item.handle);
 
 export type ProductTableStore = ProductData & {
 	quantity: number;
@@ -56,7 +67,9 @@ const prepareCheckoutState = (
 	maybeSelectedProducts: Map<string, CartItem>,
 ) => {
 	const cart = Array.from(maybeSelectedProducts.values())
-		.map((item) => (selectedProductHandles.has(item.handle) ? item : null))
+		.map((item) =>
+			selectedProductHandles.has(cartLineKey(item)) ? item : null,
+		)
 		.filter((item): item is CartItem => Boolean(item));
 
 	const totalCost =
@@ -83,20 +96,21 @@ export const useCartStore = create<CartStore>()(
 			setQuantity: (cartInfo) => {
 				set((state) => {
 					const newMap = new Map(state.maybeSelectedProducts);
-					const { quantity, handle, unitCost } = cartInfo;
+					const { quantity, unitCost } = cartInfo;
+					const key = cartLineKey(cartInfo);
 					const totalCost = Math.round(quantity * unitCost * 100) / 100;
 					const newSet = new Set(state.selectedProductHandles);
 
 					if (quantity <= 0) {
-						newMap.delete(handle);
-						newSet.delete(handle);
+						newMap.delete(key);
+						newSet.delete(key);
 						return {
 							maybeSelectedProducts: newMap,
 							selectedProductHandles: newSet,
 						};
 					}
 
-					newMap.set(handle, { ...cartInfo, total: totalCost });
+					newMap.set(key, { ...cartInfo, total: totalCost });
 
 					return {
 						maybeSelectedProducts: newMap,
@@ -210,8 +224,9 @@ export const useCartStore = create<CartStore>()(
 				const newSet = new Set<string>();
 
 				for (const item of items) {
-					newMap.set(item.handle, item);
-					newSet.add(item.handle);
+					const key = cartLineKey(item);
+					newMap.set(key, item);
+					newSet.add(key);
 				}
 
 				const totalCost =
@@ -234,19 +249,20 @@ export const useCartStore = create<CartStore>()(
 					const newSet = new Set(state.selectedProductHandles);
 
 					for (const incoming of items) {
-						const existing = newMap.get(incoming.handle);
+						const key = cartLineKey(incoming);
+						const existing = newMap.get(key);
 						const quantity = Math.min(
 							MAX_QUANTITY,
 							(existing?.quantity ?? 0) + incoming.quantity,
 						);
 						const total = Math.round(quantity * incoming.unitCost * 100) / 100;
 
-						newMap.set(incoming.handle, {
+						newMap.set(key, {
 							...incoming,
 							quantity,
 							total,
 						});
-						newSet.add(incoming.handle);
+						newSet.add(key);
 					}
 
 					return {

@@ -88,6 +88,9 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 				description: true,
 				unitCost: true,
 				imageUrl: true,
+				hasUnitOptions: true,
+				sleevePrice: true,
+				boxPrice: true,
 			},
 		}),
 		prisma.userProductEntitlement.findMany({
@@ -134,7 +137,22 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 		}
 
 		const entitlement = entitlementByHandle.get(orderItem.handle);
-		const unitCost = Number(entitlement?.customUnitCost ?? product.unitCost);
+		const unit = orderItem.unit ?? null;
+		const baseDescription =
+			entitlement?.customDescription ?? product.description;
+
+		// Unit-priced products use their sleeve/box price; the single per-customer
+		// custom price applies only to normal products.
+		const unitCost =
+			product.hasUnitOptions && unit
+				? Number(
+						(unit === "Sleeve" ? product.sleevePrice : product.boxPrice) ?? 0,
+					)
+				: Number(entitlement?.customUnitCost ?? product.unitCost);
+		const description =
+			product.hasUnitOptions && unit
+				? `${baseDescription} (${unit})`
+				: baseDescription;
 		const quantity = orderItem.quantity;
 		const total = Math.round(quantity * unitCost * 100) / 100;
 
@@ -142,12 +160,13 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 			handle: orderItem.handle,
 			sku: entitlement?.customSku ?? product.sku,
 			quantity,
-			description: entitlement?.customDescription ?? product.description,
+			description,
 			total,
 			unitCost,
 			imageUrl: toImageUrl(
 				entitlement?.customImageUrl ?? product.imageUrl ?? undefined,
 			),
+			unit,
 		});
 	}
 

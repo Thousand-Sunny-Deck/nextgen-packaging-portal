@@ -1,8 +1,8 @@
-import { ProductData } from "@/actions/products/fetch-products-action";
+export type CatalogUnit = "Sleeve" | "Box";
 
-export type CatalogRow = ProductData & {
+export type CatalogUnitState = {
+	price: number;
 	quantity: number;
-	total: number;
 	isSelected: boolean;
 };
 
@@ -10,7 +10,13 @@ export type CatalogCardViewModel = {
 	sku: string;
 	name: string;
 	imageUrl: string | null;
+	// Single-price mode (used when unitOptions is null).
+	unitCost: number;
 	quantity: number;
 	isSelected: boolean;
-	unitCost: number;
+	// Dual-unit mode (Sleeve / Box). Null for normal single-price products.
+	unitOptions: {
+		sleeve: CatalogUnitState;
+		box: CatalogUnitState;
+	} | null;
 };

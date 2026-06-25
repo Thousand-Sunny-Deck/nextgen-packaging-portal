@@ -88,6 +88,11 @@ model Product {
   // Visibility: true = shown in the shop for all customers;
   // false = restricted to customers granted an entitlement.
   isGlobal      Boolean                  @default(true)
+  // Optional dual-unit pricing: when enabled the product is sold by the
+  // sleeve or the box, each with its own price (customer picks at order time).
+  hasUnitOptions Boolean @default(false)
+  sleevePrice    Float?
+  boxPrice       Float?
   // Relations
   entitledUsers    UserProductEntitlement[]
   categories       ProductCategory[]
@@ -265,6 +270,8 @@ model OrderItem {
   description String
   total       Float
   unitCost    Float
+  // Selected unit ("Sleeve" / "Box") for dual-unit products; null otherwise.
+  unit        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

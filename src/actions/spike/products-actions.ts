@@ -16,6 +16,9 @@ export type SpikeAdminProduct = {
 	imageUrl: string | null;
 	isGlobal: boolean;
 	shopAccessCount: number;
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
 	createdAt: string;
 };
 
@@ -82,6 +85,9 @@ export async function getSpikeProducts(
 				unitCost: true,
 				imageUrl: true,
 				isGlobal: true,
+				hasUnitOptions: true,
+				sleevePrice: true,
+				boxPrice: true,
 				createdAt: true,
 				_count: { select: { shopVisibilities: true } },
 			},
@@ -97,6 +103,9 @@ export async function getSpikeProducts(
 		imageUrl: product.imageUrl,
 		isGlobal: product.isGlobal,
 		shopAccessCount: product._count.shopVisibilities,
+		hasUnitOptions: product.hasUnitOptions,
+		sleevePrice: product.sleevePrice,
+		boxPrice: product.boxPrice,
 		createdAt: product.createdAt.toISOString(),
 	}));
 
@@ -269,6 +278,60 @@ export async function updateSpikeProduct(input: {
 			return { success: false, error: error.message };
 		}
 		return { success: false, error: "Failed to update product." };
+	}
+}
+
+/**
+ * Enables/disables dual-unit (Sleeve/Box) pricing on a product and sets the two
+ * prices. When disabled the product reverts to its single unit cost.
+ */
+export async function setSpikeProductUnitPricing(input: {
+	productId: string;
+	hasUnitOptions: boolean;
+	sleevePrice: number | null;
+	boxPrice: number | null;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	if (input.hasUnitOptions) {
+		const { sleevePrice, boxPrice } = input;
+		if (
+			sleevePrice == null ||
+			boxPrice == null ||
+			!Number.isFinite(sleevePrice) ||
+			!Number.isFinite(boxPrice) ||
+			sleevePrice < 0 ||
+			boxPrice < 0
+		) {
+			return {
+				success: false,
+				error: "Both sleeve and box prices must be valid positive numbers.",
+			};
+		}
+	}
+
+	try {
+		await prisma.product.update({
+			where: { id: input.productId },
+			data: input.hasUnitOptions
+				? {
+						hasUnitOptions: true,
+						sleevePrice: input.sleevePrice,
+						boxPrice: input.boxPrice,
+					}
+				: {
+						hasUnitOptions: false,
+						sleevePrice: null,
+						boxPrice: null,
+					},
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update product unit pricing:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update unit pricing." };
 	}
 }
 

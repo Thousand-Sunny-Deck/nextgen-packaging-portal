@@ -32,6 +32,8 @@ const cartItemSchema = z.object({
 	total: z.number().nonnegative("Total must be non-negative"),
 	unitCost: z.number().nonnegative("Unit cost must be non-negative"),
 	handle: z.string().min(1, "handle is required"),
+	// Selected unit ("Sleeve" / "Box") for dual-unit products.
+	unit: z.string().max(20).nullish(),
 });
 
 const orderSummaryInfoSchema = z.object({

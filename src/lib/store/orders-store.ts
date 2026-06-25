@@ -104,6 +104,7 @@ export async function storePreparedOrderInDb(
 					description: item.description,
 					total: item.total,
 					unitCost: item.unitCost,
+					unit: item.unit ?? null,
 				})),
 			},
 
