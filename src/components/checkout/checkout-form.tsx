@@ -26,6 +26,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 		billingInfo,
 		isCartEmpty,
 		canProceedToBilling,
+		canProceedToOrder,
 		canPlaceOrder,
 		goToCart,
 		goToBilling,
@@ -61,7 +62,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 	const mobilePrimaryDisabled = isReviewOrderState
 		? !canProceedToBilling
 		: isBillingState
-			? !canPlaceOrder
+			? !canProceedToOrder
 			: isPlacingOrder || !canPlaceOrder;
 	const mobileSecondaryLabel = isBillingState
 		? "Back to Cart"
