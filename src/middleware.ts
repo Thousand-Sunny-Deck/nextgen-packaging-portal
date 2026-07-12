@@ -17,6 +17,11 @@ function isAuthLoginRoute(pathname: string): boolean {
 export async function middleware(req: NextRequest) {
 	const { nextUrl } = req;
 
+	const isProduction = process.env.NODE_ENV === "production";
+	if (isProduction) {
+		return NextResponse.redirect(new URL("/downtime", req.url));
+	}
+
 	const sessionCookie = getSessionCookie(req);
 
 	const isLoggedIn = !!sessionCookie;
