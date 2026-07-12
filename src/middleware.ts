@@ -18,7 +18,8 @@ export async function middleware(req: NextRequest) {
 	const { nextUrl } = req;
 
 	const isProduction = process.env.NODE_ENV === "production";
-	if (isProduction) {
+	const isDowntimeRoute = nextUrl.pathname === "/downtime";
+	if (isProduction && !isDowntimeRoute) {
 		return NextResponse.redirect(new URL("/downtime", req.url));
 	}
 
