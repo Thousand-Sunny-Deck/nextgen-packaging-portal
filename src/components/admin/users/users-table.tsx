@@ -10,6 +10,7 @@ import {
 	Pencil,
 	Trash2,
 	Loader2,
+	DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
 	type RowActionItem,
 } from "@/components/admin/ui/row-actions-menu";
 import {
+	setSpikeUserServiceFee,
 	updateSpikeUserName,
 	type SpikeAdminUser,
 } from "@/actions/spike/users-actions";
@@ -88,6 +90,29 @@ export function UsersTable({
 			}),
 		[editingRowId, editNameDraft],
 	);
+
+	const toggleServiceFee = async (row: SpikeAdminUser) => {
+		if (submitting) return;
+		setSubmitting(true);
+
+		const nextValue = !row.chargeServiceFee;
+		const result = await setSpikeUserServiceFee({
+			userId: row.id,
+			chargeServiceFee: nextValue,
+		});
+
+		if (!result.success) {
+			toast.error(result.error || "Failed to update service fee.");
+		} else {
+			toast.success(
+				nextValue
+					? `${row.name} will now be charged a $10 service fee per order.`
+					: `Service fee removed for ${row.name}.`,
+			);
+			onRefresh();
+		}
+		setSubmitting(false);
+	};
 
 	const startEditing = (row: SpikeAdminUser) => {
 		if (submitting) return;
@@ -179,6 +204,14 @@ export function UsersTable({
 				label: "Edit",
 				icon: <Pencil className="h-4 w-4" />,
 				onSelect: startEditing,
+			},
+			{
+				key: "toggle-service-fee",
+				label: row.chargeServiceFee
+					? "Remove $10 service fee"
+					: "Charge $10 service fee",
+				icon: <DollarSign className="h-4 w-4" />,
+				onSelect: toggleServiceFee,
 			},
 			{
 				key: "delete-user",

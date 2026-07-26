@@ -9,6 +9,7 @@ export type SpikeAdminUser = {
 	name: string;
 	email: string;
 	role: "USER" | "ADMIN" | "SUPER_ADMIN";
+	chargeServiceFee: boolean;
 	createdAt: string;
 	ordersCount: number;
 	entitlementsCount: number;
@@ -75,6 +76,7 @@ export async function getSpikeUsers(
 				name: true,
 				email: true,
 				role: true,
+				chargeServiceFee: true,
 				createdAt: true,
 				_count: {
 					select: {
@@ -91,6 +93,7 @@ export async function getSpikeUsers(
 		name: user.name,
 		email: user.email,
 		role: user.role,
+		chargeServiceFee: user.chargeServiceFee,
 		createdAt: user.createdAt.toISOString(),
 		ordersCount: user._count.orders,
 		entitlementsCount: user._count.entitledProducts,
@@ -177,6 +180,27 @@ export async function bulkCreateUsers(
 	}
 
 	return { success: true, createdCount };
+}
+
+export async function setSpikeUserServiceFee(input: {
+	userId: string;
+	chargeServiceFee: boolean;
+}): Promise<{ success: boolean; error?: string }> {
+	await requireAdmin();
+
+	try {
+		await prisma.user.update({
+			where: { id: input.userId },
+			data: { chargeServiceFee: input.chargeServiceFee },
+		});
+		return { success: true };
+	} catch (error: unknown) {
+		console.error("Failed to update spike user service fee:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to update service fee." };
+	}
 }
 
 export async function updateSpikeUserName(input: {

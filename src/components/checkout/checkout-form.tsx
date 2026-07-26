@@ -13,9 +13,13 @@ interface CheckoutFormProps {
 	userMetadata: {
 		email: string;
 	};
+	chargeServiceFee: boolean;
 }
 
-const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
+const CheckoutForm = ({
+	userMetadata,
+	chargeServiceFee,
+}: CheckoutFormProps) => {
 	const {
 		currentStep,
 		isHydrated,
@@ -36,7 +40,7 @@ const CheckoutForm = ({ userMetadata }: CheckoutFormProps) => {
 		dismissApprovalConfirmationModal,
 		progressSteps,
 		currentStepIndex,
-	} = useCheckoutFlow();
+	} = useCheckoutFlow(chargeServiceFee);
 
 	// Wait for hydration before rendering
 	if (!isHydrated) {

@@ -59,6 +59,16 @@ export function getUserColumns({
 			render: (user) => <Lozenge {...roleLozengeProps[user.role]} />,
 		},
 		{
+			key: "serviceFee",
+			header: "Service Fee",
+			render: (user) =>
+				user.chargeServiceFee ? (
+					<Lozenge className="bg-purple-100 text-purple-800">$10/order</Lozenge>
+				) : (
+					<span className="text-slate-400">—</span>
+				),
+		},
+		{
 			key: "orders",
 			header: "Orders",
 			render: (user) => user.ordersCount,
