@@ -37,4 +37,6 @@ export interface InvoiceData {
 	totalPaid: number;
 	balanceDue: number;
 	bankDetails: BankDetails;
+	// Customer note entered at checkout, if any.
+	notes?: string | null;
 }

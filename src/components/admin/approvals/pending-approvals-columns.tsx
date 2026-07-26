@@ -75,6 +75,21 @@ export function getPendingApprovalsColumns({
 			),
 		},
 		{
+			key: "note",
+			header: "Note",
+			render: (row) =>
+				row.notes ? (
+					<span
+						className="block max-w-[160px] truncate text-xs italic text-slate-600"
+						title={row.notes}
+					>
+						“{row.notes}”
+					</span>
+				) : (
+					<span className="text-slate-400">—</span>
+				),
+		},
+		{
 			key: "items",
 			header: "Items",
 			render: (row) => (
