@@ -151,6 +151,14 @@ export function AvailableProductsTable({
 						</p>
 					)}
 				</div>
+				<p className="text-xs text-slate-400">
+					CSV format: <span className="font-mono">sku,description</span> to
+					grant at default prices, or{" "}
+					<span className="font-mono">sku,description,price,sleeve-price</span>{" "}
+					to set this customer&apos;s own prices — use{" "}
+					<span className="font-mono">NA</span> to keep a default. SKU and
+					description must match an existing product exactly.
+				</p>
 				{csvErrors.length > 0 && (
 					<div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 space-y-1.5">
 						<div className="flex items-center gap-1.5 text-red-700">

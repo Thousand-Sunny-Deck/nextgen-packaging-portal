@@ -56,7 +56,8 @@ export function CsvImportButton({
 			}
 
 			onErrors([]);
-			for (const product of result.matches) {
+			for (const match of result.matches) {
+				const { product } = match;
 				addItem({
 					productId: product.id,
 					sku: product.sku,
@@ -67,9 +68,9 @@ export function CsvImportButton({
 					boxPrice: product.boxPrice,
 					customSku: "",
 					customDescription: "",
-					customUnitCost: "",
-					customSleevePrice: "",
-					customBoxPrice: "",
+					customUnitCost: match.customUnitCost,
+					customSleevePrice: match.customSleevePrice,
+					customBoxPrice: match.customBoxPrice,
 					source: "csv",
 				});
 			}
