@@ -2,9 +2,24 @@ import type { SpikeAvailableProduct } from "@/actions/spike/entitlements-actions
 
 const MAX_CSV_ROWS = 50;
 
+/**
+ * A matched product plus the customer's optional price overrides. Empty string
+ * means "use the product's default price" — the same convention the draft
+ * store uses.
+ */
+export type EntitlementCsvMatch = {
+	product: SpikeAvailableProduct;
+	customUnitCost: string;
+	customSleevePrice: string;
+	customBoxPrice: string;
+};
+
 type ParseResult =
-	| { ok: true; matches: SpikeAvailableProduct[] }
+	| { ok: true; matches: EntitlementCsvMatch[] }
 	| { ok: false; errors: string[] };
+
+const isBlankOrNa = (value: string) =>
+	value === "" || value.toUpperCase() === "NA";
 
 export function parseEntitlementCsv(
 	text: string,
@@ -25,20 +40,26 @@ export function parseEntitlementCsv(
 		};
 	}
 
-	const matches: SpikeAvailableProduct[] = [];
+	const matches: EntitlementCsvMatch[] = [];
 	const seenProductIds = new Set<string>();
 
 	for (let i = 0; i < lines.length; i++) {
 		const rowNum = i + 1;
 		const cols = lines[i].split(",");
 
-		if (cols.length !== 2) {
-			errors.push(`Row ${rowNum}: expected 2 columns, got ${cols.length}.`);
+		// 2 columns grants at the product's default prices; 4 columns adds this
+		// customer's own prices (same shape as the product-upload CSV).
+		if (cols.length !== 2 && cols.length !== 4) {
+			errors.push(
+				`Row ${rowNum}: expected 2 or 4 columns, got ${cols.length}.`,
+			);
 			continue;
 		}
 
 		const sku = cols[0].trim();
 		const description = cols[1].trim();
+		const priceRaw = cols[2]?.trim() ?? "";
+		const sleeveRaw = cols[3]?.trim() ?? "";
 		let rowValid = true;
 
 		if (!sku) {
@@ -95,8 +116,41 @@ export function parseEntitlementCsv(
 			continue;
 		}
 
+		// Optional price overrides. Column 3 is this customer's price — the box
+		// price for a dual-unit product, the unit cost otherwise — and column 4
+		// is their sleeve price. Blank or "NA" keeps the product's default.
+		const price = isBlankOrNa(priceRaw) ? null : parseFloat(priceRaw);
+		if (price !== null && (isNaN(price) || price <= 0)) {
+			errors.push(
+				`Row ${rowNum}: price must be a positive number, or "NA" to keep the default.`,
+			);
+			continue;
+		}
+
+		const sleevePrice = isBlankOrNa(sleeveRaw) ? null : parseFloat(sleeveRaw);
+		if (sleevePrice !== null && (isNaN(sleevePrice) || sleevePrice <= 0)) {
+			errors.push(
+				`Row ${rowNum}: sleeve price must be a positive number, or "NA" to keep the default.`,
+			);
+			continue;
+		}
+
+		// A sleeve price on a single-unit product would be stored but never
+		// used, so reject it rather than silently ignoring it.
+		if (sleevePrice !== null && !product.hasUnitOptions) {
+			errors.push(
+				`Row ${rowNum}: "${sku}" is not a sleeve/box product — use "NA" for the sleeve price.`,
+			);
+			continue;
+		}
+
 		seenProductIds.add(product.id);
-		matches.push(product);
+		matches.push({
+			product,
+			customUnitCost: price !== null && !product.hasUnitOptions ? priceRaw : "",
+			customBoxPrice: price !== null && product.hasUnitOptions ? priceRaw : "",
+			customSleevePrice: sleevePrice !== null ? sleeveRaw : "",
+		});
 	}
 
 	if (errors.length > 0) {
