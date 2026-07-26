@@ -116,6 +116,7 @@ export const enrichInvoiceData = (order: OrderDetails): InvoiceData => {
 		total: order.totalOrderCost,
 		totalPaid: 0,
 		balanceDue: order.totalOrderCost,
+		notes: order.notes,
 		bankDetails: {
 			bank: "COMMONWEALTH BANK",
 			name: "NEXTGEN PACKAGING",
