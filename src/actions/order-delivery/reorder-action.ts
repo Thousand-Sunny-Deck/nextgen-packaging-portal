@@ -9,6 +9,7 @@ import { env } from "@/lib/env-validation/env";
 import {
 	normalizeUnit,
 	resolveLinePrice,
+	resolveLineSku,
 	roundMoney,
 } from "@/lib/pricing/resolve-line-price";
 
@@ -166,7 +167,7 @@ export async function reorderAction(orderId: string): Promise<ReorderResponse> {
 
 		items.push({
 			handle: orderItem.handle,
-			sku: entitlement?.customSku ?? product.sku,
+			sku: resolveLineSku(entitlement?.customSku ?? product.sku, unit),
 			quantity,
 			description,
 			total,

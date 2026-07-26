@@ -2,6 +2,7 @@
 
 import { ProductData } from "@/actions/products/fetch-products-action";
 import { CartItem, cartLineKey, useCartStore } from "@/lib/store/product-store";
+import { resolveLineSku } from "@/lib/pricing/resolve-line-price";
 import { CatalogCard } from "./CatalogCard";
 import { CatalogCardViewModel, CatalogUnit } from "./types";
 
@@ -26,7 +27,7 @@ const toCartItem = (
 	const price = unitPrice(product, unit);
 	return {
 		handle: product.handle,
-		sku: product.sku,
+		sku: resolveLineSku(product.sku, unit ?? null),
 		description: unit
 			? `${product.description} (${unit})`
 			: product.description,

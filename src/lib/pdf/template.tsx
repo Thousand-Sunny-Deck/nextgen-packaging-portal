@@ -22,6 +22,7 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 		totalPaid,
 		balanceDue,
 		bankDetails,
+		notes,
 	} = invoiceData;
 
 	return (
@@ -108,6 +109,14 @@ const Invoice = ({ invoiceData }: InvoiceProps) => {
 						<Text style={styles.totalLabel}>${balanceDue.toFixed(2)}</Text>
 					</View>
 				</View>
+
+				{/* Customer note from checkout */}
+				{notes ? (
+					<View style={styles.notesSection}>
+						<Text style={styles.notesTitle}>Customer notes</Text>
+						<Text style={styles.notesText}>{notes}</Text>
+					</View>
+				) : null}
 
 				{/* Payment Information */}
 				<View style={styles.paymentSection}>

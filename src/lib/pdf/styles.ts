@@ -90,6 +90,21 @@ export const pdfTemplateStyles = StyleSheet.create({
 		padding: 15,
 		backgroundColor: "#f8f8f8",
 	},
+	notesSection: {
+		marginTop: 20,
+		padding: 15,
+		backgroundColor: "#f8f8f8",
+	},
+	notesTitle: {
+		fontSize: 11,
+		fontWeight: "bold",
+		marginBottom: 6,
+	},
+	notesText: {
+		fontSize: 9,
+		lineHeight: 1.5,
+		fontStyle: "italic",
+	},
 	paymentTitle: {
 		fontSize: 11,
 		fontWeight: "bold",

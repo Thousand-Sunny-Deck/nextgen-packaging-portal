@@ -7,6 +7,9 @@ export type ProductDraftItem = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	hasSleeve?: boolean; // dual-unit product: sold as Sleeve (SKU-SLV) or Box
+	sleevePrice?: number;
+	boxPrice?: number;
 	imageFile?: File; // raw File — uploaded at Confirm time, never sent to server
 	imagePreview?: string; // object URL for display only
 };

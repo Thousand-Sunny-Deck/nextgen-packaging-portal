@@ -5,8 +5,10 @@ import { Order, OrderItem } from "@/generated/prisma/client";
 import {
 	normalizeUnit,
 	resolveLinePrice,
+	resolveLineSku,
 	roundMoney,
 } from "@/lib/pricing/resolve-line-price";
+import { calculateServiceFee } from "@/lib/pricing/service-fee";
 
 const MAX_LINE_QUANTITY = 999;
 
@@ -168,7 +170,7 @@ export async function storePreparedOrderInDb(
 
 		orderItems.push({
 			productId: product.id,
-			sku: entitlement?.customSku ?? product.sku,
+			sku: resolveLineSku(entitlement?.customSku ?? product.sku, unit),
 			handle: product.handle,
 			quantity,
 			description: unit ? `${baseDescription} (${unit})` : baseDescription,
@@ -189,7 +191,13 @@ export async function storePreparedOrderInDb(
 	const subTotal = roundMoney(
 		orderItems.reduce((sum, item) => sum + item.total, 0),
 	);
-	const serviceFee = subTotal < 150 ? 10 : 0;
+	const feeUser = userId
+		? await prisma.user.findUnique({
+				where: { id: userId },
+				select: { chargeServiceFee: true },
+			})
+		: null;
+	const serviceFee = calculateServiceFee(feeUser?.chargeServiceFee ?? false);
 	const adjustedSubTotal = subTotal + serviceFee;
 	const tax = roundMoney(adjustedSubTotal * 0.1);
 	const totalOrderCost = roundMoney(adjustedSubTotal + tax);

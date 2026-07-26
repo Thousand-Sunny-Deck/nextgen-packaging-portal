@@ -55,6 +55,9 @@ async function createProducts(
 			sku: item.sku,
 			description: item.description,
 			unitCost: item.unitCost,
+			hasUnitOptions: item.hasSleeve ?? false,
+			sleevePrice: item.sleevePrice ?? null,
+			boxPrice: item.boxPrice ?? null,
 			imageUrl: s3Key,
 		})),
 	);
