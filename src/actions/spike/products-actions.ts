@@ -168,6 +168,9 @@ export type BulkCreateProductEntry = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	hasUnitOptions?: boolean;
+	sleevePrice?: number | null;
+	boxPrice?: number | null;
 	imageUrl?: string;
 };
 
@@ -182,6 +185,24 @@ export async function bulkCreateProducts(
 
 	if (entries.length === 0 || entries.length > 10) {
 		return { success: false, error: "Must provide between 1 and 10 products." };
+	}
+
+	for (const entry of entries) {
+		if (!entry.hasUnitOptions) continue;
+		const { sleevePrice, boxPrice } = entry;
+		if (
+			sleevePrice == null ||
+			boxPrice == null ||
+			!Number.isFinite(sleevePrice) ||
+			!Number.isFinite(boxPrice) ||
+			sleevePrice < 0 ||
+			boxPrice < 0
+		) {
+			return {
+				success: false,
+				error: `Both sleeve and box prices must be valid positive numbers (${entry.sku.trim()}).`,
+			};
+		}
 	}
 
 	const skus = entries.map((e) => e.sku.trim());
@@ -224,6 +245,9 @@ export async function bulkCreateProducts(
 						sku: entry.sku.trim(),
 						description: entry.description.trim(),
 						unitCost: entry.unitCost,
+						hasUnitOptions: entry.hasUnitOptions ?? false,
+						sleevePrice: entry.hasUnitOptions ? entry.sleevePrice : null,
+						boxPrice: entry.hasUnitOptions ? entry.boxPrice : null,
 						handle: slugify(`${entry.sku.trim()} ${entry.description.trim()}`),
 						imageUrl: entry.imageUrl ?? null,
 					},

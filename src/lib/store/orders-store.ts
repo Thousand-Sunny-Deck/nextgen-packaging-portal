@@ -5,6 +5,7 @@ import { Order, OrderItem } from "@/generated/prisma/client";
 import {
 	normalizeUnit,
 	resolveLinePrice,
+	resolveLineSku,
 	roundMoney,
 } from "@/lib/pricing/resolve-line-price";
 
@@ -168,7 +169,7 @@ export async function storePreparedOrderInDb(
 
 		orderItems.push({
 			productId: product.id,
-			sku: entitlement?.customSku ?? product.sku,
+			sku: resolveLineSku(entitlement?.customSku ?? product.sku, unit),
 			handle: product.handle,
 			quantity,
 			description: unit ? `${baseDescription} (${unit})` : baseDescription,
