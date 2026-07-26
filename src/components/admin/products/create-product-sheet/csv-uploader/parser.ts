@@ -4,6 +4,9 @@ export type ParsedRow = {
 	sku: string;
 	description: string;
 	unitCost: number;
+	hasSleeve?: boolean;
+	sleevePrice?: number;
+	boxPrice?: number;
 };
 
 type ParseResult =
@@ -89,53 +92,37 @@ export function parseCsv(text: string, existingSkus: Set<string>): ParseResult {
 
 		// Duplicate SKU checks — only when SKU is otherwise valid
 		if (rowValid) {
-			const candidates = sleeveCost !== null ? [sku, `${sku}-SLV`] : [sku];
-
-			for (const candidate of candidates) {
-				const key = candidate.toLowerCase();
-				if (seenSkus.has(key)) {
-					errors.push(
-						`Row ${rowNum}: SKU "${candidate}" is duplicated within the CSV.`,
-					);
-					rowValid = false;
-					break;
-				}
-				if (existingSkus.has(key)) {
-					errors.push(
-						`Row ${rowNum}: SKU "${candidate}" is already in the draft.`,
-					);
-					rowValid = false;
-					break;
-				}
-			}
-
-			if (rowValid) {
-				for (const candidate of candidates)
-					seenSkus.add(candidate.toLowerCase());
+			const key = sku.toLowerCase();
+			if (seenSkus.has(key)) {
+				errors.push(
+					`Row ${rowNum}: SKU "${sku}" is duplicated within the CSV.`,
+				);
+				rowValid = false;
+			} else if (existingSkus.has(key)) {
+				errors.push(`Row ${rowNum}: SKU "${sku}" is already in the draft.`);
+				rowValid = false;
+			} else {
+				seenSkus.add(key);
 			}
 		}
 
+		// A sleeve cost yields ONE dual-unit product: the unit cost doubles as
+		// the box price, and sleeves are ordered under the derived "{SKU}-SLV"
+		// code (no separate product row is created).
 		if (rowValid) {
-			rows.push({ sku, description, unitCost: cost });
-
 			if (sleeveCost !== null) {
 				rows.push({
-					sku: `${sku}-SLV`,
-					description: `${description} Sleeve`,
-					unitCost: sleeveCost,
+					sku,
+					description,
+					unitCost: cost,
+					hasSleeve: true,
+					sleevePrice: sleeveCost,
+					boxPrice: cost,
 				});
+			} else {
+				rows.push({ sku, description, unitCost: cost });
 			}
 		}
-	}
-
-	// After expansion, check total generated products against the hard cap
-	if (errors.length === 0 && rows.length > MAX_PRODUCT_DRAFT) {
-		return {
-			ok: false,
-			errors: [
-				`CSV would generate ${rows.length} products (including sleeves) — max is ${MAX_PRODUCT_DRAFT}.`,
-			],
-		};
 	}
 
 	if (errors.length > 0) {

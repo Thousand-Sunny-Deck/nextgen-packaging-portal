@@ -91,8 +91,7 @@ export function CsvUpload() {
 			{/* Header row */}
 			<div className="flex items-center justify-between">
 				<p className="text-sm text-slate-500">
-					Max {MAX_PRODUCT_DRAFT} products per upload (sleeves count
-					separately).
+					Max {MAX_PRODUCT_DRAFT} products per upload.
 				</p>
 				<button
 					type="button"
@@ -108,7 +107,9 @@ export function CsvUpload() {
 				Fields must not contain commas or quotes. Format:{" "}
 				<span className="font-mono">sku,description,unit-cost,sleeve-cost</span>{" "}
 				— use <span className="font-mono">NA</span> for sleeve cost if not
-				applicable.
+				applicable. A sleeve cost makes the product orderable as Sleeve or Box
+				(box priced at the unit cost; sleeves use the{" "}
+				<span className="font-mono">-SLV</span> code).
 			</p>
 
 			{/* Idle — drop zone */}
