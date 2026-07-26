@@ -24,6 +24,9 @@ model User {
   image         String?
   role          UserRole @default(USER)
 
+  // Flat $10 service fee charged on every order for flagged customers.
+  chargeServiceFee Boolean @default(false)
+
   sessions            Session[]
   accounts            Account[]
   orders              Order[]

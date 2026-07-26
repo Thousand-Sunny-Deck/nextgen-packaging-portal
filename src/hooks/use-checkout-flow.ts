@@ -14,6 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { preparePayloadAndFire } from "@/actions/order-delivery/deliver-order-action";
 import { saveFavouriteAction } from "@/actions/favourites/save-favourite-action";
 import { features } from "@/config/features";
+import { calculateServiceFee } from "@/lib/pricing/service-fee";
 
 export type CheckoutState = "cart" | "billing" | "order" | "shipped";
 
@@ -76,9 +77,11 @@ const getDashboardBasePath = (path: string) => {
 const calculateOrderSummary = (
 	totalCost: number,
 	cartSize: number,
+	chargeServiceFee: boolean,
 ): OrderSummaryInfo => {
 	const subTotal = totalCost;
-	const serviceFee = subTotal < 150 ? 10 : 0;
+	// Mirrors the server-authoritative rule in storePreparedOrderInDb.
+	const serviceFee = calculateServiceFee(chargeServiceFee);
 	const adjustedSubTotal = subTotal + serviceFee;
 	const tax = Math.round(adjustedSubTotal * 0.1 * 100) / 100;
 	const finalCost = adjustedSubTotal + tax;
@@ -94,7 +97,9 @@ const calculateOrderSummary = (
 	};
 };
 
-export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
+export const useCheckoutFlow = (
+	chargeServiceFee: boolean,
+): UseCheckoutFlowReturn => {
 	const [currentStep, setCurrentStep] = useState<CheckoutState>("cart");
 	const [isHydrated, setIsHydrated] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -133,7 +138,11 @@ export const useCheckoutFlow = (): UseCheckoutFlowReturn => {
 		!isCartEmpty && hasBillingInfo() && hasValidDeliveryDate;
 
 	// Order summary calculation
-	const orderSummary = calculateOrderSummary(totalCost, cartSize);
+	const orderSummary = calculateOrderSummary(
+		totalCost,
+		cartSize,
+		chargeServiceFee,
+	);
 
 	// Progress steps
 	const currentStepIndex =

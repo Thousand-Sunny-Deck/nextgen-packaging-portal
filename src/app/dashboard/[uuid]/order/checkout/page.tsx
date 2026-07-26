@@ -3,6 +3,7 @@ import { getUserSession } from "@/hooks/use-session";
 import { verifyOrgId } from "@/hooks/use-org-id";
 
 import DynamicBreadcrumb from "@/components/dynamic-breadcrumbs";
+import { prisma } from "@/lib/config/prisma";
 import CheckoutForm from "@/components/checkout/checkout-form";
 import CheckoutFavouriteButton from "@/components/checkout/CheckoutFavouriteButton";
 import { Suspense } from "react";
@@ -32,6 +33,12 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 		notFound();
 	}
 
+	const feeUser = await prisma.user.findUnique({
+		where: { id: session.user.id },
+		select: { chargeServiceFee: true },
+	});
+	const chargeServiceFee = feeUser?.chargeServiceFee ?? false;
+
 	return (
 		<>
 			<div className="flex justify-center mt-16 h-full pb-20 px-4 md:px-6">
@@ -52,6 +59,7 @@ const OrdersPage = async ({ params }: CheckoutPageProps) => {
 							userMetadata={{
 								email: session.user.email,
 							}}
+							chargeServiceFee={chargeServiceFee}
 						/>
 					</Suspense>
 				</div>
