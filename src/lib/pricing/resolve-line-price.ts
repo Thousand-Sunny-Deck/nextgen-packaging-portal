@@ -37,6 +37,19 @@ export function normalizeUnit(
 	return unit === "Box" ? "Box" : "Sleeve";
 }
 
+/**
+ * A sleeve shares its product's code but is identified by a "-SLV" suffix.
+ * Box (and single-unit) lines use the code as-is.
+ */
+export const SLEEVE_SKU_SUFFIX = "-SLV";
+
+export function resolveLineSku(
+	sku: string,
+	unit: string | null | undefined,
+): string {
+	return unit === "Sleeve" ? `${sku}${SLEEVE_SKU_SUFFIX}` : sku;
+}
+
 export function resolveLinePrice(
 	product: PriceableProduct,
 	entitlement: EntitlementPricing,

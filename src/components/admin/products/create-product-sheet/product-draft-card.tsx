@@ -67,7 +67,9 @@ export function ProductDraftCard({
 					{item.description}
 				</p>
 				<p className="text-xs text-slate-400 mt-1">
-					${item.unitCost.toFixed(2)}
+					{item.hasSleeve && item.sleevePrice != null && item.boxPrice != null
+						? `Sleeve $${item.sleevePrice.toFixed(2)} · Box $${item.boxPrice.toFixed(2)}`
+						: `$${item.unitCost.toFixed(2)}`}
 				</p>
 			</div>
 		</div>

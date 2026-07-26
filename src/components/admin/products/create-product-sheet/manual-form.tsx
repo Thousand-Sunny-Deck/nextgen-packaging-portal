@@ -5,6 +5,7 @@ import { PackagePlus, ImagePlus, Upload, X } from "lucide-react";
 import z from "zod";
 import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -24,12 +25,24 @@ const productSchema = z.object({
 		.positive("Unit cost must be greater than 0"),
 });
 
+const sleevePricesSchema = z.object({
+	sleevePrice: z
+		.number("Sleeve price must be a number")
+		.positive("Sleeve price must be greater than 0"),
+	boxPrice: z
+		.number("Box price must be a number")
+		.positive("Box price must be greater than 0"),
+});
+
 export function ManualForm() {
 	const { draft, addItem, removeItem, updateItem } = useCreateProductStore();
 
 	const [sku, setSku] = useState("");
 	const [description, setDescription] = useState("");
 	const [unitCost, setUnitCost] = useState("");
+	const [hasSleeve, setHasSleeve] = useState(false);
+	const [sleevePrice, setSleevePrice] = useState("");
+	const [boxPrice, setBoxPrice] = useState("");
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const [formError, setFormError] = useState<string | null>(null);
@@ -44,6 +57,9 @@ export function ManualForm() {
 		setSku("");
 		setDescription("");
 		setUnitCost("");
+		setHasSleeve(false);
+		setSleevePrice("");
+		setBoxPrice("");
 		setImageFile(null);
 		setImagePreview(null);
 		setFormError(null);
@@ -79,10 +95,25 @@ export function ManualForm() {
 		e.preventDefault();
 		setFormError(null);
 
+		// With the sleeve option on, the product is priced per sleeve/box; the
+		// stored unit cost mirrors the box price.
+		let sleeveData: { sleevePrice: number; boxPrice: number } | undefined;
+		if (hasSleeve) {
+			const parsedSleeve = sleevePricesSchema.safeParse({
+				sleevePrice: parseFloat(sleevePrice),
+				boxPrice: parseFloat(boxPrice),
+			});
+			if (!parsedSleeve.success) {
+				setFormError(parsedSleeve.error.issues[0].message);
+				return;
+			}
+			sleeveData = parsedSleeve.data;
+		}
+
 		const parsed = productSchema.safeParse({
 			sku: sku.trim(),
 			description: description.trim(),
-			unitCost: parseFloat(unitCost),
+			unitCost: sleeveData ? sleeveData.boxPrice : parseFloat(unitCost),
 		});
 
 		if (!parsed.success) {
@@ -104,6 +135,9 @@ export function ManualForm() {
 
 		const itemData = {
 			...parsed.data,
+			hasSleeve,
+			sleevePrice: sleeveData?.sleevePrice,
+			boxPrice: sleeveData?.boxPrice,
 			imageFile: imageFile ?? undefined,
 			imagePreview: imagePreview ?? undefined,
 		};
@@ -121,6 +155,9 @@ export function ManualForm() {
 		setSku(item.sku);
 		setDescription(item.description);
 		setUnitCost(String(item.unitCost));
+		setHasSleeve(item.hasSleeve ?? false);
+		setSleevePrice(item.sleevePrice != null ? String(item.sleevePrice) : "");
+		setBoxPrice(item.boxPrice != null ? String(item.boxPrice) : "");
 		setImageFile(item.imageFile ?? null);
 		setImagePreview(item.imagePreview ?? null);
 		setFormError(null);
@@ -159,18 +196,70 @@ export function ManualForm() {
 					/>
 				</div>
 
+				{!hasSleeve && (
+					<div className="space-y-2">
+						<Label htmlFor="unitCost">Unit Cost ($)</Label>
+						<Input
+							id="unitCost"
+							type="number"
+							step="0.01"
+							min="0"
+							value={unitCost}
+							onChange={(e) => setUnitCost(e.target.value)}
+							placeholder="9.99"
+							disabled={atLimit && !editingLocalId}
+						/>
+					</div>
+				)}
+
 				<div className="space-y-2">
-					<Label htmlFor="unitCost">Unit Cost ($)</Label>
-					<Input
-						id="unitCost"
-						type="number"
-						step="0.01"
-						min="0"
-						value={unitCost}
-						onChange={(e) => setUnitCost(e.target.value)}
-						placeholder="9.99"
-						disabled={atLimit && !editingLocalId}
-					/>
+					<div className="flex items-center gap-2">
+						<Checkbox
+							id="hasSleeve"
+							checked={hasSleeve}
+							onCheckedChange={(checked) => setHasSleeve(checked === true)}
+							disabled={atLimit && !editingLocalId}
+						/>
+						<Label htmlFor="hasSleeve" className="font-normal">
+							Sleeve option (sold as Sleeve or Box)
+						</Label>
+					</div>
+					{hasSleeve && (
+						<div className="space-y-2 rounded-lg border border-slate-200 p-3">
+							<div className="grid grid-cols-2 gap-3">
+								<div className="space-y-2">
+									<Label htmlFor="sleevePrice">Sleeve Price ($)</Label>
+									<Input
+										id="sleevePrice"
+										type="number"
+										step="0.01"
+										min="0"
+										value={sleevePrice}
+										onChange={(e) => setSleevePrice(e.target.value)}
+										placeholder="4.99"
+										disabled={atLimit && !editingLocalId}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="boxPrice">Box Price ($)</Label>
+									<Input
+										id="boxPrice"
+										type="number"
+										step="0.01"
+										min="0"
+										value={boxPrice}
+										onChange={(e) => setBoxPrice(e.target.value)}
+										placeholder="9.99"
+										disabled={atLimit && !editingLocalId}
+									/>
+								</div>
+							</div>
+							<p className="text-xs text-slate-400">
+								Sleeves are ordered under the code {sku.trim() || "SKU"}-SLV;
+								boxes use the code as-is.
+							</p>
+						</div>
+					)}
 				</div>
 
 				{/* Image picker */}
