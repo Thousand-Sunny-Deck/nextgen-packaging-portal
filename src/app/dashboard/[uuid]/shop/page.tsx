@@ -81,9 +81,11 @@ const ShopPage = async ({ params, searchParams }: ShopPageProps) => {
 				<CatalogGrid
 					products={result.items}
 					emptyMessage={
-						resolvedCategory
-							? "No products found in this category."
-							: "No additional products available. Your items are in Quick Order."
+						q
+							? `No products match "${q}".`
+							: resolvedCategory
+								? "No products found in this category."
+								: "No additional products available. Your items are in Quick Order."
 					}
 				/>
 			</div>
