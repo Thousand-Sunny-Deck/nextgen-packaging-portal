@@ -81,7 +81,11 @@ const OrdersPage = async ({ params, searchParams }: OrdersPageProps) => {
 				<CatalogGrid
 					products={result.items}
 					emptyMessage={
-						resolvedCategory ? "No products found in this category." : undefined
+						q
+							? `No products match "${q}".`
+							: resolvedCategory
+								? "No products found in this category."
+								: undefined
 					}
 				/>
 			</div>
