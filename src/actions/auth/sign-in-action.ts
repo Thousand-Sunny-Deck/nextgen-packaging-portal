@@ -5,14 +5,38 @@ import { LoginFormSchemaT } from "@/lib/schemas/auth";
 import { AuthOperationState } from "./types";
 import { APIError } from "better-auth/api";
 
-const fetchUserIdFromResponse = async (res: Response): Promise<string> => {
-	const body = await res.json();
+const GENERIC_ERROR = "Something went wrong. Please try again.";
 
-	if (body && body.user) {
-		return body.user.id as string;
+type SignInErrorBody = {
+	code?: string;
+	message?: string;
+};
+
+type SignInSuccessBody = {
+	user?: { id?: string };
+};
+
+/**
+ * Turns a failed sign-in response into a message we're happy to show the user.
+ *
+ * better-auth reports bad credentials as a 401 rather than throwing, so without
+ * this every wrong password used to surface as "Internal Server Error".
+ */
+const describeSignInFailure = (
+	status: number,
+	body: SignInErrorBody | null,
+): string => {
+	if (status === 401 || body?.code === "INVALID_EMAIL_OR_PASSWORD") {
+		return "Incorrect email or password. Please try again.";
 	}
 
-	throw Error("Something went wrong");
+	if (status === 429) {
+		return "Too many sign-in attempts. Please wait a moment and try again.";
+	}
+
+	// Anything else better-auth described for us is more useful than a generic
+	// message (e.g. "Email not verified"), so pass it through.
+	return body?.message ?? GENERIC_ERROR;
 };
 
 export const SignInUser = async (
@@ -27,7 +51,18 @@ export const SignInUser = async (
 			asResponse: true,
 		});
 
-		const uuid = await fetchUserIdFromResponse(res);
+		const body = (await res.json().catch(() => null)) as
+			| (SignInErrorBody & SignInSuccessBody)
+			| null;
+
+		if (!res.ok) {
+			return { error: describeSignInFailure(res.status, body) };
+		}
+
+		const uuid = body?.user?.id;
+		if (!uuid) {
+			return { error: GENERIC_ERROR };
+		}
 
 		return {
 			success: true,
@@ -38,12 +73,12 @@ export const SignInUser = async (
 	} catch (e: unknown) {
 		if (e instanceof APIError) {
 			return {
-				error: e.message,
+				error: describeSignInFailure(e.statusCode, e.body ?? null),
 			};
 		}
 
 		return {
-			error: "Internal Server Error. Something went wrong.",
+			error: GENERIC_ERROR,
 		};
 	}
 };

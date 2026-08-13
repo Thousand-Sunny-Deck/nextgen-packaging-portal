@@ -152,12 +152,14 @@ export function AvailableProductsTable({
 					)}
 				</div>
 				<p className="text-xs text-slate-400">
-					CSV format: <span className="font-mono">sku,description</span> to
-					grant at default prices, or{" "}
-					<span className="font-mono">sku,description,price,sleeve-price</span>{" "}
-					to set this customer&apos;s own prices — use{" "}
-					<span className="font-mono">NA</span> to keep a default. SKU and
-					description must match an existing product exactly.
+					CSV format: <span className="font-mono">sku</span> on its own grants
+					at the product&apos;s default prices, or{" "}
+					<span className="font-mono">sku,price</span> /{" "}
+					<span className="font-mono">sku,price,sleeve-price</span> to set this
+					customer&apos;s own prices — use <span className="font-mono">NA</span>{" "}
+					to keep a default. A description column is optional (
+					<span className="font-mono">sku,description,price,sleeve-price</span>)
+					and only needed to tell apart products sharing a SKU.
 				</p>
 				{csvErrors.length > 0 && (
 					<div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 space-y-1.5">

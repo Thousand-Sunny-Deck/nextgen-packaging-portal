@@ -21,6 +21,50 @@ type ParseResult =
 const isBlankOrNa = (value: string) =>
 	value === "" || value.toUpperCase() === "NA";
 
+const looksNumeric = (value: string) => value !== "" && !isNaN(Number(value));
+
+type RowColumns = {
+	sku: string;
+	description: string;
+	priceRaw: string;
+	sleeveRaw: string;
+};
+
+/**
+ * Splits a row into its parts, treating the description as optional.
+ *
+ * The first column is always the SKU, and the slot straight after it holds the
+ * description. That slot may be skipped: a number or "NA" there means the row
+ * went directly to the price columns. So the original
+ * `sku,description[,price,sleeve-price]` shape keeps working alongside `sku`,
+ * `sku,price` and `sku,price,sleeve-price`.
+ *
+ * Three trailing columns can only be description, price and sleeve price, so
+ * the first is always taken as the description in that case.
+ *
+ * The one input this can't split apart is a description that is nothing but
+ * digits; those rows still need the price columns spelled out.
+ */
+const splitRow = (cols: string[]): RowColumns => {
+	const rest = cols.slice(1);
+
+	const hasDescriptionColumn =
+		rest.length === 3 ||
+		(rest.length > 0 &&
+			!looksNumeric(rest[0]) &&
+			rest[0].toUpperCase() !== "NA");
+
+	const description = hasDescriptionColumn ? rest[0] : "";
+	const prices = hasDescriptionColumn ? rest.slice(1) : rest;
+
+	return {
+		sku: cols[0],
+		description: isBlankOrNa(description) ? "" : description,
+		priceRaw: prices[0] ?? "",
+		sleeveRaw: prices[1] ?? "",
+	};
+};
+
 export function parseEntitlementCsv(
 	text: string,
 	availableProducts: SpikeAvailableProduct[],
@@ -45,35 +89,29 @@ export function parseEntitlementCsv(
 
 	for (let i = 0; i < lines.length; i++) {
 		const rowNum = i + 1;
-		const cols = lines[i].split(",");
+		const cols = lines[i].split(",").map((c) => c.trim());
 
-		// 2 columns grants at the product's default prices; 4 columns adds this
-		// customer's own prices (same shape as the product-upload CSV).
-		if (cols.length !== 2 && cols.length !== 4) {
+		// At most: sku, description, price, sleeve-price. Everything after the
+		// SKU is optional.
+		if (cols.length > 4) {
 			errors.push(
-				`Row ${rowNum}: expected 2 or 4 columns, got ${cols.length}.`,
+				`Row ${rowNum}: expected at most 4 columns, got ${cols.length}.`,
 			);
 			continue;
 		}
 
-		const sku = cols[0].trim();
-		const description = cols[1].trim();
-		const priceRaw = cols[2]?.trim() ?? "";
-		const sleeveRaw = cols[3]?.trim() ?? "";
+		const { sku, description, priceRaw, sleeveRaw } = splitRow(cols);
 		let rowValid = true;
 
 		if (!sku) {
 			errors.push(`Row ${rowNum}: SKU is required.`);
 			rowValid = false;
-		} else if (/[,"]/.test(sku)) {
+		} else if (/"/.test(sku)) {
 			errors.push(`Row ${rowNum}: SKU must not contain commas or quotes.`);
 			rowValid = false;
 		}
 
-		if (!description) {
-			errors.push(`Row ${rowNum}: description is required.`);
-			rowValid = false;
-		} else if (/[,"]/.test(description)) {
+		if (/"/.test(description)) {
 			errors.push(
 				`Row ${rowNum}: description must not contain commas or quotes.`,
 			);
@@ -82,22 +120,25 @@ export function parseEntitlementCsv(
 
 		if (!rowValid) continue;
 
+		// The description is only used to narrow the match when it's supplied.
+		const label = description ? `"${sku}" / "${description}"` : `"${sku}"`;
 		const found = availableProducts.filter(
 			(p) =>
 				p.sku.toLowerCase() === sku.toLowerCase() &&
-				p.description.toLowerCase() === description.toLowerCase(),
+				(!description ||
+					p.description.toLowerCase() === description.toLowerCase()),
 		);
 
 		if (found.length === 0) {
-			errors.push(
-				`Row ${rowNum}: no available product matches SKU "${sku}" and description "${description}".`,
-			);
+			errors.push(`Row ${rowNum}: no available product matches ${label}.`);
 			continue;
 		}
 
 		if (found.length > 1) {
 			errors.push(
-				`Row ${rowNum}: ambiguous match for SKU "${sku}" and description "${description}".`,
+				description
+					? `Row ${rowNum}: ambiguous match for ${label}.`
+					: `Row ${rowNum}: ${found.length} products share SKU "${sku}" — add a description column to pick one.`,
 			);
 			continue;
 		}
@@ -105,9 +146,7 @@ export function parseEntitlementCsv(
 		const product = found[0];
 
 		if (seenProductIds.has(product.id)) {
-			errors.push(
-				`Row ${rowNum}: SKU "${sku}" / "${description}" is duplicated within the CSV.`,
-			);
+			errors.push(`Row ${rowNum}: ${label} is duplicated within the CSV.`);
 			continue;
 		}
 
