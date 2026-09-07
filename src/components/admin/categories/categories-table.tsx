@@ -6,6 +6,7 @@ import {
 	Eye,
 	FolderTree,
 	Loader2,
+	PackagePlus,
 	Pencil,
 	Plus,
 	RefreshCw,
@@ -46,6 +47,7 @@ import {
 } from "./categories-columns";
 import { CategoryCreateDialog } from "./category-create-dialog";
 import { CategoryImageUploadModal } from "./category-image-upload-modal";
+import { AddProductsDialog } from "./add-products-dialog";
 
 interface CategoriesTableProps {
 	categories: SpikeAdminCategory[];
@@ -91,6 +93,9 @@ export function CategoriesTable({
 	);
 	const [submitting, setSubmitting] = useState(false);
 	const [submitError, setSubmitError] = useState<string | null>(null);
+
+	const [addProductsFor, setAddProductsFor] =
+		useState<SpikeAdminCategory | null>(null);
 
 	const [imageModalOpen, setImageModalOpen] = useState(false);
 	const [imageLoading, setImageLoading] = useState(false);
@@ -352,6 +357,12 @@ export function CategoriesTable({
 				onSelect: startEditing,
 			},
 			{
+				key: "add-products",
+				label: "Add products",
+				icon: <PackagePlus className="h-4 w-4" />,
+				onSelect: () => setAddProductsFor(row),
+			},
+			{
 				key: "upload-image",
 				label: "Upload image",
 				icon: <ImagePlus className="h-4 w-4" />,
@@ -388,6 +399,16 @@ export function CategoriesTable({
 				open={createOpen}
 				onOpenChange={setCreateOpen}
 				onCreated={onRefresh}
+			/>
+
+			<AddProductsDialog
+				open={addProductsFor !== null}
+				onOpenChange={(open) => {
+					if (!open) setAddProductsFor(null);
+				}}
+				categoryId={addProductsFor?.id ?? null}
+				categoryName={addProductsFor?.name ?? null}
+				onSaved={onRefresh}
 			/>
 
 			<div className="mb-4 flex flex-col items-stretch justify-between gap-2 sm:flex-row sm:items-center">

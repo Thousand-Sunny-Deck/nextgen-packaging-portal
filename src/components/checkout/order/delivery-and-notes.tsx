@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useCheckoutExtrasStore } from "@/lib/store/checkout-extras-store";
 import {
 	MAX_ORDER_NOTES_LENGTH,
+	ORDER_CUTOFF_HOUR,
 	getEarliestDeliveryDate,
 	isWeekendUTC,
 	parseDeliveryDate,
@@ -52,7 +53,9 @@ const DeliveryAndNotes = () => {
 					<p className="text-xs text-destructive">{dateError}</p>
 				) : (
 					<p className="text-xs text-muted-foreground">
-						Weekdays only. Earliest available day is preselected as the minimum.
+						Weekdays only. Order before {ORDER_CUTOFF_HOUR % 12 || 12}
+						{ORDER_CUTOFF_HOUR >= 12 ? "pm" : "am"} for next-business-day
+						delivery; after that, the earliest is the business day after.
 					</p>
 				)}
 			</div>
