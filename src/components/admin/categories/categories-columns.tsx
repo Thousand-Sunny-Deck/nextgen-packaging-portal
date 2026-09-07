@@ -98,9 +98,19 @@ export function getCategoryColumns({
 		{
 			key: "productCount",
 			header: "Products",
-			render: (category) => (
-				<span className="text-slate-700">{category.productCount}</span>
-			),
+			// An empty category is invisible to customers, which is otherwise a
+			// silent and confusing state.
+			render: (category) =>
+				category.productCount === 0 ? (
+					<span
+						className="text-amber-600"
+						title="Customers can't see a category until it has products"
+					>
+						0 — hidden
+					</span>
+				) : (
+					<span className="text-slate-700">{category.productCount}</span>
+				),
 		},
 		{
 			key: "created",

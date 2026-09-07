@@ -469,3 +469,110 @@ export async function setSpikeProductCategories(input: {
 		return { success: false, error: "Failed to update product categories." };
 	}
 }
+
+// ─── Bulk product assignment ─────────────────────────────────────────────────
+
+/** Cap on the products listed at once in the bulk-add dialog. */
+const BULK_PRODUCT_PAGE_SIZE = 50;
+
+export type SpikeAssignableProduct = {
+	id: string;
+	sku: string;
+	description: string;
+	assigned: boolean;
+};
+
+/**
+ * Products offered in a category's "Add products" dialog. The catalogue is far
+ * too large to list in full, so this is search-driven and capped.
+ */
+export async function getSpikeAssignableProducts(input: {
+	categoryId: string;
+	search?: string;
+}): Promise<{
+	success: boolean;
+	products?: SpikeAssignableProduct[];
+	truncated?: boolean;
+	error?: string;
+}> {
+	await requireAdmin();
+
+	const search = input.search?.trim().slice(0, 100);
+
+	const rows = await prisma.product.findMany({
+		where: search
+			? {
+					OR: [
+						{ sku: { contains: search, mode: "insensitive" } },
+						{ description: { contains: search, mode: "insensitive" } },
+					],
+				}
+			: {},
+		orderBy: { sku: "asc" },
+		// One extra row tells us whether the search needs narrowing.
+		take: BULK_PRODUCT_PAGE_SIZE + 1,
+		select: {
+			id: true,
+			sku: true,
+			description: true,
+			categories: {
+				where: { categoryId: input.categoryId },
+				select: { categoryId: true },
+			},
+		},
+	});
+
+	const truncated = rows.length > BULK_PRODUCT_PAGE_SIZE;
+
+	return {
+		success: true,
+		truncated,
+		products: rows.slice(0, BULK_PRODUCT_PAGE_SIZE).map((product) => ({
+			id: product.id,
+			sku: product.sku,
+			description: product.description,
+			assigned: product.categories.length > 0,
+		})),
+	};
+}
+
+/**
+ * Adds products to a category, leaving existing assignments alone. Removing a
+ * product is still done from that product's own "Manage categories" dialog.
+ */
+export async function addSpikeProductsToCategory(input: {
+	categoryId: string;
+	productIds: string[];
+}): Promise<{ success: boolean; added?: number; error?: string }> {
+	await requireAdmin();
+
+	const category = await prisma.category.findUnique({
+		where: { id: input.categoryId },
+		select: { id: true },
+	});
+	if (!category) {
+		return { success: false, error: "Category not found." };
+	}
+
+	const productIds = Array.from(new Set(input.productIds));
+	if (productIds.length === 0) {
+		return { success: true, added: 0 };
+	}
+
+	try {
+		const { count } = await prisma.productCategory.createMany({
+			data: productIds.map((productId) => ({
+				productId,
+				categoryId: input.categoryId,
+			})),
+			skipDuplicates: true,
+		});
+		return { success: true, added: count };
+	} catch (error: unknown) {
+		console.error("Failed to add products to category:", error);
+		if (error instanceof Error) {
+			return { success: false, error: error.message };
+		}
+		return { success: false, error: "Failed to add products to category." };
+	}
+}

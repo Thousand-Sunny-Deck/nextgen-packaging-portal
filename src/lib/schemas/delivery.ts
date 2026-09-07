@@ -11,6 +11,19 @@
 
 export const MAX_ORDER_NOTES_LENGTH = 280;
 
+/**
+ * The business's own clock. "Today" and the cutoff are both judged here, so the
+ * rule is identical for the customer's browser (any timezone) and the server
+ * (UTC).
+ */
+export const BUSINESS_TIMEZONE = "Australia/Adelaide";
+
+/**
+ * Daily order cutoff, on the business clock. Order before it and the earliest
+ * delivery is the next business day; after it, the one after that.
+ */
+export const ORDER_CUTOFF_HOUR = 16;
+
 const DATE_INPUT_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** True for Saturday/Sunday (UTC). */
@@ -36,17 +49,48 @@ export function toDateInputValue(date: Date): string {
 	return date.toISOString().slice(0, 10);
 }
 
+/** Calendar date and hour of `at` on the business clock. */
+function businessNow(at: Date): {
+	year: number;
+	month: number;
+	day: number;
+	hour: number;
+} {
+	const parts = new Intl.DateTimeFormat("en-CA", {
+		timeZone: BUSINESS_TIMEZONE,
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		hourCycle: "h23",
+	}).formatToParts(at);
+
+	const get = (type: string) =>
+		Number(parts.find((part) => part.type === type)?.value);
+
+	return {
+		year: get("year"),
+		month: get("month"),
+		day: get("day"),
+		hour: get("hour"),
+	};
+}
+
 /**
- * Earliest selectable delivery day: the next business day after `from`.
- * Weekends are skipped.
+ * Earliest selectable delivery day: the next business day, or the one after it
+ * when the order is placed past the cutoff. Never same-day.
  */
 export function getEarliestDeliveryDate(from: Date = new Date()): Date {
-	const date = new Date(
-		Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()),
-	);
-	do {
-		date.setUTCDate(date.getUTCDate() + 1);
-	} while (isWeekendUTC(date));
+	const { year, month, day, hour } = businessNow(from);
+	const date = new Date(Date.UTC(year, month - 1, day));
+
+	const businessDays = hour >= ORDER_CUTOFF_HOUR ? 2 : 1;
+	for (let i = 0; i < businessDays; i++) {
+		do {
+			date.setUTCDate(date.getUTCDate() + 1);
+		} while (isWeekendUTC(date));
+	}
+
 	return date;
 }
 

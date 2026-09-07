@@ -34,9 +34,15 @@ export class PostOffice {
 			}),
 		});
 
-		return {
-			data,
-			error,
-		};
+		// Resend reports failures in the payload rather than throwing, so an
+		// unchecked send silently drops the email. Throw instead: the Inngest
+		// job then retries it, and the approval path logs it.
+		if (error) {
+			throw new Error(
+				`Resend failed to send "${this.adminDetails.subject}" to ${targetDetails.to.join(", ")}: ${error.message}`,
+			);
+		}
+
+		return data;
 	}
 }
