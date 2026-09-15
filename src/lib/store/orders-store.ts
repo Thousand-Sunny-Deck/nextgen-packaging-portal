@@ -197,7 +197,10 @@ export async function storePreparedOrderInDb(
 				select: { chargeServiceFee: true },
 			})
 		: null;
-	const serviceFee = calculateServiceFee(feeUser?.chargeServiceFee ?? false);
+	const serviceFee = calculateServiceFee(
+		feeUser?.chargeServiceFee ?? false,
+		subTotal,
+	);
 	const adjustedSubTotal = subTotal + serviceFee;
 	const tax = roundMoney(adjustedSubTotal * 0.1);
 	const totalOrderCost = roundMoney(adjustedSubTotal + tax);

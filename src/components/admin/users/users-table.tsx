@@ -106,7 +106,7 @@ export function UsersTable({
 		} else {
 			toast.success(
 				nextValue
-					? `${row.name} will now be charged a $10 service fee per order.`
+					? `${row.name} will now be charged a $10 service fee on orders under $150.`
 					: `Service fee removed for ${row.name}.`,
 			);
 			onRefresh();
