@@ -8,9 +8,12 @@ import { getUserIdBySessionId } from "@/lib/store/sessions-store";
 import { notFound, redirect } from "next/navigation";
 
 const HomePage = async () => {
+	// An anonymous visitor surfaces as an error carrying the login URL, which is
+	// the whole point of landing here — 404ing on it made the site root a dead
+	// end for anyone not already signed in.
 	const { error, session } = await getUserSession();
 	if (error) {
-		notFound();
+		redirect(error.getRedirectUrl());
 	}
 
 	if (!session) {
