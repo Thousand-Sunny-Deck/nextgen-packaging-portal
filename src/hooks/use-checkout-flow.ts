@@ -81,7 +81,7 @@ const calculateOrderSummary = (
 ): OrderSummaryInfo => {
 	const subTotal = totalCost;
 	// Mirrors the server-authoritative rule in storePreparedOrderInDb.
-	const serviceFee = calculateServiceFee(chargeServiceFee);
+	const serviceFee = calculateServiceFee(chargeServiceFee, subTotal);
 	const adjustedSubTotal = subTotal + serviceFee;
 	const tax = Math.round(adjustedSubTotal * 0.1 * 100) / 100;
 	const finalCost = adjustedSubTotal + tax;
