@@ -1,6 +1,7 @@
 "use client";
 
 import { BillingInfoItem } from "@/lib/store/billing-info-store";
+import { SERVICE_FEE_THRESHOLD } from "@/lib/pricing/service-fee";
 
 export type OrderSummaryInfo = {
 	subTotal: number;
@@ -22,6 +23,12 @@ const OrderSummary = ({
 }: OrderSummaryProps) => {
 	const { subTotal, cartSize, totalCost, extraCost } = info;
 	const hasBillingInfo = billingInfo !== null;
+	const serviceFee = extraCost["serviceFee"];
+	// Only worth explaining when they're actually paying it.
+	const serviceFeeNote =
+		serviceFee > 0
+			? `Applies to orders under $${SERVICE_FEE_THRESHOLD} excluding GST.`
+			: null;
 
 	return (
 		<div className="mt-4 px-4 py-2 flex flex-col w-full">
@@ -42,8 +49,11 @@ const OrderSummary = ({
 				</div>
 				<div className="mt-2 flex items-center justify-between text-sm">
 					<p className="text-muted-foreground">Service fee</p>
-					<p className="font-medium">${extraCost["serviceFee"].toFixed(2)}</p>
+					<p className="font-medium">${serviceFee.toFixed(2)}</p>
 				</div>
+				{serviceFeeNote && (
+					<p className="mt-1 text-xs text-muted-foreground">{serviceFeeNote}</p>
+				)}
 				<div className="mt-2 flex items-center justify-between text-sm">
 					<p className="text-muted-foreground">Tax</p>
 					<p className="font-medium">${extraCost["tax"].toFixed(2)}</p>
@@ -64,10 +74,13 @@ const OrderSummary = ({
 					</div>
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Service Fee</p>
-						<p className="font-semibold text-sm">
-							${extraCost["serviceFee"].toFixed(2)}
-						</p>
+						<p className="font-semibold text-sm">${serviceFee.toFixed(2)}</p>
 					</div>
+					{serviceFeeNote && (
+						<p className="pl-3 mt-1 text-xs text-muted-foreground">
+							{serviceFeeNote}
+						</p>
+					)}
 					<div className="pl-3 flex flex-row justify-between mt-2">
 						<p className="font-extralight text-sm italic">Tax</p>
 						<p className="font-semibold text-sm">
