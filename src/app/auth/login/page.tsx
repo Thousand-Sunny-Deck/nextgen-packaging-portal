@@ -1,117 +1,25 @@
-"use client";
-import { SignInUser } from "@/actions/auth/sign-in-action";
-import { Button } from "@/components/ui/button";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { LoginFormSchema, LoginFormSchemaT } from "@/lib/schemas/auth";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { redirect } from "next/navigation";
+import { getUserSession } from "@/hooks/use-session";
+import { getUserIdBySessionId } from "@/lib/store/sessions-store";
+import { LoginForm } from "./login-form";
 
-const LoginPage = () => {
-	const [isPending, setIsPending] = useState<boolean>(false);
-	const router = useRouter();
+/**
+ * Deciding "already signed in" here rather than in middleware: middleware only
+ * sees whether a session cookie exists, so it would bounce someone holding a
+ * dead cookie away from the one page that could fix it. This checks the session
+ * for real, and falls through to the form when it doesn't hold up.
+ */
+const LoginPage = async () => {
+	const { session } = await getUserSession();
 
-	const form = useForm<LoginFormSchemaT>({
-		resolver: zodResolver(LoginFormSchema),
-		defaultValues: {
-			email: "",
-			password: "",
-		},
-	});
-
-	const handleSignIn = async (data: LoginFormSchemaT) => {
-		setIsPending(true);
-		const { error, user } = await SignInUser(data);
-
-		if (error) {
-			toast.error(error);
-			setIsPending(false);
-		} else {
-			// if it gets here that means there always exists a user.id
-			console.log(user);
-			const redirectUrl = `/dashboard/${user?.uuid}/home`;
-			router.replace(redirectUrl);
+	if (session) {
+		const orgId = await getUserIdBySessionId(session.session.id);
+		if (orgId) {
+			redirect(`/dashboard/${orgId}/home`);
 		}
-	};
+	}
 
-	return (
-		<div className="w-full h-screen flex bg-orange-50">
-			{/* Image section - hidden on mobile (md:flex means show on medium screens and up) */}
-			<div className="hidden md:flex md:w-7/12 h-full flex-col">
-				<div className="w-7/12 absolute inset-0 bg-gradient-to-t to-black/90 from-black/50">
-					<h1 className="p-8 pt-12 text-8xl font-semibold text-white bg-transparent">
-						NEXTGEN PACKAGING
-					</h1>
-				</div>
-				<img
-					src="/assets/login/login.jpg"
-					alt="NextGen Packaging"
-					className="h-full w-full"
-				/>
-			</div>
-
-			{/* Form section - responsive width and positioning */}
-			<div className="w-full md:w-1/4 h-full p-8 flex flex-col mx-auto md:ml-auto md:mr-32 mt-24 md:mt-48 justify-center md:justify-start">
-				<h1 className="text-3xl font-bold pb-9 text-center w-full">LOG IN</h1>
-				<Form {...form}>
-					<form
-						onSubmit={form.handleSubmit(handleSignIn)}
-						className="flex flex-col gap-5"
-					>
-						<FormField
-							control={form.control}
-							name="email"
-							render={({ field }) => (
-								<FormItem>
-									<FormControl>
-										<Input placeholder="Email" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="password"
-							render={({ field }) => (
-								<FormItem>
-									<FormControl>
-										<Input placeholder="Password" type="password" {...field} />
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-						<div className="text-right">
-							<Link
-								href="/auth/forgot-password"
-								className="text-sm text-muted-foreground hover:text-foreground"
-							>
-								Forgot password?
-							</Link>
-						</div>
-						<Button
-							type="submit"
-							className="md:ml-14 md:mr-14 mt-2"
-							disabled={isPending}
-						>
-							Log in
-						</Button>
-					</form>
-				</Form>
-			</div>
-		</div>
-	);
+	return <LoginForm />;
 };
 
 export default LoginPage;

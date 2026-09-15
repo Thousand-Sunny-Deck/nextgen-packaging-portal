@@ -5,7 +5,7 @@
 
 import { getUserSession } from "@/hooks/use-session";
 import { getUserIdBySessionId } from "@/lib/store/sessions-store";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 const HomePage = async () => {
 	// An anonymous visitor surfaces as an error carrying the login URL, which is
@@ -23,8 +23,10 @@ const HomePage = async () => {
 	const sessionId = session.session.id;
 	const orgId = await getUserIdBySessionId(sessionId);
 
+	// Cookie survived but the session row didn't. Send them to the login form
+	// rather than a 404 — middleware no longer bounces them off it.
 	if (!orgId) {
-		notFound();
+		redirect("/auth/login");
 	}
 
 	redirect(`/dashboard/${orgId}/home`);
